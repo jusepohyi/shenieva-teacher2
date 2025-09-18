@@ -55,9 +55,9 @@
           <svelte:fragment slot="icon">
             <FileCopyAltSolid class="w-6 h-6" />
           </svelte:fragment>
-          <SidebarDropdownItem label="Story 1" class={isActive('/admin/quizzes/story1')} href="/admin/quizzes/story1" />
-          <SidebarDropdownItem label="Story 2" class={isActive('/admin/quizzes/story2')} href="/admin/quizzes/story2" />
-          <SidebarDropdownItem label="Story 3" class={isActive('/admin/quizzes/story3')} href="/admin/quizzes/story3" />
+          <SidebarDropdownItem label="Level 1" class={isActive('/admin/quizzes/story1')} href="/admin/quizzes/story1" />
+          <SidebarDropdownItem label="Level 2" class={isActive('/admin/quizzes/story2')} href="/admin/quizzes/story2" />
+          <SidebarDropdownItem label="Level 3" class={isActive('/admin/quizzes/story3')} href="/admin/quizzes/story3" />
         </SidebarDropdownWrapper>
 
         <SidebarItem label="Record" class={isActive('/admin/record')} href="/admin/record">

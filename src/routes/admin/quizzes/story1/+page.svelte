@@ -24,7 +24,7 @@
       class:bg-gray-200={activeTab !== 'store1'}
       class="px-4 py-2 rounded-lg font-semibold transition"
     >
-      Store 1
+      Maria's Promise
     </button>
     <button
       on:click={() => setActiveTab('store2')}
@@ -33,7 +33,7 @@
       class:bg-gray-200={activeTab !== 'store2'}
       class="px-4 py-2 rounded-lg font-semibold transition"
     >
-      Store 2
+      Candice and Candies
     </button>
     <button
       on:click={() => setActiveTab('store3')}
@@ -42,7 +42,7 @@
       class:bg-gray-200={activeTab !== 'store3'}
       class="px-4 py-2 rounded-lg font-semibold transition"
     >
-      Store 3
+      Hannah, the Honest VendorS
     </button>
   </div>
 

@@ -13,7 +13,7 @@
     let currentSlide: number = 1;
     let isLoading: boolean = true;
     let showLanguageModal: boolean = false;
-    let maxSlides = 7;
+    let maxSlides = 10;
 
     async function loadStorySlide(key: string, slideNumber: number = 1): Promise<void> {
         console.log('Attempting to load story slide:', { key, slideNumber, currentSlide });
@@ -57,6 +57,15 @@
             StorySlide = null;
             language.set('english'); // Set English as default for new slide
             await loadStorySlide(storyKey, currentSlide + 1);
+        } else if (storyKey === 'story1-1') {
+            // Load the final slide when at the end of story1-1
+            try {
+                console.log('Loading final slide');
+                const module = await import('../../Stories/Story1/slide_last.svelte');
+                StorySlide = module.default;
+            } catch (error) {
+                console.error("Failed to load final slide:", error);
+            }
         }
     }
 

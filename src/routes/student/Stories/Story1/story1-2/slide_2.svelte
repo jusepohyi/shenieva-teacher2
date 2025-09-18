@@ -1,87 +1,80 @@
 <script>
+    import { language } from "$lib/store/story_lang_audio";
+
     const slide = {
-        text: "Vendor 2 - SLIDE 2.🌟",
-        image: "/src/assets/readville.gif" // Using your updated GIF
+        text: {
+            english: "Her parents often warned her about the dangers of eating too many sweets. Her mother said, “Candice, it’s not good to always eat sweets and candies!”, but Candice just couldn’t resist.",
+            cebuano: "Sa usa ka hapon, usa sa iyang suki ug kasaligan nga higala nga si Maria miabot sa tindahan ug nipalit ug usa ka pakete sa asin, usa ka kilo nga bugas, ug usa ka pakete nga asukal."
+        },
+        image: "/src/assets/LEVEL_1/STORY_2/PIC2.jpg"
     };
 </script>
 
-<div class="flex flex-col justify-center items-center text-center slide">
+<div class="slide-container">
     {#if slide.image}
-        <div class="image-container">
+        <div class="image-wrapper">
             <img
                 src={slide.image}
                 alt="Story Scene"
-                class="block mx-auto rounded-[2vw] shadow-lg"
+                class="story-image"
             />
         </div>
     {/if}
-    <p class="text-[4vw] md:text-2xl text-gray-800 font-semibold text-fade">
-        {slide.text}
-    </p>
+    <div class="story-text" transition:fade>
+        {$language === 'english' ? slide.text.english : slide.text.cebuano}
+    </div>
 </div>
 
 <style>
-    .slide {
-        animation: fadeIn 1000ms ease-in forwards;
-        will-change: opacity; /* Hint to browser for smoother animation */
-    }
-
-    .image-container {
-        width: 80vw;
-        height: 80vh;
-        max-width: 800px;
-        max-height: 400px;
-        margin-bottom: 2vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .image-container img {
+    .slide-container {
         width: 100%;
         height: 100%;
-        object-fit: contain;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        box-sizing: border-box;
+        animation: fadeIn 1000ms ease-in forwards;
     }
 
-    .text-fade {
-        white-space: pre-wrap;
-        overflow-wrap: break-word;
-        max-width: 80%;
+    .image-wrapper {
+        flex: 1;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 0;
+    }
+
+    .story-image {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .story-text {
+        font-size: clamp(1rem, 2vw, 1.25rem);
+        line-height: 1.6;
+        color: #1f2937;
+        text-align: center;
+        padding: 0 1rem;
+        margin: 0;
         animation: textFadeIn 1000ms ease-in forwards;
-        will-change: opacity; /* Optimize text animation */
-        -webkit-font-smoothing: antialiased; /* Improve text clarity */
-        -moz-osx-font-smoothing: grayscale; /* Improve text clarity */
-        transform: translateZ(0); /* Force hardware acceleration without blur */
     }
 
     @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
 
     @keyframes textFadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
-    }
-
-    :global(.slide) {
-        animation: fadeOut 1000ms ease-out forwards;
-    }
-
-    @keyframes fadeOut {
-        from {
-            opacity: 1;
-        }
-        to {
-            opacity: 0;
-        }
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
 </style>

@@ -4,10 +4,10 @@
 
     const slide = {
         text: {
-            english: "Few minutes later, Lena saw Maria approaching towards her store, smiling and raising her hand.",
-            cebuano: "Pipila ka minutos ang milabay, nakita ni Lena si Maria nga nagpadulong sa iyang tindahan, nagpahiyom ug gitaas ang kamot."
+            english: "Maria went near and said, “Thank you for trusting me, Lena. This is my payment.” Lena nodded and told Maria, \"No problem at all. I’m just glad you were able to pay.\" Maria thanked her again, and Lena felt happy that she could trust her customer, knowing that trust is important in business.",
+            cebuano: "Niduol si Maria ug niingon, “Daghang salamat sa pagsalig nako, Lena. Ania na ang akong bayad.” Nitando si Lena ug miingon, “Walay problema gyud. Nalipay ako nga nakabayad ka.” Si Maria mibalos ug pasalamat pag-usab, ug si Lena nabati ang kalipay nga nakasalig siya sa iyang kustomer kay nasabtan niya nga ang pagsalig importante kaayo sa negosyo."
         },
-        image: "/src/assets/LEVEL_1/STORY_1/PIC6.jpg"
+        image: "/src/assets/LEVEL_1/STORY_1/PIC7.jpg"
     };
 </script>
 

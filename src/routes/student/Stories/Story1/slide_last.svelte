@@ -3,8 +3,8 @@
     import { studentData } from '$lib/store/student_data'; // Import studentData store
 
     const slide = {
-        text: "Congratulations! You've finished Part 1 of Shenievia Reads' journey through Readville Village! 🎉",
-        image: "/src/assets/school-bg.gif" // Placeholder; replace with your celebratory GIF
+        text: "Congratulations! You've finished Level 1 of Shenievia Reads' journey through Readville Village! 🎉",
+        image: "../../assets/school-bg.gif" // Update to relative path
     };
 
     function continueToQuiz() {
@@ -21,7 +21,7 @@
     {#if slide.image}
         <div class="image-container">
             <img
-                src={slide.image}
+                src={"/src/assets/school-bg.gif" }
                 alt="Congrats Scene"
                 class="block mx-auto rounded-[2vw] shadow-lg"
             />
@@ -45,8 +45,8 @@
     }
 
     .image-container {
-        width: 80vw;
-        height: 80vh;
+        width: 65%;
+        height: auto;
         max-width: 800px;
         max-height: 400px;
         margin-bottom: 2vh;
