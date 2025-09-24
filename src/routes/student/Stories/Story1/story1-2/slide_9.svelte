@@ -1,12 +1,13 @@
 <script>
+    import { fade } from 'svelte/transition';
     import { language } from "$lib/store/story_lang_audio";
 
     const slide = {
         text: {
-            english: "One day, Hannah was selling snacks at her stall when a customer bought two sticks of banana cue and a cup of juice. After Hannah gave the food to the customer, the customer quickly left.",
-            cebuano: "Sa usa ka hapon, usa sa iyang suki ug kasaligan nga higala nga si Maria miabot sa tindahan ug nipalit ug usa ka pakete sa asin, usa ka kilo nga bugas, ug usa ka pakete nga asukal."
+            english: "From that day on, she realized that it is important to avoid eating too much  sweets and that it is important to brush her teeth afterward. Candice maintains the good health of her teeth and spreads the lesson to her friends.",
+            cebuano: "Niduol si Maria ug niingon, “Daghang salamat sa pagsalig nako, Lena. Ania na ang akong bayad.” Nitando si Lena ug miingon, “Walay problema gyud. Nalipay ako nga nakabayad ka.” Si Maria mibalos ug pasalamat pag-usab, ug si Lena nabati ang kalipay nga nakasalig siya sa iyang kustomer kay nasabtan niya nga ang pagsalig importante kaayo sa negosyo."
         },
-        image: "/src/assets/LEVEL_1/STORY_3/PIC2.jpg"
+        image: "/src/assets/LEVEL_1/STORY_2/PIC6.jpg"
     };
 </script>
 
@@ -65,15 +66,9 @@
         text-align: center;
         padding: 0 1rem;
         margin: 0;
-        animation: textFadeIn 1000ms ease-in forwards;
     }
 
     @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    @keyframes textFadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
     }

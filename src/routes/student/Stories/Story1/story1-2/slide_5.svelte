@@ -3,10 +3,10 @@
 
     const slide = {
         text: {
-            english: "One day, Hannah was selling snacks at her stall when a customer bought two sticks of banana cue and a cup of juice. After Hannah gave the food to the customer, the customer quickly left.",
+            english: "While sleeping, her cheek became swollen and she felt the pain in her teeth. Candice run towards her mother who said, \“I told you, it’s not good to eat too much sweets and candies without brushing your teeth. Let’s go to the dentist tomorrow and remember to brush your teeth from now on\".",
             cebuano: "Sa usa ka hapon, usa sa iyang suki ug kasaligan nga higala nga si Maria miabot sa tindahan ug nipalit ug usa ka pakete sa asin, usa ka kilo nga bugas, ug usa ka pakete nga asukal."
         },
-        image: "/src/assets/LEVEL_1/STORY_3/PIC2.jpg"
+        image: "/src/assets/LEVEL_1/STORY_2/PIC4.jpg"
     };
 </script>
 

@@ -41,7 +41,7 @@
       transition:scale={{ duration: 400, start: 0.9 }}
     >
       <h2 class="text-[5vw] md:text-3xl font-extrabold text-purple-600 mb-[2vh] animate-bounce">
-        Pick a Story! 📚✨
+        Pick a Level! 📚✨
       </h2>
       <p class="text-[3vw] md:text-lg text-gray-700 mb-[3vh]">
         Which adventure do you want to start?
@@ -53,7 +53,7 @@
           on:click={() => handleStorySelect("Story 1")}
           disabled={!canPlayStory1}
         >
-          Story 1 🌈
+          Level 1 🌈
         </button>
         <!-- Story 2 Button -->
         <button
@@ -61,7 +61,7 @@
           on:click={() => handleStorySelect("Story 2")}
           disabled={!canPlayStory2}
         >
-          Story 2 🚀
+          Level 2 🚀
         </button>
         <!-- Story 3 Button -->
         <button
@@ -69,7 +69,7 @@
           on:click={() => handleStorySelect("Story 3")}
           disabled={!canPlayStory3}
         >
-          Story 3 🏰
+          Level 3 🏰
         </button>
       </div>
       <button

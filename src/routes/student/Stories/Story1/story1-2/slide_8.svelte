@@ -1,12 +1,13 @@
 <script>
+    import { fade } from 'svelte/transition';
     import { language } from "$lib/store/story_lang_audio";
 
     const slide = {
         text: {
-            english: "One day, Hannah was selling snacks at her stall when a customer bought two sticks of banana cue and a cup of juice. After Hannah gave the food to the customer, the customer quickly left.",
+            english: "She nodded and said, \"I am sorry, mother. I will listen to you from now on.\"",
             cebuano: "Sa usa ka hapon, usa sa iyang suki ug kasaligan nga higala nga si Maria miabot sa tindahan ug nipalit ug usa ka pakete sa asin, usa ka kilo nga bugas, ug usa ka pakete nga asukal."
         },
-        image: "/src/assets/LEVEL_1/STORY_3/PIC2.jpg"
+        image: "/src/assets/LEVEL_1/STORY_2/PIC5.jpg"
     };
 </script>
 

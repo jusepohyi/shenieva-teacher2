@@ -1,4 +1,3 @@
-// src/lib/store/student_data.js
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
@@ -13,6 +12,7 @@ import { browser } from '$app/environment';
  * @property {number | null} studentRibbon
  * @property {number | null} studentColtrash
  * @property {number | null} studentProgress
+ * @property {Record<string, string>} answeredQuestions
  */
 
 const storedData = browser ? localStorage.getItem('studentData') : null;
@@ -27,10 +27,44 @@ if (browser) {
   });
 }
 
-// Function to reset the studentData store
 export function resetStudentData() {
-  studentData.set(null); // Reset to initial value (null)
+  studentData.set(null);
   if (browser) {
-    localStorage.removeItem('studentData'); // Clear from localStorage
+    localStorage.removeItem('studentData');
+    // Remove story-specific retake keys
+    const storyKeys = ['story1-1', 'story1-2', 'story1-3'];
+    storyKeys.forEach(key => {
+      localStorage.removeItem(`retake${key}Count`);
+      localStorage.removeItem(`retake${key}`);
+    });
+    localStorage.removeItem('openStory1Modal');
   }
+}
+
+/**
+ * Reset saved answers for specific prefixes
+ * @param {string | string[]} prefixes - One or more key prefixes to clear (e.g., 'story1-1_')
+ */
+export function resetAnswersByPrefix(prefixes) {
+  const list = Array.isArray(prefixes) ? prefixes : [prefixes];
+  studentData.update((data) => {
+    if (!data) return data;
+    const answered = data.answeredQuestions || {};
+    const filtered = Object.fromEntries(
+      Object.entries(answered).filter(([k]) => !list.some((p) => k.startsWith(p)))
+    );
+    return { ...data, answeredQuestions: filtered };
+  });
+}
+
+/**
+ * Reset all saved answers for a given level number or story key.
+ * Examples:
+ *  - resetLevelAnswers(1) clears keys starting with 'story1_'
+ *  - resetLevelAnswers('story1-1') clears keys starting with 'story1-1_'
+ * @param {number | string} levelOrStory
+ */
+export function resetLevelAnswers(levelOrStory) {
+  const prefix = typeof levelOrStory === 'number' ? `story${levelOrStory}_` : `${levelOrStory}_`;
+  resetAnswersByPrefix(prefix);
 }

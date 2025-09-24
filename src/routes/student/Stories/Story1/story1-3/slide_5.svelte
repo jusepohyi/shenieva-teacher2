@@ -3,10 +3,10 @@
 
     const slide = {
         text: {
-            english: "One day, Hannah was selling snacks at her stall when a customer bought two sticks of banana cue and a cup of juice. After Hannah gave the food to the customer, the customer quickly left.",
+            english: "Hannah searched for the customer. Thankfully, the customer was still walking down the street when Hannah called out to him and said, \"Excuse me! You gave me more money than what was needed.\" The customer smiled at Hannah who handed him the money.",
             cebuano: "Sa usa ka hapon, usa sa iyang suki ug kasaligan nga higala nga si Maria miabot sa tindahan ug nipalit ug usa ka pakete sa asin, usa ka kilo nga bugas, ug usa ka pakete nga asukal."
         },
-        image: "/src/assets/LEVEL_1/STORY_3/PIC2.jpg"
+        image: "/src/assets/LEVEL_1/STORY_3/PIC4.jpg"
     };
 </script>
 

@@ -1,5 +1,6 @@
 <script lang="ts">
     import StoryModal from '../../components/modals/story_1.svelte';
+    import { onMount } from 'svelte';
 
     const slide = {
         text: "Choose a story. 🌟",
@@ -39,6 +40,19 @@
         showModal = false;
         selectedStoryKey = null;
     }
+
+    // Auto-open modal after a retake request
+    onMount(() => {
+        try {
+            const shouldOpen = localStorage.getItem('openStory1Modal');
+            if (shouldOpen === 'true') {
+                // Default to Story 1-1 or keep null to show the story chooser inside the modal
+                selectedStoryKey = null;
+                showModal = true;
+                localStorage.removeItem('openStory1Modal');
+            }
+        } catch {}
+    });
 </script>
 
 <div class="flex flex-col justify-center items-center text-center slide">

@@ -2,6 +2,10 @@
 <script lang="ts">
   import { name } from "$lib/store/nameStore.js"; // Import the global name store
   import { slide } from "svelte/transition"; // Svelte transition
+  import { onMount } from 'svelte';
+  import { page } from '$app/stores';
+  import { goto, afterNavigate } from '$app/navigation';
+  import { get } from 'svelte/store';
   import ChooseStory from "../components/modals/choose_story.svelte"; // Import choose_story
   import Story1 from "../components/modals/story_1.svelte"; // Import story_1
   import Story2 from "../components/modals/story_2.svelte"; // Import story_2
@@ -13,6 +17,7 @@
   let showStory1Modal = false; // Control story_1 modal
   let showStory2Modal = false; // Control story_2 modal
   let showStory3Modal = false; // Control story_3 modal
+  let lastRetakeToken: string | null = null;
 
   // Switch from wiggle to steady after the initial wiggle completes
   setTimeout(() => {
@@ -54,6 +59,46 @@
   function handleCloseStory3Modal() {
     showStory3Modal = false;
   }
+
+  // Trigger retake flow (open choose_story and then Story 1 modal)
+  function triggerRetake() {
+    // Ensure any existing story modal is closed so it remounts cleanly
+    showStory1Modal = false;
+    showStory2Modal = false;
+    showStory3Modal = false;
+    showChooseStoryModal = false;
+
+    isClicked = true;
+    showChooseStoryModal = true;
+    setTimeout(() => {
+      handleStorySelect('Story 1');
+      try { localStorage.removeItem('retakeLevel1'); } catch {}
+    }, 0);
+  }
+
+  // Auto retake flow: open choose_story then open Story 1 modal
+  onMount(() => {
+    try {
+      // If URL already contains retake param, defer to afterNavigate handler
+      if (!get(page).url.searchParams.has('retake')) {
+        const retake = localStorage.getItem('retakeLevel1');
+        if (retake === 'true') {
+          triggerRetake();
+        }
+      }
+    } catch {}
+  });
+
+  // Trigger when navigating to this page with ?retake=...
+  afterNavigate(() => {
+    try {
+      const token = get(page).url.searchParams.get('retake');
+      if (token && token !== lastRetakeToken) {
+        lastRetakeToken = token;
+        triggerRetake();
+      }
+    } catch {}
+  });
 </script>
 
 <div in:slide={{ duration: 400 }} class="text-center">

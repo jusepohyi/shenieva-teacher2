@@ -3,14 +3,15 @@
     import { studentData } from '$lib/store/student_data';
 
     const slide = {
-        text: "Question Time! 📝"
+        text: 'Question Time! 📝'
     };
 
-    const QUESTION_ID = 'story1_2_q1'; // Unique identifier for this question in story1-2
+    // Question 3 for story1-2 (on its own slide)
+    const QUESTION_ID = 'story1_2_q2b';
     let selectedAnswer = '';
     let isAnswered = false;
 
-    // Check if question was already answered
+    // Restore previous answer if it exists
     $: if ($studentData?.answeredQuestions?.[QUESTION_ID]) {
         isAnswered = true;
         selectedAnswer = $studentData.answeredQuestions[QUESTION_ID];
@@ -19,23 +20,21 @@
     function checkAnswer() {
         if (!isAnswered) {
             isAnswered = true;
-            // Update student's data with the answer and progress
-            studentData.update(data => {
+            studentData.update((data) => {
                 if (data) {
                     const newData = {
                         ...data,
-                        // Store the answered questions
                         answeredQuestions: {
                             ...(data.answeredQuestions || {}),
                             [QUESTION_ID]: selectedAnswer
                         }
                     };
-                    
-                    // Only update progress if answer is correct and hasn't been answered correctly before
-                    if (selectedAnswer === 'a' && !data.answeredQuestions?.[QUESTION_ID]) {
+
+                    // Correct answer is 'c'
+                    if (selectedAnswer === 'c' && !data.answeredQuestions?.[QUESTION_ID]) {
                         newData.studentProgress = (data.studentProgress || 0) + 1;
                     }
-                    
+
                     return newData;
                 }
                 return data;
@@ -51,28 +50,28 @@
 
     <div class="question-container text-fade">
         <h2 class="text-[3vw] md:text-xl font-bold mb-4">Question:</h2>
-        <p class="text-[2.5vw] md:text-lg mb-6">1. What do you think will happen to Candice?</p>
-        
+        <p class="text-[2.5vw] md:text-lg mb-6">3. What is the lesson Candice learned after what happened to her?</p>
+
         <div class="options-container">
             <label class="option" class:disabled={isAnswered} class:selected={selectedAnswer === 'a'}>
                 <input type="radio" name="answer" value="a" bind:group={selectedAnswer} on:change={checkAnswer} disabled={isAnswered}>
-                <span class="text-[2vw] md:text-base">a. She will have a toothache.</span>
+                <span class="text-[2vw] md:text-base">a. Always buy candies because it makes her happy.</span>
             </label>
-            
+
             <label class="option" class:disabled={isAnswered} class:selected={selectedAnswer === 'b'}>
                 <input type="radio" name="answer" value="b" bind:group={selectedAnswer} on:change={checkAnswer} disabled={isAnswered}>
-                <span class="text-[2vw] md:text-base">b. She will enjoy eating more candies.</span>
+                <span class="text-[2vw] md:text-base">b. It is okay to eat candies as long as her mother will not find out.</span>
             </label>
-            
+
             <label class="option" class:disabled={isAnswered} class:selected={selectedAnswer === 'c'}>
                 <input type="radio" name="answer" value="c" bind:group={selectedAnswer} on:change={checkAnswer} disabled={isAnswered}>
-                <span class="text-[2vw] md:text-base">c. She will be frustrated because the candy she bought is not enough.</span>
+                <span class="text-[2vw] md:text-base">c. Take better care of her teeth by brushing it and avoid eating too much sweets.</span>
             </label>
         </div>
 
         {#if isAnswered}
             <div class="feedback" transition:fade>
-                {#if selectedAnswer === 'a'}
+                {#if selectedAnswer === 'c'}
                     <p class="correct">✨ Correct! You earned a point! ✨</p>
                 {:else}
                     <p class="incorrect">❌ Incorrect. Try to understand why this wasn't the best choice.</p>

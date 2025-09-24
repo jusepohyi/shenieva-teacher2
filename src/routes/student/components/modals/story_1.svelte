@@ -2,6 +2,8 @@
     import { slide, fade } from "svelte/transition";
     import Slide1 from "../../Stories/Story1/slide_1.svelte";
     import { language } from "$lib/store/story_lang_audio";
+    import { goto } from '$app/navigation';
+    import { studentData } from '$lib/store/student_data';
 
     type SvelteComponent = any;
 
@@ -13,7 +15,53 @@
     let currentSlide: number = 1;
     let isLoading: boolean = true;
     let showLanguageModal: boolean = false;
-    let maxSlides = 10;
+    let errorMessage: string = ''; // To display feedback when trying to skip
+
+    // Define max slides per story
+    const maxSlidesMap: Record<string, number> = {
+        'story1-1': 10,
+        'story1-2': 9,
+        'story1-3': 9
+    };
+
+    // Define quiz slides per story
+    const quizSlidesMap: Record<string, number[]> = {
+        'story1-1': [5, 8, 9],
+        'story1-2': [4, 6, 7],
+        'story1-3': [4, 6, 7]
+    };
+
+    // Map slide numbers to question IDs
+    const questionIdMap: Record<string, Record<number, string>> = {
+        'story1-1': {
+            5: 'story1_q1',
+            8: 'story1_q2',
+            9: 'story1_q3'
+        },
+        'story1-2': {
+            4: 'story1_2_q1',
+            6: 'story1_2_q2a',
+            7: 'story1_2_q2b'
+        },
+        'story1-3': {
+            4: 'story1_3_q1',
+            6: 'story1_3_q2a',
+            7: 'story1_3_q2b'
+        }
+    };
+
+    // Get maxSlides based on storyKey, default to 10 if unknown
+    $: maxSlides = maxSlidesMap[storyKey] || 10;
+
+    // Check if the current slide is answered
+    $: isCurrentSlideAnswered = (() => {
+        const quizSlides = quizSlidesMap[storyKey] || [];
+        if (quizSlides.includes(currentSlide)) {
+            const questionId = questionIdMap[storyKey]?.[currentSlide];
+            return questionId && $studentData?.answeredQuestions?.[questionId] !== undefined;
+        }
+        return true; // Non-quiz slides are always "answered"
+    })();
 
     async function loadStorySlide(key: string, slideNumber: number = 1): Promise<void> {
         console.log('Attempting to load story slide:', { key, slideNumber, currentSlide });
@@ -52,17 +100,29 @@
     }
 
     async function nextSlide(): Promise<void> {
+        const quizSlides = quizSlidesMap[storyKey] || [];
+        if (quizSlides.includes(currentSlide)) {
+            const questionId = questionIdMap[storyKey]?.[currentSlide];
+            if (questionId && !$studentData?.answeredQuestions?.[questionId]) {
+                // Prevent navigation and show error message
+                errorMessage = 'Please select an answer before proceeding.';
+                setTimeout(() => (errorMessage = ''), 3000); // Clear message after 3 seconds
+                return;
+            }
+        }
+
+        errorMessage = ''; // Clear any existing error message
         if (currentSlide < maxSlides) {
             console.log('Moving to next slide:', currentSlide + 1);
             StorySlide = null;
-            language.set('english'); // Set English as default for new slide
+            language.set('english');
             await loadStorySlide(storyKey, currentSlide + 1);
-        } else if (storyKey === 'story1-1') {
-            // Load the final slide when at the end of story1-1
+        } else {
             try {
                 console.log('Loading final slide');
                 const module = await import('../../Stories/Story1/slide_last.svelte');
                 StorySlide = module.default;
+                currentSlide = maxSlides + 1;
             } catch (error) {
                 console.error("Failed to load final slide:", error);
             }
@@ -73,12 +133,16 @@
         if (currentSlide > 1) {
             console.log('Moving to previous slide:', currentSlide - 1);
             StorySlide = null;
-            language.set('english'); // Set English as default for new slide
-            await loadStorySlide(storyKey, currentSlide - 1);
+            language.set('english');
+            if (currentSlide === maxSlides + 1) {
+                await loadStorySlide(storyKey, maxSlides);
+            } else {
+                await loadStorySlide(storyKey, currentSlide - 1);
+            }
         }
     }
 
-    function closeModal(): void {
+    async function closeModal(): Promise<void> {
         onClose();
         showModal = false;
         currentSlide = 1;
@@ -86,6 +150,11 @@
         StorySlide = null;
         showLanguageModal = false;
         storyKey = '';
+        try {
+            localStorage.removeItem('retakeLevel1');
+            localStorage.removeItem('openStory1Modal');
+        } catch {}
+        await goto('/student/dashboard');
     }
 
     $: if (showModal && isLoading) {
@@ -96,11 +165,11 @@
 
     $: if (showModal && storyKey) {
         console.log('Modal and storyKey detected, loading slide');
-        language.set('english'); // Set English as default when starting story
+        language.set('english');
         loadStorySlide(storyKey, 1);
     }
 
-    $: console.log('Current state:', { storyKey, currentSlide, showModal, isLoading, StorySlide });
+    $: console.log('Current state:', { storyKey, currentSlide, showModal, isLoading, StorySlide, isCurrentSlideAnswered });
 </script>
 
 {#if showModal}
@@ -185,6 +254,8 @@
                         class="nav-button right-button"
                         on:click={nextSlide}
                         aria-label="Next slide"
+                        disabled={!isCurrentSlideAnswered}
+                        class:disabled={!isCurrentSlideAnswered}
                     >
                         ➡️
                     </button>
@@ -199,6 +270,13 @@
                             ⬅️
                         </button>
                     {/if}
+                {/if}
+
+                <!-- Error Message for Unanswered Questions -->
+                {#if errorMessage}
+                    <div class="error-message" transition:fade={{ duration: 300 }}>
+                        {errorMessage}
+                    </div>
                 {/if}
             </div>
 
@@ -245,9 +323,14 @@
         z-index: 10;
     }
 
-    .nav-button:hover {
+    .nav-button:hover:not(.disabled) {
         color: #059669;
         transform: translateY(-50%) scale(1.1);
+    }
+
+    .nav-button.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 
     .right-button {
@@ -350,6 +433,19 @@
     .language-option.active {
         background-color: #059669;
         border: 2px solid #047857;
+    }
+
+    .error-message {
+        position: absolute;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #dc2626;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: bold;
+        z-index: 20;
     }
 
     @keyframes spin {

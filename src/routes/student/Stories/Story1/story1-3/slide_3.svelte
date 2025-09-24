@@ -1,120 +1,80 @@
 <script>
-    import { goto } from '$app/navigation'; // Import goto for SvelteKit navigation
-    import { studentData } from '$lib/store/student_data'; // Import studentData store
+    import { language } from "$lib/store/story_lang_audio";
 
     const slide = {
-        text: "Congratulations 2! You've finished Part 1 of Shenievia Reads' journey through Readville Village! 🎉",
-        image: "/src/assets/school-bg.gif" // Placeholder; replace with your celebratory GIF
+        text: {
+            english: "A few minutes later, Hannah noticed that the customer had accidentally paid her more than what was needed. The extra amount was a lot of money, and Hannah wasn\’t sure if the customer realized the mistake.",
+            cebuano: "Sa usa ka hapon, usa sa iyang suki ug kasaligan nga higala nga si Maria miabot sa tindahan ug nipalit ug usa ka pakete sa asin, usa ka kilo nga bugas, ug usa ka pakete nga asukal."
+        },
+        image: "/src/assets/LEVEL_1/STORY_3/PIC3.jpg"
     };
-
-    function continueToQuiz() {
-        // Check studentLevel from the studentData store
-        if ($studentData && $studentData.studentLevel >= 1) {
-            goto('/student/game/trash_1'); // Navigate to game if level is 1 or higher
-        } else {
-            goto('/student/quizzes/quiz1/store3'); // Navigate to quiz if level is below 1 or no data
-        }
-    }
 </script>
 
-<div class="flex flex-col justify-center items-center text-center slide">
+<div class="slide-container">
     {#if slide.image}
-        <div class="image-container">
+        <div class="image-wrapper">
             <img
                 src={slide.image}
-                alt="Congrats Scene"
-                class="block mx-auto rounded-[2vw] shadow-lg"
+                alt="Story Scene"
+                class="story-image"
             />
         </div>
     {/if}
-    <p class="text-[4vw] md:text-2xl text-gray-800 font-semibold text-fade">
-        {slide.text}
-    </p>
-    <button
-        class="mt-[2vh] bg-teal-300 text-gray-900 px-[6vw] py-[2vh] rounded-[3vw] text-[5vw] md:text-3xl font-bold shadow-md hover:bg-teal-400 hover:scale-105 transition-all duration-300 flex items-center justify-center kid-button"
-        on:click={continueToQuiz}
-    >
-        Continue 🌟
-    </button>
+    <div class="story-text" transition:fade>
+        {$language === 'english' ? slide.text.english : slide.text.cebuano}
+    </div>
 </div>
 
 <style>
-    .slide {
-        animation: fadeIn 1000ms ease-in forwards;
-        will-change: opacity;
-    }
-
-    .image-container {
-        width: 80vw;
-        height: 80vh;
-        max-width: 800px;
-        max-height: 400px;
-        margin-bottom: 2vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .image-container img {
+    .slide-container {
         width: 100%;
         height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        box-sizing: border-box;
+        animation: fadeIn 1000ms ease-in forwards;
+    }
+
+    .image-wrapper {
+        flex: 1;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 0;
+    }
+
+    .story-image {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
         object-fit: contain;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
-    .text-fade {
-        white-space: pre-wrap;
-        overflow-wrap: break-word;
-        max-width: 80%;
+    .story-text {
+        font-size: clamp(1rem, 2vw, 1.25rem);
+        line-height: 1.6;
+        color: #1f2937;
+        text-align: center;
+        padding: 0 1rem;
+        margin: 0;
         animation: textFadeIn 1000ms ease-in forwards;
-        will-change: opacity;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        transform: translateZ(0);
-    }
-
-    .kid-button {
-        background: linear-gradient(135deg, #5eead4, #2dd4bf); /* Soft teal gradient */
-        border: 3px solid #14b8a6; /* Darker teal border */
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Softer shadow */
-    }
-
-    .kid-button:hover {
-        background: linear-gradient(135deg, #5eead4, #2dd4bf); /* Maintain gradient on hover */
-        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Slightly larger shadow */
-    }
-
-    .kid-button:active {
-        transform: scale(1.1); /* Bounce on click */
     }
 
     @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
 
     @keyframes textFadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
-    }
-
-    :global(.slide) {
-        animation: fadeOut 1000ms ease-out forwards;
-    }
-
-    @keyframes fadeOut {
-        from {
-            opacity: 1;
-        }
-        to {
-            opacity: 0;
-        }
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
 </style>

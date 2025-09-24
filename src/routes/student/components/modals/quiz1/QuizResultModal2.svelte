@@ -16,7 +16,7 @@
   $: totalQuestions = results.length;
   $: earnedPoints = results.reduce((sum, r) => sum + (r.isCorrect ? Number(r.points) : 0), 0);
   $: totalPossiblePoints = results.reduce((sum, r) => sum + Number(r.points), 0);
-  $: isPerfectScore = score === totalQuestions;
+  $: isPerfectScore x= score === totalQuestions;
   $: showRetakeButton = attemptCount + 1 < maxAttempts && !isPerfectScore;
 
   function handleRetake() {
