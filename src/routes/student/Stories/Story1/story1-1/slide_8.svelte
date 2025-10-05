@@ -1,25 +1,44 @@
 <script>
     import { fade } from 'svelte/transition';
     import { studentData } from '$lib/store/student_data';
+    import { onMount } from 'svelte';
 
     const QUESTION_ID = 'story1_q2'; // Unique identifier for this question
     let selectedAnswer = '';
     let isAnswered = false;
+    let isInRetakeMode = false;
 
-    $: if ($studentData?.answeredQuestions?.[QUESTION_ID]) {
-        isAnswered = true;
-        selectedAnswer = $studentData.answeredQuestions[QUESTION_ID];
-    }
-
-    function checkAnswer() {
-        if (!isAnswered) {
-            isAnswered = true;
-            studentData.update(data => {
-                if (data) {
-                    const newData = {
-                        ...data,
+    // Check for retake flag and reset if needed
+    onMount(() => {
+        try {
+            const retakeFlag = localStorage.getItem('retakestory1-1');
+            if (retakeFlag === 'true') {
+                // We're in retake mode - reset everything
+                isInRetakeMode = true;
+                selectedAnswer = '';
+                isAnswered = false;
+                // Don't clear the flag yet - let all slides handle it
+                    import { browser } from '$app/environment';
+            } else {
+                // Normal mode - check if question was already answered
+                if ($studentData?.answeredQuestions?.[QUESTION_ID]) {
+                    isAnswered = true;
+                    selectedAnswer = $studentData.answeredQuestions[QUESTION_ID];
+                }
+            }
+        } catch {}
+    });
+                            isInRetakeMode = browser ? localStorage.getItem('retakestory1-1') === 'true' : false;
+                        } catch {}
+                    });
                         answeredQuestions: {
+                    if (isInRetakeMode) {
+                        selectedAnswer = '';
+                        isAnswered = false;
+                    }
                             ...(data.answeredQuestions || {}),
+                    onMount(() => {
+                        try { if (isInRetakeMode) {/* keep flag for subsequent slides */} } catch {}
                             [QUESTION_ID]: selectedAnswer
                         }
                     };

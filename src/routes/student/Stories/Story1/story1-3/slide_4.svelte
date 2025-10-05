@@ -1,6 +1,8 @@
 <script>
     import { fade } from 'svelte/transition';
     import { studentData } from '$lib/store/student_data';
+    import { onMount } from 'svelte';
+    import { browser } from '$app/environment';
 
     const slide = {
         text: 'Question Time! 📝'
@@ -11,9 +13,20 @@
 
     let selectedAnswer = '';
     let isAnswered = false;
+    let isInRetakeMode = false;
+    if (browser) {
+        try { isInRetakeMode = localStorage.getItem('retakestory1-3') === 'true'; } catch {}
+    }
 
-    // Restore previous answer if it exists
-    $: if ($studentData?.answeredQuestions?.[QUESTION_ID]) {
+    if (isInRetakeMode) {
+        selectedAnswer = '';
+        isAnswered = false;
+    }
+
+    onMount(() => { try { if (isInRetakeMode) {/* keep flag for subsequent slides */} } catch {} });
+
+    // Only load previous answers if not in retake mode
+    $: if (!isInRetakeMode && $studentData?.answeredQuestions?.[QUESTION_ID]) {
         isAnswered = true;
         selectedAnswer = $studentData.answeredQuestions[QUESTION_ID];
     }

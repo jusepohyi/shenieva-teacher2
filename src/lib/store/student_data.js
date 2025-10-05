@@ -31,13 +31,31 @@ export function resetStudentData() {
   studentData.set(null);
   if (browser) {
     localStorage.removeItem('studentData');
-    // Remove story-specific retake keys
+    
+    // Remove all retake-related keys
     const storyKeys = ['story1-1', 'story1-2', 'story1-3'];
     storyKeys.forEach(key => {
       localStorage.removeItem(`retake${key}Count`);
       localStorage.removeItem(`retake${key}`);
     });
+    
+    // Remove any level-based retake keys
+    const levelKeys = ['Level1', 'Level2', 'Level3'];
+    levelKeys.forEach(level => {
+      localStorage.removeItem(`retake${level}`);
+      localStorage.removeItem(`retake${level}Count`);
+    });
+    
+    // Remove modal and progress keys
     localStorage.removeItem('openStory1Modal');
+    localStorage.removeItem('retakeLevel1');
+    
+    // Clear any other retake-related keys that might exist
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('retake') || key.includes('retake')) {
+        localStorage.removeItem(key);
+      }
+    });
   }
 }
 

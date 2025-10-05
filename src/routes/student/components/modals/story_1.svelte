@@ -201,7 +201,8 @@
                         {#if !storyKey}
                             <Slide1 />
                         {:else if StorySlide}
-                            <svelte:component this={StorySlide} />
+                            <!-- Pass storyKey so slides that expect it (like slide_last) receive the prop -->
+                            <svelte:component this={StorySlide} {storyKey} />
                         {/if}
                     {/key}
                 </div>
@@ -435,7 +436,7 @@
         border: 2px solid #047857;
     }
 
-    .error-message {
+    .error-message { 
         position: absolute;
         bottom: 2rem;
         left: 50%;

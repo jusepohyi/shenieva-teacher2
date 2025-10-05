@@ -2,6 +2,7 @@
     import { fade } from 'svelte/transition';
     import { studentData } from '$lib/store/student_data';
     import { onMount } from 'svelte';
+    import { browser } from '$app/environment';
 
     const slide = {
         text: "Question Time! 📝"
@@ -10,9 +11,26 @@
     const QUESTION_ID = 'story1_q1'; // Unique identifier for this question
     let selectedAnswer = '';
     let isAnswered = false;
+    // Initialize retake mode synchronously on the client to avoid race with reactive statements
+    let isInRetakeMode = false;
+    if (browser) {
+        try {
+            isInRetakeMode = localStorage.getItem('retakestory1-1') === 'true';
+        } catch {}
+    }
 
-    // Check if question was already answered
-    $: if ($studentData?.answeredQuestions?.[QUESTION_ID]) {
+    if (isInRetakeMode) {
+        selectedAnswer = '';
+        isAnswered = false;
+    }
+
+    onMount(() => {
+        // If desired, clear the flag on the last question slide instead of here
+        try { if (isInRetakeMode) {/* keep flag for subsequent slides */} } catch {}
+    });
+
+    // Only load previous answers if not in retake mode
+    $: if (!isInRetakeMode && $studentData?.answeredQuestions?.[QUESTION_ID]) {
         isAnswered = true;
         selectedAnswer = $studentData.answeredQuestions[QUESTION_ID];
     }
