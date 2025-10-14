@@ -2,8 +2,10 @@
   import { name, resetName } from "$lib/store/nameStore.js"; // Import resetName
   import { quiz1Taking, clearQuiz1State } from "$lib/store/quiz1_taking.js"; // Import clearQuiz1State
   import { studentData, resetStudentData } from "$lib/store/student_data.js"; // Import resetStudentData
+  import { audioStore } from "$lib/store/audio_store.js"; // Import audio store
   import { fade, slide, scale } from "svelte/transition";
   import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
   import Play from '../play/+page.svelte';
   import Stats from '../stats/+page.svelte';
   import Profile from '../profile/+page.svelte';
@@ -12,6 +14,11 @@
   let activeTab = "play";
   let showLogoutModal = false;
   let hoveredTab = null;
+
+  onMount(() => {
+    // Play default background music when entering dashboard
+    audioStore.playTrack('default');
+  });
 
   function wiggleButton(tab) {
     activeTab = tab;

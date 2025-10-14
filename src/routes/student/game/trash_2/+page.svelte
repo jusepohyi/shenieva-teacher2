@@ -577,7 +577,13 @@
             bgMusic.pause();
             bgMusic.currentTime = 0;
         }
-        goto('/student/dashboard');
+        // Check if we should return to village
+        const returnToVillage = localStorage.getItem('villageReturnScene');
+        if (returnToVillage !== null) {
+            goto('/student/village');
+        } else {
+            goto('/student/dashboard');
+        }
     }
 
     async function fetchWithTimeout(url: string, options: RequestInit, timeout = 5000): Promise<Response> {
@@ -630,7 +636,13 @@
         if (!currentStudent?.pk_studentID) {
             console.error('No student ID found in studentData');
             isLoading = false;
-            goto('/student/dashboard');
+            // Check if we should return to village
+            const returnToVillage = localStorage.getItem('villageReturnScene');
+            if (returnToVillage !== null) {
+                goto('/student/village');
+            } else {
+                goto('/student/dashboard');
+            }
             return;
         }
 
@@ -678,7 +690,13 @@
         } finally {
             isLoading = true;
             await new Promise(resolve => setTimeout(resolve, 1000));
-            goto('/student/dashboard');
+            // Check if we should return to village
+            const returnToVillage = localStorage.getItem('villageReturnScene');
+            if (returnToVillage !== null) {
+                goto('/student/village');
+            } else {
+                goto('/student/dashboard');
+            }
         }
     }
 
