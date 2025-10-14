@@ -7,13 +7,13 @@
     const slide = {
         english: {
             text: "Hector's Health",
-            audioFast: '/assets/audio/fast.mp3',
-            audioSlow: '/assets/audio/slow.mp3'
+            audioFast: '/audio/fast.mp3',
+            audioSlow: '/audio/slow.mp3'
         },
         cebuano: {
             text: "Ang Panlawas ni Hector",
-            audioFast: '/assets/audio/cebuano/fast.mp3',
-            audioSlow: '/assets/audio/cebuano/slow.mp3'
+            audioFast: '/audio/cebuano/fast.mp3',
+            audioSlow: '/audio/cebuano/slow.mp3'
         },
         image: '/src/assets/LEVEL_2/STORY_1/PIC6.jpg'
     };

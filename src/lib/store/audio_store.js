@@ -15,44 +15,90 @@ function createAudioStore() {
     /** @type {HTMLAudioElement | null} */
     let villageBGM = null;
     let initialized = false;
+    /** @type {'default' | 'village' | null} */
+    let currentlyPlaying = null; // Track which audio is currently playing
 
     function initAudio() {
         if (initialized) return;
         
-        console.log('🎵 Initializing audio system...');
+        // Check if we're in browser context
+        if (typeof window === 'undefined' || typeof document === 'undefined') {
+            console.warn('⚠️ Audio not available (SSR context)');
+            return;
+        }
         
-        // Use relative paths from static/public folder
-        defaultBGM = new Audio('/assets/audio/bgm/bgm-default.mp3');
-        villageBGM = new Audio('/assets/audio/bgm/bgm-ingame.mp3');
+        // Use document.createElement instead of new Audio() to avoid Vite StubAudio
+        defaultBGM = document.createElement('audio');
+        villageBGM = document.createElement('audio');
+        
+        defaultBGM.src = '/assets/audio/bgm/bgm-default.mp3';
+        villageBGM.src = '/assets/audio/bgm/bgm-ingame.mp3';
         
         defaultBGM.loop = true;
         villageBGM.loop = true;
         
-        defaultBGM.volume = 0.5;
-        villageBGM.volume = 0.5;
+        defaultBGM.volume = 0.7;
+        villageBGM.volume = 0.7;
         
-        // Add error handlers for debugging
-        defaultBGM.addEventListener('error', (e) => {
-            console.error('❌ Error loading default BGM:', e);
-            console.error('Attempted path: /assets/audio/bgm/bgm-default.mp3');
+        defaultBGM.preload = 'auto';
+        villageBGM.preload = 'auto';
+        
+        // Add event listeners to track playback state
+        defaultBGM.addEventListener('play', () => {
+            currentlyPlaying = 'default';
+            // Ensure village BGM is paused
+            if (villageBGM && !villageBGM.paused) {
+                villageBGM.pause();
+            }
         });
         
-        villageBGM.addEventListener('error', (e) => {
-            console.error('❌ Error loading village BGM:', e);
-            console.error('Attempted path: /assets/audio/bgm/bgm-ingame.mp3');
+        villageBGM.addEventListener('play', () => {
+            currentlyPlaying = 'village';
+            // Ensure default BGM is paused
+            if (defaultBGM && !defaultBGM.paused) {
+                defaultBGM.pause();
+            }
         });
         
-        // Add loaded handlers
-        defaultBGM.addEventListener('loadeddata', () => {
-            console.log('✅ Default BGM loaded successfully');
+        defaultBGM.addEventListener('pause', () => {
+            if (currentlyPlaying === 'default') {
+                currentlyPlaying = null;
+            }
         });
         
-        villageBGM.addEventListener('loadeddata', () => {
-            console.log('✅ Village BGM loaded successfully');
+        villageBGM.addEventListener('pause', () => {
+            if (currentlyPlaying === 'village') {
+                currentlyPlaying = null;
+            }
         });
+        
+        // Store references for event handlers
+        const defaultAudio = defaultBGM;
+        const villageAudio = villageBGM;
+        
+        // Add metadata loaded handlers
+        defaultAudio.addEventListener('loadedmetadata', () => {
+            console.log('🎵 Background music loaded');
+        });
+        
+        villageAudio.addEventListener('loadedmetadata', () => {
+            console.log('🎵 Village music loaded');
+        });
+        
+        // Add error handlers
+        defaultAudio.addEventListener('error', (e) => {
+            console.error('❌ Error loading background music:', defaultAudio.error);
+        });
+        
+        villageAudio.addEventListener('error', (e) => {
+            console.error('❌ Error loading village music:', villageAudio.error);
+        });
+        
+        // Force load the audio files
+        defaultAudio.load();
+        villageAudio.load();
         
         initialized = true;
-        console.log('✅ Audio system initialized');
     }
 
     return {
@@ -70,21 +116,50 @@ function createAudioStore() {
         playTrack(trackName) {
             initAudio();
             
+            // If same track is already playing, don't restart it
+            if (currentlyPlaying === trackName) {
+                console.log(`🎵 Track "${trackName}" is already playing`);
+                return;
+            }
+            
+            console.log(`🎵 Switching to track: ${trackName}`);
+            
             update(state => {
-                // Stop all tracks first
-                if (defaultBGM) defaultBGM.pause();
-                if (villageBGM) villageBGM.pause();
-                
-                // Play the requested track if not muted
-                if (!state.isMuted) {
-                    if (trackName === 'default' && defaultBGM) {
-                        defaultBGM.currentTime = 0;
-                        defaultBGM.play().catch(/** @param {any} err */ err => console.warn('Audio play failed:', err));
-                    } else if (trackName === 'village' && villageBGM) {
-                        villageBGM.currentTime = 0;
-                        villageBGM.play().catch(/** @param {any} err */ err => console.warn('Audio play failed:', err));
-                    }
+                // CRITICAL: Stop ALL tracks first to prevent simultaneous playback
+                if (defaultBGM && !defaultBGM.paused) {
+                    defaultBGM.pause();
+                    defaultBGM.currentTime = 0;
                 }
+                if (villageBGM && !villageBGM.paused) {
+                    villageBGM.pause();
+                    villageBGM.currentTime = 0;
+                }
+                
+                // Wait a moment to ensure previous audio is fully stopped
+                setTimeout(() => {
+                    // Play the requested track if not muted
+                    if (!state.isMuted) {
+                        if (trackName === 'default' && defaultBGM) {
+                            defaultBGM.currentTime = 0;
+                            defaultBGM.play()
+                                .then(() => {
+                                    console.log('🎵 Playing background music');
+                                })
+                                .catch(/** @param {any} err */ err => {
+                                    console.warn('⚠️ Audio play blocked:', err.message);
+                                });
+                        } else if (trackName === 'village' && villageBGM) {
+                            villageBGM.currentTime = 0;
+                            villageBGM.play()
+                                .then(() => {
+                                    console.log('🎵 Playing village music');
+                                })
+                                .catch(/** @param {any} err */ err => {
+                                    console.warn('⚠️ Audio play blocked:', err.message);
+                                });
+                        }
+                    }
+                }, 50); // 50ms delay to ensure clean transition
                 
                 return {
                     ...state,

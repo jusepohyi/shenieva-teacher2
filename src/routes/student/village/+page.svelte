@@ -250,31 +250,73 @@
             return;
         }
 
-        // Check level locks - Block if trying to pass scenes AFTER incomplete levels
+        // Check level locks
         const student = $studentData as StudentData | null;
         const studentLevel = student?.studentLevel ?? 0;
         
         if (dir === 'right') {
-            // Block progression if trying to go past a level scene without completing it
-            // Level 1 is at scene 2 (sarisaristore)
+            // Block progression if trying to go TO OR PAST a level scene without completing previous level
+            
+            // Can't reach sarisaristore (scene 2) without completing level 1
+            if (nextScene === 2 && studentLevel < 1) {
+                characterX = 95;
+                showLockDialogue("The path ahead is blocked! You need to complete your journey at the Sari-Sari Store first!");
+                return;
+            }
+            // Can't pass sarisaristore without completing level 1
             if (currentScene === 2 && studentLevel < 1) {
-                // Can't pass sarisaristore without completing level 1
                 characterX = 95;
-                showLockDialogue("The path ahead is blocked! Complete the Sari-Sari Store adventure to continue.");
+                showLockDialogue("Complete the Sari-Sari Store adventure to continue!");
                 return;
             }
-            // Level 2 is at scene 4 (wetmarket)
+            
+            // Can't reach wetmarket (scene 4) without completing level 2
+            if (nextScene === 4 && studentLevel < 2) {
+                characterX = 95;
+                showLockDialogue("The path ahead is blocked! You need to complete your journey at the Wet Market first!");
+                return;
+            }
+            // Can't pass wetmarket without completing level 2
             if (currentScene === 4 && studentLevel < 2) {
-                // Can't pass wetmarket without completing level 2
                 characterX = 95;
-                showLockDialogue("The path ahead is blocked! Complete the Wet Market adventure to continue.");
+                showLockDialogue("Complete the Wet Market adventure to continue!");
                 return;
             }
-            // Level 3 is at scene 6 (plaza)
-            if (currentScene === 6 && studentLevel < 3) {
-                // Can't pass plaza without completing level 3
+            
+            // Can't reach plaza (scene 6) without completing level 3
+            if (nextScene === 6 && studentLevel < 3) {
                 characterX = 95;
-                showLockDialogue("The path ahead is blocked! Complete the Plaza adventure to continue.");
+                showLockDialogue("The path ahead is blocked! You need to complete your journey at the Plaza first!");
+                return;
+            }
+            // Can't pass plaza without completing level 3
+            if (currentScene === 6 && studentLevel < 3) {
+                characterX = 95;
+                showLockDialogue("Complete the Plaza adventure to continue!");
+                return;
+            }
+        }
+        
+        // If going LEFT, check if trying to enter a level scene that's locked
+        if (dir === 'left') {
+            // Can't enter sarisaristore from the right without level 1
+            if (nextScene === 2 && studentLevel < 1) {
+                characterX = 5;
+                showLockDialogue("You need to start your journey from the beginning. Head back to school!");
+                return;
+            }
+            
+            // Can't enter wetmarket from the right without level 2
+            if (nextScene === 4 && studentLevel < 2) {
+                characterX = 5;
+                showLockDialogue("You need to complete the Sari-Sari Store adventure first!");
+                return;
+            }
+            
+            // Can't enter plaza from the right without level 3
+            if (nextScene === 6 && studentLevel < 3) {
+                characterX = 5;
+                showLockDialogue("You need to complete the Wet Market adventure first!");
                 return;
             }
         }
@@ -816,6 +858,7 @@
         background: linear-gradient(180deg, rgba(20, 20, 40, 0.7) 0%, rgba(10, 10, 30, 0.7) 100%);
         border-top: 4px solid #fbbf24;
         padding: 20px;
+        padding-right: 120px; /* Add extra padding on right to avoid audio button */
         z-index: 50;
         display: flex;
         gap: 20px;
@@ -1005,6 +1048,7 @@
             flex-direction: column;
             min-height: auto;
             padding: 15px;
+            padding-right: 90px; /* Less padding on mobile since button is smaller */
         }
 
         .dialogue-portrait {

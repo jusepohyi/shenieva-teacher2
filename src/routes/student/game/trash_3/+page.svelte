@@ -1,8 +1,9 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { onMount, onDestroy } from 'svelte';
     import { goto } from '$app/navigation';
     import { fade } from 'svelte/transition';
     import { studentData } from '$lib/store/student_data';
+    import { audioStore } from '$lib/store/audio_store';
 
     interface StudentData {
         pk_studentID: number;
@@ -701,14 +702,21 @@
     }
 
     onMount(async () => {
+        // Stop global background music
+        audioStore.stopAll();
+        
         assets = await loadAssets();
         if (gameCanvas) ctx = gameCanvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
 
-        collectSound = new Audio('/assets/trash_collect_game/audio/collect_effect.mp3');
-        bgMusic = new Audio('/assets/trash_collect_game/audio/game_bg.mp3');
+        // Use document.createElement instead of new Audio() to avoid Vite StubAudio
+        collectSound = document.createElement('audio');
+        collectSound.src = '/assets/trash_collect_game/audio/collect_effect.mp3';
+        collectSound.volume = 0.7;
+        
+        bgMusic = document.createElement('audio');
+        bgMusic.src = '/assets/trash_collect_game/audio/game_bg.mp3';
         bgMusic.loop = true;
         bgMusic.volume = 0.5;
-        collectSound.volume = 0.7;
 
         trashCollectedSession = 0;
 
@@ -730,6 +738,16 @@
         window.addEventListener('keyup', (e: KeyboardEvent) => { keys[e.key as keyof Keys] = false; });
         window.addEventListener('resize', resizeCanvas);
         setInterval(() => { handleMovement(); update(); }, 1000 / 60);
+    });
+    
+    onDestroy(() => {
+        // Stop game audio
+        if (bgMusic) {
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+        }
+        // Resume global background music when leaving game
+        audioStore.playTrack('default');
     });
 
     $: winMessage = (($studentData as StudentData)?.studentLevel ?? 0) < 3 

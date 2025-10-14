@@ -14,10 +14,27 @@
   let activeTab = "play";
   let showLogoutModal = false;
   let hoveredTab = null;
+  let audioInitialized = false;
 
   onMount(() => {
-    // Play default background music when entering dashboard
+    // Start background music automatically when dashboard loads
+    // (User has already interacted via name input, gender selection, welcome page)
     audioStore.playTrack('default');
+    
+    // Fallback: If autoplay is still blocked, enable on any interaction
+    const enableAudio = () => {
+      audioStore.playTrack('default');
+    };
+
+    document.addEventListener('click', enableAudio, { once: true });
+    document.addEventListener('keydown', enableAudio, { once: true });
+    document.addEventListener('touchstart', enableAudio, { once: true });
+
+    return () => {
+      document.removeEventListener('click', enableAudio);
+      document.removeEventListener('keydown', enableAudio);
+      document.removeEventListener('touchstart', enableAudio);
+    };
   });
 
   function wiggleButton(tab) {
@@ -37,6 +54,9 @@
   }
 
   function confirmLogout() {
+    // Stop all audio when logging out
+    audioStore.stopAll();
+    
     // Reset all stores and clear localStorage
     resetName();
     clearQuiz1State();
@@ -234,6 +254,15 @@
   }
   .animate-wiggle {
     animation: wiggle 0.5s ease-in-out 1;
+  }
+
+  /* Slow Bounce Animation for Audio Prompt */
+  @keyframes bounce-slow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .animate-bounce-slow {
+    animation: bounce-slow 2s ease-in-out infinite;
   }
 
   /* Rubberband Animation for Logo */
