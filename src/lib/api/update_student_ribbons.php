@@ -1,4 +1,9 @@
 <?php
+// Suppress error display to prevent HTML output before JSON
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+
 // Dynamic CORS handling: allow dev origins used by the Svelte dev server.
 $allowed_origins = [
     'http://localhost:5173',

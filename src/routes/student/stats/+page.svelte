@@ -99,11 +99,11 @@
 
 <div
   in:slide={{ duration: 400, y: 20 }}
-  class="w-full max-w-4xl mx-auto p-6 text-center bg-gradient-to-br from-blue-50 via-pink-50 to-yellow-50 rounded-3xl shadow-lg flex flex-col items-center"
+  class="w-full max-w-4xl mx-auto p-4 text-center bg-gradient-to-br from-blue-50 via-pink-50 to-yellow-50 rounded-3xl shadow-lg flex flex-col items-center"
 >
   <!-- Header -->
   <h1
-    class="text-4xl md:text-5xl font-extrabold text-purple-600 mb-8 animate-bounce-slow"
+    class="text-4xl md:text-5xl font-extrabold text-purple-600 mb-[2vh] animate-bounce-slow"
     in:scale={{ duration: 600, start: 0.9 }}
     style="font-family: 'Comic Sans MS', 'Chalkboard', cursive;"
   >
@@ -111,14 +111,14 @@
   </h1>
 
   <!-- Stats Grid -->
-  <div class="grid grid-cols-2 md:grid-cols-3 gap-6 w-full">
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-4 w-full">
     <!-- Level Card -->
     <div
-      class="bg-white p-4 rounded-2xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer active:border-2 active:border-pink-500 active:bg-pink-50"
+      class="bg-white p-3 rounded-2xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer active:border-2 active:border-pink-500 active:bg-pink-50"
       in:scale={{ duration: 400, delay: 100 }}
       on:click={() => openModal('level')}
     >
-      <h2 class="text-xl font-bold text-pink-600 mb-2 flex items-center justify-center">
+      <h2 class="text-xl font-bold text-pink-600 mb-1 flex items-center justify-center">
         <span class="mr-2">🏆</span> Level
       </h2>
       <p class="text-sm font-semibold text-gray-700">{getLevelText()}</p>
@@ -126,15 +126,15 @@
 
     <!-- Progress Card -->
     <div
-      class="bg-white p-4 rounded-2xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer active:border-2 active:border-lime-500 active:bg-lime-50"
+      class="bg-white p-3 rounded-2xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer active:border-2 active:border-lime-500 active:bg-lime-50"
       in:scale={{ duration: 400, delay: 200 }}
       on:click={() => openModal('progress')}
     >
-      <h2 class="text-xl font-bold text-lime-600 mb-2 flex items-center justify-center">
+      <h2 class="text-xl font-bold text-lime-600 mb-1 flex items-center justify-center">
         <span class="mr-2">🚀</span> Progress
       </h2>
       {#if $studentData && $studentData.studentProgress !== null}
-        <div class="w-full bg-gray-200 rounded-full h-4 mb-2 overflow-hidden">
+        <div class="w-full bg-gray-200 rounded-full h-4 mb-1 overflow-hidden">
           <div
             class="bg-lime-400 h-full rounded-full transition-all duration-500"
             style="width: {$studentData.studentProgress}%;"
@@ -148,11 +148,11 @@
 
     <!-- Quiz Scores Card -->
     <div
-      class="bg-white p-4 rounded-2xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer active:border-2 active:border-blue-500 active:bg-blue-50"
+      class="bg-white p-3 rounded-2xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer active:border-2 active:border-blue-500 active:bg-blue-50"
       in:scale={{ duration: 400, delay: 300 }}
       on:click={() => openModal('quizzes')}
     >
-      <h2 class="text-xl font-bold text-blue-600 mb-2 flex items-center justify-center">
+      <h2 class="text-xl font-bold text-blue-600 mb-1 flex items-center justify-center">
         <span class="mr-2">🧠</span> Quizzes
       </h2>
       <div class="text-sm font-semibold text-gray-700">
@@ -164,18 +164,18 @@
 
        <!-- Ribbons Card -->
        <div
-       class="bg-white p-4 rounded-2xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer active:border-2 active:border-orange-500 active:bg-orange-50"
+       class="bg-white p-3 rounded-2xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer active:border-2 active:border-orange-500 active:bg-orange-50"
        in:scale={{ duration: 400, delay: 500 }}
        on:click={() => openModal('ribbons')}
      >
-       <h2 class="text-xl font-bold text-orange-600 mb-2 flex items-center justify-center">
+       <h2 class="text-xl font-bold text-orange-600 mb-1 flex items-center justify-center">
          <span class="mr-2">🎖️</span> Ribbons
        </h2>
        <p class="text-sm font-semibold text-gray-700">
          {$studentData?.studentRibbon || 0} Earned
        </p>
        {#if ribbons.length > 0}
-         <div class="mt-2 flex flex-wrap justify-center gap-2">
+         <div class="mt-1 flex flex-wrap justify-center gap-2">
            {#each ribbons as ribbon}
              <div class="flex flex-col items-center">
                <img src={ribbon.ribbonLocation} alt={ribbon.ribbonName} class="w-12 h-12 object-contain" />
@@ -190,11 +190,11 @@
  
     <!-- Trash Card -->
     <div
-      class="bg-white p-4 rounded-2xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer active:border-2 active:border-teal-500 active:bg-teal-50"
+      class="bg-white p-3 rounded-2xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer active:border-2 active:border-teal-500 active:bg-teal-50"
       in:scale={{ duration: 400, delay: 400 }}
       on:click={() => openModal('trash')}
     >
-      <h2 class="text-xl font-bold text-teal-600 mb-2 flex items-center justify-center">
+      <h2 class="text-xl font-bold text-teal-600 mb-1 flex items-center justify-center">
         <span class="mr-2">🗑️</span> Trash Collected
       </h2>
       <p class="text-sm font-semibold text-gray-700">
@@ -205,18 +205,18 @@
  
     <!-- Items Card -->
     <div
-      class="bg-white p-4 rounded-2xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer active:border-2 active:border-cyan-500 active:bg-cyan-50"
+      class="bg-white p-3 rounded-2xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer active:border-2 active:border-cyan-500 active:bg-cyan-50"
       in:scale={{ duration: 400, delay: 600 }}
       on:click={() => openModal('items')}
     >
-      <h2 class="text-xl font-bold text-cyan-600 mb-2 flex items-center justify-center">
+      <h2 class="text-xl font-bold text-cyan-600 mb-1 flex items-center justify-center">
         <span class="mr-2">🎁</span> Gifts
       </h2>
       <p class="text-sm font-semibold text-gray-700">
         {items.length} Collected
       </p>
       {#if items.length > 0}
-        <div class="mt-2 flex flex-wrap justify-center gap-2">
+        <div class="mt-1 flex flex-wrap justify-center gap-2">
           {#each items as item}
             <div class="flex flex-col items-center">
               <img src={item.itemLocation} alt={item.itemName} class="w-12 h-12 object-contain" />

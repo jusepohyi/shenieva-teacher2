@@ -39,8 +39,9 @@ export const actions = {
         await connection.connect();
         console.log('Database connected');
 
+        // Query with case-insensitive ID search using LOWER()
         const [rows] = await connection.execute<Teacher[]>(
-          'SELECT * FROM teacher_table WHERE idNo = ?',
+          'SELECT * FROM teacher_table WHERE LOWER(idNo) = LOWER(?)',
           [idNo]
         );
         console.log('Query result:', rows);
@@ -53,6 +54,7 @@ export const actions = {
         const teacher = rows[0];
         console.log('Teacher data:', { idNo: teacher.idNo, teacherPass: teacher.teacherPass });
 
+        // Case-sensitive password comparison using strict equality
         if (password !== teacher.teacherPass) {
           console.log('Password mismatch. Expected:', teacher.teacherPass, 'Received:', password);
           return fail(401, { error: 'Invalid teacher ID or password' });

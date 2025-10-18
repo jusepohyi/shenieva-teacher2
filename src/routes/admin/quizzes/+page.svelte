@@ -31,7 +31,7 @@
 </script>
 
 <div class="p-6 bg-white dark:bg-gray-900">
-    <h1 class="text-3xl font-bold text-orange-600 mb-8">Story Quizzes Management</h1>
+    <h1 class="text-3xl font-bold text-orange-600 mb-8">Quiz Monitoring Dashboard</h1>
 
     {#each levels as level}
         <div class="mb-8 bg-white rounded-lg shadow-md p-6 border border-gray-200">
@@ -40,14 +40,14 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {#each level.stories as story}
                     <a 
-                        href="/admin/quizzes/story{level.id}/{story.id}"
+                        href="/admin/quizzes/story{level.id}"
                         class="block p-4 bg-white border border-gray-200 rounded-lg hover:shadow-lg transition-all transform hover:-translate-y-1"
                     >
                         <div class="flex items-center justify-between">
                             <h3 class="text-lg font-medium text-gray-800">{story.title}</h3>
                             <span class="text-orange-500">➜</span>
                         </div>
-                        <p class="text-gray-600 mt-2 text-sm">Manage quizzes for this story</p>
+                        <p class="text-gray-600 mt-2 text-sm">View student quiz results</p>
                     </a>
                 {/each}
             </div>

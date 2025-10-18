@@ -43,6 +43,21 @@ function createAudioStore() {
         defaultBGM.preload = 'auto';
         villageBGM.preload = 'auto';
         
+        // Add ended event listeners as a backup to ensure looping
+        defaultBGM.addEventListener('ended', () => {
+            if (currentlyPlaying === 'default' && defaultBGM) {
+                defaultBGM.currentTime = 0;
+                defaultBGM.play().catch(err => console.warn('Loop restart failed:', err));
+            }
+        });
+        
+        villageBGM.addEventListener('ended', () => {
+            if (currentlyPlaying === 'village' && villageBGM) {
+                villageBGM.currentTime = 0;
+                villageBGM.play().catch(err => console.warn('Loop restart failed:', err));
+            }
+        });
+        
         // Add event listeners to track playback state
         defaultBGM.addEventListener('play', () => {
             currentlyPlaying = 'default';
@@ -197,8 +212,81 @@ function createAudioStore() {
 
         // Stop all music
         stopAll() {
-            if (defaultBGM) defaultBGM.pause();
-            if (villageBGM) villageBGM.pause();
+            console.log('🔇 Stopping all audio');
+            if (defaultBGM) {
+                defaultBGM.pause();
+                defaultBGM.currentTime = 0;
+            }
+            if (villageBGM) {
+                villageBGM.pause();
+                villageBGM.currentTime = 0;
+            }
+            currentlyPlaying = null;
+            
+            update(state => ({
+                ...state,
+                currentTrack: null,
+                isPlaying: false
+            }));
+        },
+
+        // Save current track to sessionStorage (for preserving across page reloads)
+        saveCurrentTrack() {
+            update(state => {
+                if (state.currentTrack && typeof sessionStorage !== 'undefined') {
+                    sessionStorage.setItem('audioTrack', state.currentTrack);
+                    sessionStorage.setItem('audioMuted', String(state.isMuted));
+                    console.log(`💾 Saved audio state: ${state.currentTrack}, muted: ${state.isMuted}`);
+                }
+                return state;
+            });
+        },
+
+        // Restore track from sessionStorage (after page reload)
+        restoreSavedTrack() {
+            if (typeof sessionStorage === 'undefined') return;
+            
+            const savedTrack = sessionStorage.getItem('audioTrack');
+            const savedMuted = sessionStorage.getItem('audioMuted') === 'true';
+            
+            if (savedTrack) {
+                console.log(`🔄 Restoring audio state: ${savedTrack}, muted: ${savedMuted}`);
+                
+                update(state => ({
+                    ...state,
+                    isMuted: savedMuted
+                }));
+                
+                if (!savedMuted && (savedTrack === 'default' || savedTrack === 'village')) {
+                    this.playTrack(savedTrack);
+                }
+                
+                // Clear after restoring
+                sessionStorage.removeItem('audioTrack');
+                sessionStorage.removeItem('audioMuted');
+            }
+        },
+
+        // Completely destroy audio elements (call on logout)
+        destroy() {
+            console.log('🗑️ Destroying audio elements');
+            
+            // Stop and remove all audio
+            if (defaultBGM) {
+                defaultBGM.pause();
+                defaultBGM.src = '';
+                defaultBGM.load();
+                defaultBGM = null;
+            }
+            if (villageBGM) {
+                villageBGM.pause();
+                villageBGM.src = '';
+                villageBGM.load();
+                villageBGM = null;
+            }
+            
+            currentlyPlaying = null;
+            initialized = false;
             
             update(state => ({
                 ...state,

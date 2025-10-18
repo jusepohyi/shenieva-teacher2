@@ -598,7 +598,7 @@
     async function fetchInitialTrashCount(studentID: number) {
         try {
             const response = await fetchWithTimeout(
-                'http://localhost/shenieva-teacher/src/lib/api/trash2.php',
+                'http://localhost/shenieva-teacher/src/lib/api/trash3.php',
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -649,7 +649,7 @@
 
         try {
             const response = await fetchWithTimeout(
-                'http://localhost/shenieva-teacher/src/lib/api/trash2.php',
+                'http://localhost/shenieva-teacher/src/lib/api/trash3.php',
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -741,11 +741,19 @@
     });
     
     onDestroy(() => {
-        // Stop game audio
+        console.log('🧹 Cleaning up trash game 3');
+        
+        // Stop game audio completely
         if (bgMusic) {
             bgMusic.pause();
             bgMusic.currentTime = 0;
+            bgMusic.src = ''; // Clear source to release audio
         }
+        if (collectSound) {
+            collectSound.pause();
+            collectSound.src = '';
+        }
+        
         // Resume global background music when leaving game
         audioStore.playTrack('default');
     });

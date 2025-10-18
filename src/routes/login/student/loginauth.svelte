@@ -32,11 +32,17 @@
       const result = await response.json();
 
       if (result.success) {
-        // Save student data to the store
+        // Clear any old localStorage data before setting new student data
+        localStorage.removeItem('studentData');
+        localStorage.removeItem('villageVisitedLevels');
+        localStorage.removeItem('villageVisitedScenes');
+        localStorage.removeItem('villageReturnScene');
+        
+        // Save fresh student data from database to the store
         studentData.set(result.data);
 
         modalState = 'success';
-        modalMessage = 'Yay, you’re in!';
+        modalMessage = "Yay, you're in!";
         setTimeout(() => {
           goto('/student');
         }, 5000);

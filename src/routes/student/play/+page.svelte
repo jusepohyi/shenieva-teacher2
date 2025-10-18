@@ -7,6 +7,7 @@
   import { goto, afterNavigate } from '$app/navigation';
   import { get } from 'svelte/store';
   import { studentData } from '$lib/store/student_data';
+  import { audioStore } from '$lib/store/audio_store';
   import ChooseLevel from "../components/modals/choose_level.svelte"; // Import choose_level
   import Story1 from "../components/modals/level_1.svelte"; // Import story_1
   import Story2 from "../components/modals/level_2.svelte"; // Import story_2
@@ -22,6 +23,11 @@
   let story2Key = '';
   let story3Key = '';
   let lastRetakeToken: string | null = null;
+
+  // Restore audio track that was saved before retake navigation
+  onMount(() => {
+    audioStore.restoreSavedTrack();
+  });
 
   // Switch from wiggle to steady after the initial wiggle completes
   setTimeout(() => {
@@ -248,6 +254,26 @@
       const token = get(page).url.searchParams.get('retake');
       if (token && token !== lastRetakeToken) {
         lastRetakeToken = token;
+        
+        // Check if coming from village with level parameter
+        const levelParam = get(page).url.searchParams.get('level');
+        if (levelParam) {
+          // Village sent us here with a level number
+          if (levelParam === '1') {
+            story1Key = '';
+            showStory1Modal = true;
+            return;
+          } else if (levelParam === '2') {
+            story2Key = '';
+            showStory2Modal = true;
+            return;
+          } else if (levelParam === '3') {
+            story3Key = '';
+            showStory3Modal = true;
+            return;
+          }
+        }
+        
         // If the URL specifies a story, open the appropriate Level modal directly and pass the storyKey
         const requestedStory = get(page).url.searchParams.get('story') || '';
         if (requestedStory.startsWith('story2-')) {
@@ -262,8 +288,8 @@
             story2Key = requestedStory;
           }
           showStory2Modal = true;
-          try { localStorage.setItem('openStory2Modal', 'true'); localStorage.setItem('retakeLevel2', 'true'); } catch {}
-          try { localStorage.removeItem('openStory1Modal'); localStorage.removeItem('retakeLevel1'); } catch {}
+          try { localStorage.setItem('openStory2Modal', 'true'); localStorage.setItem('retakeLevel2', 'true'); } catch (e) {}
+          try { localStorage.removeItem('openStory1Modal'); localStorage.removeItem('retakeLevel1'); } catch (e) {}
         } else if (requestedStory.startsWith('story3-')) {
           showChooseStoryModal = false;
           showStory1Modal = false;
@@ -275,8 +301,8 @@
             story3Key = requestedStory;
           }
           showStory3Modal = true;
-          try { localStorage.setItem('openStory3Modal', 'true'); localStorage.setItem('retakeLevel3', 'true'); } catch {}
-          try { localStorage.removeItem('openStory1Modal'); localStorage.removeItem('retakeLevel1'); } catch {}
+          try { localStorage.setItem('openStory3Modal', 'true'); localStorage.setItem('retakeLevel3', 'true'); } catch (e) {}
+          try { localStorage.removeItem('openStory1Modal'); localStorage.removeItem('retakeLevel1'); } catch (e) {}
         } else {
           // default to Level 1
           showChooseStoryModal = false;
@@ -284,27 +310,27 @@
           showStory3Modal = false;
           story1Key = requestedStory || '';
           showStory1Modal = true;
-          try { localStorage.setItem('openStory1Modal', 'true'); localStorage.setItem('retakeLevel1', 'true'); } catch {}
+          try { localStorage.setItem('openStory1Modal', 'true'); localStorage.setItem('retakeLevel1', 'true'); } catch (e) {}
         }
       }
-    } catch {}
+    } catch (e) {}
   });
 </script>
 
 <div in:slide={{ duration: 400 }} class="text-center">
-  <h1 class="text-[6vw] md:text-4xl font-bold text-lime-500 mb-[2vh] animate-bounce">
+  <h1 class="text-[6vw] md:text-4xl font-bold text-lime-500 mb-[1vh] animate-bounce">
     Hi, {$name}! 🌟
   </h1>
-  <h2 class="text-[5vw] md:text-3xl font-bold text-lime-500 mb-[2vh]">
+  <h2 class="text-[5vw] md:text-3xl font-bold text-lime-500 mb-[1vh]">
     Welcome to Readville Village! 📖✨
   </h2>
-  <p class="text-[3vw] md:text-xl text-gray-700 mb-[1vh]">
+  <p class="text-[3vw] md:text-xl text-gray-700 mb-[0.5vh]">
     Join Shenievia Reads on an exciting journey home!<br> Explore fun stories, answer questions, and earn rewards along the way.
   </p>
-  <p class="text-[3vw] md:text-xl text-gray-700 mb-[3vh]">
+  <p class="text-[3vw] md:text-xl text-gray-700 mb-[1.5vh]">
     Think, learn, and discover the hidden lessons in every tale.
   </p>
-  <p class="text-[4vw] md:text-xl text-orange-500 mb-[5vh] font-bold">
+  <p class="text-[4vw] md:text-xl text-orange-500 mb-[2vh] font-bold">
     Your adventure starts now! 🚀📚
   </p>
   <button

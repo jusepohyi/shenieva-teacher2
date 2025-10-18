@@ -741,11 +741,19 @@
     });
     
     onDestroy(() => {
-        // Stop game audio
+        console.log('🧹 Cleaning up trash game 2');
+        
+        // Stop game audio completely
         if (bgMusic) {
             bgMusic.pause();
             bgMusic.currentTime = 0;
+            bgMusic.src = ''; // Clear source to release audio
         }
+        if (collectSound) {
+            collectSound.pause();
+            collectSound.src = '';
+        }
+        
         // Resume global background music when leaving game
         audioStore.playTrack('default');
     });

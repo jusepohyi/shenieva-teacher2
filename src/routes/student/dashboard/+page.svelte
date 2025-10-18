@@ -54,13 +54,30 @@
   }
 
   function confirmLogout() {
-    // Stop all audio when logging out
-    audioStore.stopAll();
+    // Completely destroy audio elements to prevent music from continuing
+    audioStore.destroy();
     
     // Reset all stores and clear localStorage
     resetName();
     clearQuiz1State();
     resetStudentData();
+    
+    // Clear village progress tracking
+    localStorage.removeItem('villageVisitedScenes');
+    localStorage.removeItem('villageVisitedLevels');
+    localStorage.removeItem('villageReturnScene');
+    
+    // Clear any pending or cached data
+    localStorage.removeItem('pending_story');
+    localStorage.removeItem('claimed_story1-1');
+    localStorage.removeItem('claimed_story1-2');
+    localStorage.removeItem('claimed_story1-3');
+    localStorage.removeItem('claimed_story2-1');
+    localStorage.removeItem('claimed_story2-2');
+    localStorage.removeItem('claimed_story2-3');
+    localStorage.removeItem('claimed_story3-1');
+    localStorage.removeItem('claimed_story3-2');
+    localStorage.removeItem('claimed_story3-3');
 
     showLogoutModal = false;
     goto('../'); // Redirect to parent directory
@@ -146,14 +163,14 @@
         on:mouseenter={() => setHoveredTab("profile")}
         on:mouseleave={clearHoveredTab}
       >
-        👤
+        🏠
       </button>
       <span
         class="mt-[0.5vh] text-[1.5vw] md:text-[0.875rem] font-bold text-white drop-shadow-[0_0.125vw_0.125vw_rgba(0,0,0,0.8)] transition-all duration-300"
         class:scale-150={activeTab === "profile" || hoveredTab === "profile"}
         class:animate-wiggle={activeTab === "profile"}
       >
-        Me
+        Home
       </span>
       {#if activeTab === "profile"}
         <div class="w-[4vw] h-[0.125vh] bg-red-400 mt-[0.25vh] rounded transition-all duration-300" in:slide={{ duration: 200 }}></div>

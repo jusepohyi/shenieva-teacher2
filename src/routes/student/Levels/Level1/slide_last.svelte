@@ -2,6 +2,7 @@
     import { goto } from '$app/navigation';
     import { resetLevelAnswers, studentData } from '$lib/store/student_data';
     import { addAttempt } from '$lib/data/attempts.js';
+    import { audioStore } from '$lib/store/audio_store';
     // use Svelte auto-subscription ($studentData) instead of importing `get`
 
     export let storyKey: string = ''; // Prop to identify the current story (story1-1, story1-2, story1-3)
@@ -15,6 +16,10 @@
     let showConfirm = false;
     let showSummary = false;
     let lastAttempt: any = null;
+
+    // Track if quiz already exists in database (prevents duplicate claims)
+    let quizAlreadyExists = false;
+    let checkingDatabase = false;
 
     // If the student has already reached level 1 or higher,
     // we should not persist Level 1 attempts or award ribbons for this level.
@@ -162,6 +167,38 @@
         try { localStorage.setItem(`retake${storyKey}Count`, String(retakeCount)); } catch {}
     }
 
+    // Check if quiz already exists in database for this student and story
+    async function checkQuizExistsInDatabase() {
+        try {
+            checkingDatabase = true;
+            const snapshot = $studentData || {};
+            const studentId = snapshot?.pk_studentID || null;
+            
+            if (!studentId) {
+                quizAlreadyExists = false;
+                return;
+            }
+
+            const backendOrigin = (location.port && location.port !== '80' && location.port !== '443') 
+                ? `${location.protocol}//${location.hostname}` 
+                : location.origin;
+            const checkUrl = `${backendOrigin}/shenieva-teacher/src/lib/api/check_quiz_exists.php?student_id=${studentId}&story_key=${storyKey}&level=1`;
+            
+            const response = await fetch(checkUrl);
+            const result = await response.json();
+            
+            if (result.success) {
+                quizAlreadyExists = result.exists;
+                console.log('Quiz exists check:', result);
+            }
+        } catch (e) {
+            console.warn('Error checking quiz existence:', e);
+            quizAlreadyExists = false;
+        } finally {
+            checkingDatabase = false;
+        }
+    }
+
     // Derived try counters for UI
     let attemptsUsed = 1 + retakeCount;
     let attemptsRemaining = Math.max(0, attemptsLimit - attemptsUsed);
@@ -169,6 +206,9 @@
     $: attemptsRemaining = Math.max(0, attemptsLimit - attemptsUsed);
 
     async function continueToQuiz() {
+        // Check if quiz already exists in database first
+        await checkQuizExistsInDatabase();
+        
         // Save attempt record and show summary modal before navigating
         try {
             const snapshot = $studentData || {};
@@ -213,11 +253,12 @@
 
     async function claimRibbonsAndContinue() {
         if (!lastAttempt) return;
-    const snapshot = $studentData || {};
+        const snapshot = $studentData || {};
         const studentId = snapshot?.pk_studentID || null;
         const ribbons = lastAttempt.score || 0;
-        if (!studentId || ribbons <= 0) {
-            // nothing to update, just continue
+        
+        if (!studentId) {
+            // No student ID, can't save
             showSummary = false;
             goto('/student/game/trash_1');
             return;
@@ -226,6 +267,18 @@
         savingRibbons = true;
         ribbonMessage = '';
         try {
+            // Check if quiz already exists in database for this level
+            if (quizAlreadyExists) {
+                console.log('Quiz already exists for this level — skipping save');
+                ribbonMessage = 'You have already claimed ribbons for Level 1';
+                await new Promise(res => setTimeout(res, 800));
+                showSummary = false;
+                showConfirm = false;
+                try { localStorage.removeItem('pending_story'); } catch {}
+                goto('/student/game/trash_1');
+                return;
+            }
+
             // If level already completed, don't update ribbons or persist quiz rows
             if (isLevelCompleted) {
                 console.log('Level already completed — skipping ribbons/quiz persistence');
@@ -239,37 +292,50 @@
                 goto('/student/game/trash_1');
                 return;
             }
-            // Update DB via existing PHP endpoint
-            const response = await fetch('http://localhost/shenieva-teacher/src/lib/api/update_student_ribbons.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ student_id: studentId, ribbons })
-            });
-            const result = await response.json();
-            if (!result.success) {
-                console.warn('Failed to update ribbons on server', result.error);
-                ribbonMessage = 'Failed to save ribbons. Please try again.';
-                savingRibbons = false;
-                return;
+            
+            // Update ribbons only if score > 0
+            if (ribbons > 0) {
+                // Update DB via existing PHP endpoint
+                const response = await fetch('http://localhost/shenieva-teacher/src/lib/api/update_student_ribbons.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ student_id: studentId, ribbons })
+                });
+                const result = await response.json();
+                if (!result.success) {
+                    console.warn('Failed to update ribbons on server', result.error);
+                    ribbonMessage = 'Failed to save ribbons. Saving quiz anyway...';
+                    // Don't return - continue to save quiz
+                } else {
+                    // On success, update local store
+                    studentData.update((d: any) => {
+                        if (!d) return d;
+                        const current = d.studentRibbon || 0;
+                        return { ...d, studentRibbon: current + ribbons };
+                    });
+                }
+            } else {
+                console.log('No ribbons to award (score is 0), but saving quiz submission');
             }
 
-            // On success, update local store first
-            studentData.update((d: any) => {
-                if (!d) return d;
-                const current = d.studentRibbon || 0;
-                return { ...d, studentRibbon: current + ribbons };
-            });
-
-            // Now submit the detailed quiz rows to level1_quiz table
+            // Now submit the detailed quiz rows to level1_quiz table - ALWAYS save final submission
             try {
-                const snapshot = $studentData || {};
+                // When claiming ribbons/continuing, this is ALWAYS a final submission
+                const isFinal = 1; // Always final when claiming
+                
+                // Filter answers to only include current story's questions
+                const filteredAnswers = Object.fromEntries(
+                    Object.entries(lastAttempt.answers || {}).filter(([key]) => key.startsWith(storyKey.replace('-', '_')))
+                );
+                
                 const payload = {
                     student_id: studentId,
                     storyKey,
                     storyTitle: storyTitles[storyKey] || storyKey,
-                    attempt: lastAttempt,
+                    attempt: { ...lastAttempt, answers: filteredAnswers },
                     questions: (questionsByStory as any)?.[storyKey] || {},
-                    correctAnswers: correctAnswers[storyKey] || {}
+                    correctAnswers: correctAnswers[storyKey] || {},
+                    is_final: isFinal
                 };
 
                 const saveResp = await fetch('http://localhost/shenieva-teacher/src/lib/api/submit_level1_quiz.php', {
@@ -280,23 +346,23 @@
                 const saveResult = await saveResp.json();
                 if (!saveResult.success) {
                     console.warn('Failed to save quiz rows', saveResult.error);
-                    ribbonMessage = 'Ribbons saved but failed to save quiz. Please try again.';
+                    ribbonMessage = ribbons > 0 ? 'Ribbons saved but failed to save quiz. Please try again.' : 'Failed to save quiz. Please try again.';
                     savingRibbons = false;
                     return;
                 }
 
-                    ribbonMessage = 'Ribbons and quiz saved! 🎉';
+                ribbonMessage = ribbons > 0 ? 'Ribbons and quiz saved! 🎉' : 'Quiz saved! 📝';
                 // small delay so user sees the message
                 await new Promise(res => setTimeout(res, 600));
-                    // clear pending flag now that everything is saved
-                    try { localStorage.removeItem('pending_story'); } catch {}
+                // clear pending flag now that everything is saved
+                try { localStorage.removeItem('pending_story'); } catch {}
 
-                    showSummary = false;
-                    showConfirm = false;
-                    goto('/student/game/trash_1');
+                showSummary = false;
+                showConfirm = false;
+                goto('/student/game/trash_1');
             } catch (e) {
                 console.warn('Error while saving quiz rows', e);
-                ribbonMessage = 'Ribbons saved but network error while saving quiz.';
+                ribbonMessage = ribbons > 0 ? 'Ribbons saved but network error while saving quiz.' : 'Network error while saving quiz.';
                 savingRibbons = false;
                 return;
             }
@@ -343,6 +409,27 @@
             showConfirm = false;
             // clear pending flag if present
             try { localStorage.removeItem('pending_story'); } catch {}
+            
+            // Clear Level 1 answers by updating the store
+            try {
+                studentData.update(data => {
+                    if (!data) return data;
+                    const answeredQuestions = data.answeredQuestions || {};
+                    
+                    const clearedQuestions = Object.fromEntries(
+                        Object.entries(answeredQuestions).filter(([key]) => !key.startsWith('story1'))
+                    );
+                    
+                    console.log('Cleared Level 1 answers on retake (completed level). Remaining answers:', clearedQuestions);
+                    return { ...data, answeredQuestions: clearedQuestions };
+                });
+            } catch (e) {
+                console.warn('Failed to reset Level 1 answers on retake', e);
+            }
+            
+            // Save current audio track before navigation
+            audioStore.saveCurrentTrack();
+            
             // Navigate back to level chooser (not specific story) so user can select any story
             try {
                 location.replace(`${location.origin}/student/play?level=1&retake=${Date.now()}`);
@@ -378,25 +465,32 @@
             console.log('Saved attempt record before retake', attemptRecord);
         } catch (e) { console.warn('Failed to save attempt record', e); }
 
-        // Reset answers for the specific story by replacing answeredQuestions with an empty object
-        studentData.update((data: any) => {
-            if (!data) return data;
-            return { ...data, answeredQuestions: {} };
-        });
-
-        // Force persist to localStorage immediately to avoid race with navigation
         try {
-            const snapshot = $studentData;
-            localStorage.setItem('studentData', JSON.stringify(snapshot));
-            console.log('Persisted studentData after retake (cleared all answers)', snapshot);
+            // Clear Level 1 answers by updating the store (which will sync to localStorage)
+            studentData.update(data => {
+                if (!data) return data;
+                const answeredQuestions = data.answeredQuestions || {};
+                
+                // Remove all keys that start with 'story1'
+                const clearedQuestions = Object.fromEntries(
+                    Object.entries(answeredQuestions).filter(([key]) => !key.startsWith('story1'))
+                );
+                
+                console.log('Cleared Level 1 answers on retake. Remaining answers:', clearedQuestions);
+                return { ...data, answeredQuestions: clearedQuestions };
+            });
         } catch (e) {
-            console.warn('Failed to persist studentData after retake', e);
+            console.warn('Failed to reset Level 1 answers on retake', e);
         }
         // Increment retake count and persist
         incRetakeCount();
         // Flag retake and delegate to /student/play with level parameter (to open story chooser)
         try { localStorage.setItem(`retake${storyKey}`, 'true'); } catch {}
     try { localStorage.removeItem('pending_story'); } catch {}
+        
+        // Save current audio track before navigation
+        audioStore.saveCurrentTrack();
+        
         showConfirm = false;
         // Use location.replace to force a full reload so the app boots from persisted state
         try {
@@ -537,13 +631,20 @@
 
                 <footer class="summary-footer">
                     <div style="display:flex;flex-direction:column;align-items:center;gap:0.4rem;">
-                        {#if isLevelCompleted}
+                        {#if isLevelCompleted || quizAlreadyExists}
                             <button class="btn-claim" on:click={continueWithoutSaving}>
                                 Continue to Game ➡️
                             </button>
+                            {#if quizAlreadyExists}
+                                <p style="font-size:0.9rem;color:#666;margin-top:0.5rem;">
+                                    You have already claimed ribbons for Level 1
+                                </p>
+                            {/if}
                         {:else}
-                            <button class="btn-claim" on:click={claimRibbonsAndContinue} disabled={savingRibbons} aria-busy={savingRibbons}>
-                                {#if savingRibbons}
+                            <button class="btn-claim" on:click={claimRibbonsAndContinue} disabled={savingRibbons || checkingDatabase} aria-busy={savingRibbons || checkingDatabase}>
+                                {#if checkingDatabase}
+                                    Checking...
+                                {:else if savingRibbons}
                                     Saving...
                                 {:else}
                                     Claim Ribbons & Continue

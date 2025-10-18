@@ -1,4 +1,9 @@
 <?php
+// Suppress error display to prevent HTML output before JSON
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+
 // Dynamic CORS handling: allow dev origins used by the Svelte dev server.
 $allowed_origins = [
     'http://localhost:5173',
@@ -36,6 +41,14 @@ if (!$payload || !isset($payload['student_id']) || !isset($payload['storyKey']) 
     exit();
 }
 
+// Check if this is a final submission - only save final attempts
+$is_final = isset($payload['is_final']) ? (int)$payload['is_final'] : 0;
+if ($is_final !== 1) {
+    // Not a final submission (student will retake), don't save to database
+    echo json_encode(['success' => true, 'message' => 'Retake attempt not saved']);
+    exit();
+}
+
 $student_id = (int)$payload['student_id'];
 $storyKey = $conn->real_escape_string($payload['storyKey']);
 $storyTitle = '';
@@ -62,7 +75,8 @@ $correctAnswers = isset($payload['correctAnswers']) ? $payload['correctAnswers']
 try {
     $conn->begin_transaction();
 
-    $stmt = $conn->prepare("INSERT INTO level1_quiz (studentID, storyTitle, question, choiceA, choiceB, choiceC, choiceD, correctAnswer, selectedAnswer, score, attempt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    // Changed 'score' to 'point' - each question gets 0 or 1 point
+    $stmt = $conn->prepare("INSERT INTO level1_quiz (studentID, storyTitle, question, choiceA, choiceB, choiceC, choiceD, correctAnswer, selectedAnswer, point, attempt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     if (!$stmt) throw new Exception('Prepare failed: ' . $conn->error);
 
     foreach ($answers as $qid => $selected) {
@@ -86,10 +100,11 @@ try {
         $correct = isset($correctAnswers[$qid]) ? $conn->real_escape_string($correctAnswers[$qid]) : '';
         $selectedEsc = $conn->real_escape_string($selected);
 
-        $s = $score; // store the overall attempt score per-row (maybe adjust per-question if desired)
+        // Calculate point per question: 1 if correct, 0 if wrong
+        $point = (strtolower(trim($selectedEsc)) === strtolower(trim($correct))) ? 1 : 0;
         $aNum = $attemptNum + 1; // attempt number: retakeCount + 1
 
-    $stmt->bind_param("issssssssii", $student_id, $storyTitle, $qText, $choiceA, $choiceB, $choiceC, $choiceD, $correct, $selectedEsc, $s, $aNum);
+        $stmt->bind_param("issssssssii", $student_id, $storyTitle, $qText, $choiceA, $choiceB, $choiceC, $choiceD, $correct, $selectedEsc, $point, $aNum);
         if (!$stmt->execute()) {
             throw new Exception('Execute failed: ' . $stmt->error);
         }

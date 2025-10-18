@@ -2,6 +2,7 @@
     import { goto } from '$app/navigation';
     import { resetLevelAnswers, studentData } from '$lib/store/student_data';
     import { addAttempt } from '$lib/data/attempts.js';
+    import { audioStore } from '$lib/store/audio_store';
     // use Svelte auto-subscription ($studentData) instead of importing `get`
 
     // This final-slide mirrors Level1's UI/flow but adapted for Level 3
@@ -14,6 +15,8 @@
 
     // Show modal to ask "Try Again or Go Next?" 
     let showConfirm = false;
+    let quizAlreadyExists = false;
+    let checkingDatabase = false;
     // Note: Level 3 does not show quiz summary - goes directly to trash game
 
     // If the student has already reached level 3 or higher, we should not persist Level 3 attempts or award ribbons for this level.
@@ -102,6 +105,39 @@
     function canRetake() { return (1 + retakeCount) < attemptsLimit; }
     function incRetakeCount() { retakeCount += 1; try { localStorage.setItem(`retake${storyKey}Count`, String(retakeCount)); } catch {} }
 
+    async function checkQuizExistsInDatabase() {
+        try {
+            checkingDatabase = true;
+            const student_id = $studentData?.id;
+            if (!student_id || !storyKey) {
+                quizAlreadyExists = false;
+                return;
+            }
+
+            const params = new URLSearchParams({
+                student_id: String(student_id),
+                story_key: storyKey,
+                level: '3'
+            });
+
+            const response = await fetch(`/lib/api/check_quiz_exists.php?${params.toString()}`);
+            const result = await response.json();
+
+            if (result.success) {
+                quizAlreadyExists = result.exists || false;
+                console.log('[Level 3] Quiz exists check:', result);
+            } else {
+                console.warn('[Level 3] Quiz check failed:', result.message);
+                quizAlreadyExists = false;
+            }
+        } catch (error) {
+            console.error('[Level 3] Error checking quiz existence:', error);
+            quizAlreadyExists = false;
+        } finally {
+            checkingDatabase = false;
+        }
+    }
+
     // Derived attempt counters for UI
     let attemptsUsed = 1 + retakeCount;
     let attemptsRemaining = Math.max(0, attemptsLimit - attemptsUsed);
@@ -111,8 +147,11 @@
     // Level 3: Skip quiz summary, go directly to trash game
     async function continueToGame() {
         try {
-            // Save quiz to database before continuing (if not already completed)
-            if (!isLevelCompleted) {
+            // Check if quiz already exists in database first
+            await checkQuizExistsInDatabase();
+
+            // Save quiz to database before continuing (if not already completed and not already exists)
+            if (!isLevelCompleted && !quizAlreadyExists) {
                 await saveQuizToDatabase();
             }
             
@@ -130,6 +169,12 @@
 
     async function saveQuizToDatabase() {
         try {
+            // Check if quiz already exists in database for this level
+            if (quizAlreadyExists) {
+                console.log('Quiz already exists for this level — skipping save');
+                return;
+            }
+
             const snapshot = $studentData || {};
             const studentId = snapshot?.pk_studentID || null;
             const answers = snapshot.answeredQuestions || {};
@@ -165,12 +210,22 @@
             };
 
             // Build payload for API
+            // When student continues/submits, this is ALWAYS a final submission
+            // Save to database regardless of retake availability
+            const isFinal = 1; // Always final when submitting in Level 3
+            
+            // Filter answers to only include current story's questions
+            const filteredAnswers = Object.fromEntries(
+                Object.entries(attemptRecord.answers || {}).filter(([key]) => key.startsWith(storyKey))
+            );
+            
             const payload = {
                 student_id: studentId,
                 storyKey,
                 storyTitle: storyTitles[storyKey] || storyKey,
-                attempt: attemptRecord,
-                questions: questionsByStory[storyKey] || {}
+                attempt: { ...attemptRecord, answers: filteredAnswers },
+                questions: questionsByStory[storyKey] || {},
+                is_final: isFinal
             };
 
             // Determine backend origin
@@ -214,7 +269,28 @@
             showConfirm = false; 
             try { localStorage.removeItem('pending_story'); } catch {} 
             try { localStorage.setItem('openStory3Modal','true'); } catch {} 
-            goto(`/student/play?level=3&retake=${Date.now()}`); 
+            
+            // Clear Level 3 answers by updating the store
+            try {
+                studentData.update(data => {
+                    if (!data) return data;
+                    const answeredQuestions = data.answeredQuestions || {};
+                    
+                    const clearedQuestions = Object.fromEntries(
+                        Object.entries(answeredQuestions).filter(([key]) => !key.startsWith('story3'))
+                    );
+                    
+                    console.log('Cleared Level 3 answers on retake (completed level). Remaining answers:', clearedQuestions);
+                    return { ...data, answeredQuestions: clearedQuestions };
+                });
+            } catch (e) {
+                console.warn('Failed to reset Level 3 answers on retake', e);
+            }
+            
+            // Save current audio track before navigation
+            audioStore.saveCurrentTrack();
+            
+            try { location.replace(`${location.origin}/student/play?level=3&retake=${Date.now()}`); } catch (e) { goto(`/student/play?level=3&retake=${Date.now()}`); }
             return; 
         }
         if (!canRetake()) { 
@@ -246,12 +322,31 @@
             addAttempt(attemptRecord);
         } catch (e) { console.warn('Failed to save attempt record', e); }
 
-        studentData.update((data:any) => { if (!data) return data; return { ...data, answeredQuestions: {} }; });
-        try { const snapshot = $studentData; localStorage.setItem('studentData', JSON.stringify(snapshot)); } catch (e) { console.warn('Failed to persist studentData after retake', e); }
+        try {
+            // Clear Level 3 answers by updating the store (which will sync to localStorage)
+            studentData.update(data => {
+                if (!data) return data;
+                const answeredQuestions = data.answeredQuestions || {};
+                
+                // Remove all keys that start with 'story3'
+                const clearedQuestions = Object.fromEntries(
+                    Object.entries(answeredQuestions).filter(([key]) => !key.startsWith('story3'))
+                );
+                
+                console.log('Cleared Level 3 answers on retake. Remaining answers:', clearedQuestions);
+                return { ...data, answeredQuestions: clearedQuestions };
+            });
+        } catch (e) {
+            console.warn('Failed to reset Level 3 answers on retake', e);
+        }
         incRetakeCount(); try { localStorage.setItem(`retake${storyKey}`, 'true'); } catch {}
         try { localStorage.removeItem('pending_story'); } catch {}
         // Ensure the play page knows to open the Level 3 story chooser/modal on load
         try { localStorage.setItem('openStory3Modal', 'true'); } catch {}
+        
+        // Save current audio track before navigation
+        audioStore.saveCurrentTrack();
+        
         showConfirm = false;
         try { location.replace(`${location.origin}/student/play?level=3&retake=${Date.now()}`); } catch (e) { goto(`/student/play?level=3&retake=${Date.now()}`); }
     }
@@ -267,24 +362,41 @@
 
     <p class="text-[4vw] md:text-2xl text-gray-800 font-semibold">{slide.text}</p>
 
-    <button class="mt-[2vh] bg-teal-300 text-gray-900 px-[6vw] py-[2vh] rounded-[3vw] text-[5vw] md:text-2xl font-bold shadow-md hover:bg-teal-400 flex items-center justify-center" on:click={() => { if (isLevelCompleted) { continueToGame(); } else { showConfirm = true; } }}>
-        Continue 🌟
+    <button class="mt-[2vh] bg-teal-300 text-gray-900 px-[6vw] py-[2vh] rounded-[3vw] text-[5vw] md:text-2xl font-bold shadow-md hover:bg-teal-400 flex items-center justify-center" disabled={checkingDatabase} on:click={async () => { 
+        if (isLevelCompleted) { 
+            await continueToGame(); 
+        } else { 
+            await checkQuizExistsInDatabase(); 
+            showConfirm = true; 
+        } 
+    }}>
+        {#if checkingDatabase}
+            Checking...
+        {:else}
+            Continue 🌟
+        {/if}
     </button>
 
     {#if showConfirm}
         <div class="confirm-overlay">
             <div class="confirm-modal">
                 <h3 class="confirm-title">Try again or go next? 😊</h3>
-                <p class="confirm-text">
-                    {#if attemptsRemaining > 0}
-                        This is try {attemptsUsed} of {attemptsLimit}! You have {attemptsRemaining} {attemptsRemaining === 1 ? 'try' : 'tries'} left! 🌟
-                    {:else}
-                        You used all {attemptsLimit} tries! Time to go next! 🚀
-                    {/if}
-                </p>
+                {#if quizAlreadyExists}
+                    <p class="confirm-text" style="color:#666;">
+                        You have already submitted a quiz for Level 3. You can continue to the game!
+                    </p>
+                {:else}
+                    <p class="confirm-text">
+                        {#if attemptsRemaining > 0}
+                            This is try {attemptsUsed} of {attemptsLimit}! You have {attemptsRemaining} {attemptsRemaining === 1 ? 'try' : 'tries'} left! 🌟
+                        {:else}
+                            You used all {attemptsLimit} tries! Time to go next! 🚀
+                        {/if}
+                    </p>
+                {/if}
                 <div class="confirm-actions">
-                    {#if isLevelCompleted}
-                        <!-- Level already completed: only allow continue -->
+                    {#if isLevelCompleted || quizAlreadyExists}
+                        <!-- Level already completed or quiz already exists: only allow continue -->
                         <button class="confirm-btn proceed" on:click={continueToGame}>Go Next ➡️</button>
                     {:else}
                         {#if attemptsRemaining > 0}

@@ -1,4 +1,9 @@
 <?php
+// Suppress error display to prevent HTML output before JSON
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+
 // Dynamic CORS handling: allow dev origins used by the Svelte dev server.
 $allowed_origins = [
     'http://localhost:5173',
@@ -36,6 +41,14 @@ if (!$payload || !isset($payload['student_id']) || !isset($payload['storyKey']) 
     exit();
 }
 
+// Check if this is a final submission - only save final attempts
+$is_final = isset($payload['is_final']) ? (int)$payload['is_final'] : 0;
+if ($is_final !== 1) {
+    // Not a final submission (student will retake), don't save to database
+    echo json_encode(['success' => true, 'message' => 'Retake attempt not saved']);
+    exit();
+}
+
 $student_id = (int)$payload['student_id'];
 $storyKey = $conn->real_escape_string($payload['storyKey']);
 $storyTitle = '';
@@ -58,14 +71,47 @@ $attemptNum = isset($attempt['retakeCount']) ? (int)$attempt['retakeCount'] : 0;
 // optional: correctAnswers mapping sent from client
 $correctAnswers = isset($payload['correctAnswers']) ? $payload['correctAnswers'] : [];
 
+// Log the data for debugging
+error_log("=== Level 2 Quiz Submission START ===");
+error_log("Student ID: $student_id, Story: $storyKey, Title: $storyTitle");
+error_log("Answers received: " . print_r($answers, true));
+error_log("Correct Answers received: " . print_r($correctAnswers, true));
+error_log("Answers count: " . count($answers));
+error_log("Correct Answers count: " . count($correctAnswers));
+
+// Check if we have answers to save
+if (empty($answers)) {
+    error_log("ERROR: No answers provided in submission");
+    echo json_encode(['success' => false, 'error' => 'No answers provided']);
+    exit();
+}
+
+// Verify table exists
+$tableCheck = $conn->query("SHOW TABLES LIKE 'level2_quiz'");
+if ($tableCheck->num_rows === 0) {
+    error_log("ERROR: level2_quiz table does not exist");
+    echo json_encode(['success' => false, 'error' => 'Database table level2_quiz does not exist']);
+    exit();
+}
+error_log("Table check: level2_quiz exists");
+
 try {
     $conn->begin_transaction();
+    error_log("Transaction started");
 
     // Level 2 uses drag-and-drop quizzes where answers are stored as JSON mappings
     // We need to iterate through each sub-question in the mapping
-    $stmt = $conn->prepare("INSERT INTO level2_quiz (studentID, storyTitle, question, correctAnswer, selectedAnswer, score, attempt) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    if (!$stmt) throw new Exception('Prepare failed: ' . $conn->error);
+    // Note: quizID is auto_increment, createdAt has default value
+    // Changed 'score' to 'point' - each question gets 0 or 1 point
+    error_log("Preparing INSERT statement...");
+    $stmt = $conn->prepare("INSERT INTO level2_quiz (studentID, storyTitle, question, correctAnswer, selectedAnswer, point, attempt) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    if (!$stmt) {
+        error_log("PREPARE FAILED: " . $conn->error);
+        throw new Exception('Prepare failed: ' . $conn->error);
+    }
+    error_log("Prepare successful");
 
+    $rowsInserted = 0;
     foreach ($answers as $qid => $selectedRaw) {
         // Try to parse as JSON mapping (Level 2 drag-and-drop style)
         $selectedMap = null;
@@ -84,6 +130,8 @@ try {
             $correctMap = $correctRaw;
         }
 
+        error_log("Processing question: $qid, selectedMap: " . print_r($selectedMap, true) . ", correctMap: " . print_r($correctMap, true));
+
         // If we have mappings, insert a row for each sub-question
         if ($selectedMap && $correctMap && is_array($selectedMap) && is_array($correctMap)) {
             foreach ($correctMap as $subKey => $correctVal) {
@@ -91,39 +139,64 @@ try {
                 $correctAnswer = $conn->real_escape_string($correctVal);
                 $selectedAnswer = isset($selectedMap[$subKey]) ? $conn->real_escape_string($selectedMap[$subKey]) : '';
                 
-                // Calculate score for this specific sub-question
-                $isCorrect = (String($selectedMap[$subKey] ?? '') === String($correctVal)) ? 1 : 0;
+                // Check if data will fit in varchar(255) columns
+                if (strlen($correctAnswer) > 255 || strlen($selectedAnswer) > 255) {
+                    error_log("WARNING: Data too long for varchar(255) - correctAnswer: " . strlen($correctAnswer) . " chars, selectedAnswer: " . strlen($selectedAnswer) . " chars");
+                    // Truncate to fit in database
+                    $correctAnswer = substr($correctAnswer, 0, 255);
+                    $selectedAnswer = substr($selectedAnswer, 0, 255);
+                }
+                
+                // Calculate point for this specific sub-question: 1 if correct, 0 if wrong
+                $point = ((string)($selectedMap[$subKey] ?? '') === (string)$correctVal) ? 1 : 0;
                 $aNum = $attemptNum + 1; // attempt number: retakeCount + 1
 
-                $stmt->bind_param("issssii", $student_id, $storyTitle, $questionText, $correctAnswer, $selectedAnswer, $isCorrect, $aNum);
+                error_log("Inserting: studentID=$student_id, storyTitle=$storyTitle, question=" . substr($questionText, 0, 50) . "..., point=$point, attempt=$aNum");
+                
+                $stmt->bind_param("issssii", $student_id, $storyTitle, $questionText, $correctAnswer, $selectedAnswer, $point, $aNum);
                 if (!$stmt->execute()) {
+                    error_log("SQL Execute Error: " . $stmt->error);
                     throw new Exception('Execute failed: ' . $stmt->error);
                 }
+                $rowsInserted++;
             }
         } else {
             // Fallback: treat as single question/answer
+            error_log("Using fallback single question/answer for $qid");
             $questionText = $conn->real_escape_string($qid);
             $correctAnswer = is_string($correctRaw) ? $conn->real_escape_string($correctRaw) : '';
             $selectedAnswer = is_string($selectedRaw) ? $conn->real_escape_string($selectedRaw) : '';
-            $isCorrect = ($selectedAnswer === $correctAnswer) ? 1 : 0;
+            $point = ($selectedAnswer === $correctAnswer) ? 1 : 0;
             $aNum = $attemptNum + 1;
 
-            $stmt->bind_param("issssii", $student_id, $storyTitle, $questionText, $correctAnswer, $selectedAnswer, $isCorrect, $aNum);
+            $stmt->bind_param("issssii", $student_id, $storyTitle, $questionText, $correctAnswer, $selectedAnswer, $point, $aNum);
             if (!$stmt->execute()) {
                 throw new Exception('Execute failed: ' . $stmt->error);
             }
+            $rowsInserted++;
         }
     }
 
     $stmt->close();
+    
+    error_log("Total rows inserted: $rowsInserted");
+    
+    if ($rowsInserted === 0) {
+        throw new Exception('No quiz data was saved - answers array may be empty or in wrong format');
+    }
+    
     $conn->commit();
-    echo json_encode(['success' => true]);
+    echo json_encode(['success' => true, 'rows_inserted' => $rowsInserted]);
 } catch (Exception $e) {
     $conn->rollback();
+    error_log("EXCEPTION in submit_level2_quiz: " . $e->getMessage());
+    error_log("Stack trace: " . $e->getTraceAsString());
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => 'Failed to save quiz: ' . $e->getMessage()]);
 } finally {
-    $conn->close();
+    if (isset($conn)) {
+        $conn->close();
+    }
 }
 
 ?>

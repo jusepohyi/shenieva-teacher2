@@ -1,4 +1,9 @@
 <?php
+// Suppress error display to prevent HTML output before JSON
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+
 // Dynamic CORS handling: allow dev origins used by the Svelte dev server.
 $allowed_origins = [
     'http://localhost:5173',
@@ -36,6 +41,14 @@ if (!$payload || !isset($payload['student_id']) || !isset($payload['storyKey']) 
     exit();
 }
 
+// Check if this is a final submission - only save final attempts
+$is_final = isset($payload['is_final']) ? (int)$payload['is_final'] : 0;
+if ($is_final !== 1) {
+    // Not a final submission (student will retake), don't save to database
+    echo json_encode(['success' => true, 'message' => 'Retake attempt not saved']);
+    exit();
+}
+
 $student_id = (int)$payload['student_id'];
 $storyKey = $conn->real_escape_string($payload['storyKey']);
 $storyTitle = '';
@@ -61,8 +74,9 @@ try {
     $conn->begin_transaction();
 
     // Level 3 uses essay-type questions where answers are text responses
-    // Score is set to 0 (pending) as it requires manual teacher review
-    $stmt = $conn->prepare("INSERT INTO level3_quiz (studentID, storyTitle, question, studentAnswer, score, attempt) VALUES (?, ?, ?, ?, ?, ?)");
+    // Point is set to 0 (pending) as it requires manual teacher review
+    // Changed 'score' to 'point' to match new table structure
+    $stmt = $conn->prepare("INSERT INTO level3_quiz (studentID, storyTitle, question, studentAnswer, point, attempt) VALUES (?, ?, ?, ?, ?, ?)");
     if (!$stmt) throw new Exception('Prepare failed: ' . $conn->error);
 
     // Define default question texts for each story
@@ -98,11 +112,14 @@ try {
 
         $studentAnswerEsc = $conn->real_escape_string($studentAnswer);
         
-        // Score is 0 (pending manual review by teacher)
-        $score = 0;
+        // Point is 0 (pending manual review by teacher)
+        // Teachers can update this to 1 (correct) or 0 (incorrect) after reviewing
+        $point = 0;
         $aNum = $attemptNum + 1; // attempt number: retakeCount + 1
 
-        $stmt->bind_param("issiii", $student_id, $storyTitle, $questionText, $studentAnswerEsc, $score, $aNum);
+        // Bind: i=integer, s=string
+        // Parameters: studentID (int), storyTitle (string), question (string), studentAnswer (string), point (int), attempt (int)
+        $stmt->bind_param("isssii", $student_id, $storyTitle, $questionText, $studentAnswerEsc, $point, $aNum);
         if (!$stmt->execute()) {
             throw new Exception('Execute failed: ' . $stmt->error);
         }
