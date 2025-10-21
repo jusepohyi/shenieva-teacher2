@@ -60,7 +60,7 @@
           <SidebarDropdownItem label="Level 3" class={isActive('/admin/quizzes/story3')} href="/admin/quizzes/story3" />
         </SidebarDropdownWrapper>
 
-        <SidebarItem label="Record" class={isActive('/admin/record')} href="/admin/record">
+        <SidebarItem label="Attendance" class={isActive('/admin/record')} href="/admin/record">
           <svelte:fragment slot="icon">
             <ClipboardCheckSolid class="w-6 h-6" />
           </svelte:fragment>

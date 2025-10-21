@@ -143,7 +143,16 @@
                             const data = d || {};
                             const answered = data.answeredQuestions || {};
                             answered['story2-1_slide6'] = JSON.stringify(mapped);
-                            return Object.assign({}, data, { answeredQuestions: answered });
+                            // Also persist question metadata so final submit can include human-friendly question text
+                            const questionsByStory = data.questionsByStory || {};
+                            const storyMap = questionsByStory['story2-1'] || {};
+                            // Build per-qid metadata: subKey -> { text }
+                            /** @type {Record<string, any>} */
+                            const qMeta = {};
+                            questions.forEach(q => { qMeta[String(q.id)] = { text: q.text }; });
+                            storyMap['story2-1_slide6'] = qMeta;
+                            questionsByStory['story2-1'] = storyMap;
+                            return Object.assign({}, data, { answeredQuestions: answered, questionsByStory });
                         });
                         studentData.update(updater);
                     } catch (e) { console.error('Failed to persist quiz answers', e); }

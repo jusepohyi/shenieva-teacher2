@@ -1,9 +1,16 @@
 <script>
-    import { onMount } from "svelte";
+  import { onMount } from "svelte";
+  import DatePicker from '$lib/components/DatePicker.svelte';
     import { writable, get } from "svelte/store";
+  import ViewStudentModal from '../modals/view_student.svelte';
   
     let selectedGender = "All";
-    let date = new Date().toISOString().split("T")[0]; // Default to today's date
+  // default to empty so we show all records until a date is chosen
+  let date = "";
+  let useDateRange = false;
+  let showSingle = true;
+  let dateFrom = "";
+  let dateTo = "";
     let attendees = writable([]);
     let sortKey = writable("name");
     let sortOrder = writable("asc");
@@ -12,50 +19,55 @@
   
     const tableHeaders = [
       { key: "name", label: "Name" },
+      { key: "idNo", label: "Student ID" },
       { key: "gender", label: "Gender" },
       { key: "datetime", label: "Date & Time" },
-      { key: "quiz1", label: "Quiz 1" },
-      { key: "quiz2", label: "Quiz 2" },
-      { key: "quiz3", label: "Quiz 3" },
-      { key: "progress", label: "Progress" },
+      { key: "studentLevel", label: "Level" },
     ];
   
-    const data = [
-  { name: "Alice Gou", gender: "Female", progress: 60, quiz1: 85, quiz2: 90, quiz3: 88, datetime: "2025-03-09 14:30" },
-  { name: "Bob Ackerman", gender: "Male", progress: 20, quiz1: 80, quiz2: 78, quiz3: 82, datetime: "2025-03-09 15:00" },
-  { name: "Charlie Johnson", gender: "Male", progress: 40, quiz1: 60, quiz2: 70, quiz3: 15, datetime: "2025-03-09 15:45" },
-  { name: "David Kelly", gender: "Male", progress: 80, quiz1: 61, quiz2: 30, quiz3: 65, datetime: "2025-03-09 16:15" },
-  { name: "Eve Nighcast", gender: "Female", progress: 100, quiz1: 20, quiz2: 20, quiz3: 35, datetime: "2025-03-09 17:00" },
-  { name: "Frank Mendez", gender: "Male", progress: 60, quiz1: 75, quiz2: 80, quiz3: 77, datetime: "2025-03-09 18:00" },
-  { name: "Grace Hopper", gender: "Female", progress: 40, quiz1: 88, quiz2: 85, quiz3: 82, datetime: "2025-03-09 19:15" },
-  { name: "Hannah Lee", gender: "Female", progress: 80, quiz1: 55, quiz2: 65, quiz3: 72, datetime: "2025-03-09 20:30" },
-  { name: "Ian McArthur", gender: "Male", progress: 20, quiz1: 90, quiz2: 92, quiz3: 88, datetime: "2025-03-09 21:45" },
-  { name: "Jackie Chan", gender: "Male", progress: 100, quiz1: 33, quiz2: 42, quiz3: 50, datetime: "2025-03-09 22:00" },
-  { name: "Kylie Jenner", gender: "Female", progress: 60, quiz1: 77, quiz2: 80, quiz3: 85, datetime: "2025-03-09 23:15" },
-  { name: "Leo Messi", gender: "Male", progress: 40, quiz1: 65, quiz2: 70, quiz3: 60, datetime: "2025-03-09 10:45" },
-  { name: "Mona Lisa", gender: "Female", progress: 80, quiz1: 82, quiz2: 79, quiz3: 85, datetime: "2025-03-09 11:30" },
-  { name: "Nathan Drake", gender: "Male", progress: 100, quiz1: 50, quiz2: 60, quiz3: 55, datetime: "2025-03-09 12:15" },
-  { name: "Olivia Wilde", gender: "Female", progress: 20, quiz1: 95, quiz2: 89, quiz3: 92, datetime: "2025-03-09 13:30" },
-  { name: "Paul Newman", gender: "Male", progress: 60, quiz1: 79, quiz2: 85, quiz3: 83, datetime: "2025-03-09 14:45" },
-  { name: "Quincy Adams", gender: "Male", progress: 40, quiz1: 62, quiz2: 58, quiz3: 55, datetime: "2025-03-09 16:00" },
-  { name: "Rachel Green", gender: "Female", progress: 80, quiz1: 72, quiz2: 75, quiz3: 80, datetime: "2025-03-09 17:15" },
-  { name: "Samuel Jackson", gender: "Male", progress: 100, quiz1: 45, quiz2: 50, quiz3: 48, datetime: "2025-03-09 18:30" },
-  { name: "Tina Fey", gender: "Female", progress: 20, quiz1: 89, quiz2: 91, quiz3: 88, datetime: "2025-03-09 19:45" },
-  { name: "Ursula K. Le Guin", gender: "Female", progress: 40, quiz1: 58, quiz2: 60, quiz3: 65, datetime: "2025-03-09 21:00" },
-  { name: "Victor Hugo", gender: "Male", progress: 60, quiz1: 74, quiz2: 78, quiz3: 80, datetime: "2025-03-09 22:15" },
-  { name: "Wanda Maximoff", gender: "Female", progress: 80, quiz1: 85, quiz2: 88, quiz3: 90, datetime: "2025-03-09 23:30" },
-  { name: "Xander Cage", gender: "Male", progress: 100, quiz1: 55, quiz2: 60, quiz3: 65, datetime: "2025-03-09 09:00" }
-];
+  let data = [];
+  let fetchError = '';
+  let rowsLoaded = 0;
+  let showStudentModal = false;
+  let selectedPerson = null;
+    // date variables (ISO YYYY-MM-DD) used for filtering
 
 
   
+    /** Filter data according to selectedGender and date/date range */
     function filterData() {
       attendees.set(
         // @ts-ignore
         data.filter(person => {
-          let personDate = person.datetime.split(" ")[0]; // Extract only the date part
-          return (selectedGender === "All" || person.gender === selectedGender) &&
-                 (personDate === date); // Filter by selected date
+          // person.datetime is expected to be 'Y-m-d H:i:s' or similar; parseDate will handle it
+          const personDate = person.datetime;
+          const genderMatch = (selectedGender === "All" || person.gender === selectedGender);
+
+          // no date filter selected -> show all
+          if (!useDateRange && !date) return genderMatch;
+
+          if (!useDateRange) {
+            const p = parseDate(personDate);
+            const d = parseDate(date);
+            if (!p || !d) return false;
+            d.setHours(0,0,0,0);
+            p.setHours(0,0,0,0);
+            return genderMatch && (p.getTime() === d.getTime());
+          }
+
+          // date range: if either from/to not set, treat accordingly
+          if (useDateRange && dateFrom && dateTo) {
+            const from = parseDate(dateFrom);
+            const to = parseDate(dateTo);
+            const p = parseDate(personDate);
+            if (!from || !to || !p) return false;
+            from.setHours(0,0,0,0);
+            to.setHours(23,59,59,999);
+            return genderMatch && (p >= from && p <= to);
+          }
+
+          // if range enabled but missing ends, fallback to gender match
+          return genderMatch;
         })
       );
     }
@@ -89,8 +101,187 @@
     }
   
     onMount(() => {
-      filterData();
+      // fetch real attendance rows from the server
+      fetch('http://localhost/shenieva-teacher/src/lib/api/fetch_all_attendance.php')
+        .then(r => r.json())
+        .then(rows => {
+          console.log('attendance rows received', rows.length, rows.slice(0,5));
+          // map server rows to UI-friendly objects including idNo and gender
+          data = rows.map(r => ({
+            // keep both legacy and new keys so filtering/sorting works
+            name: r.studentName,
+            studentName: r.studentName,
+            datetime: r.attendanceDateTime,
+            progress: Number(r.progress ?? 0),
+            studentLevel: r.studentLevel ?? '',
+            idNo: r.idNo,
+            gender: r.gender,
+            studentGender: r.gender,
+            pk_studentID: r.fk_studentID
+          }));
+          rowsLoaded = data.length;
+          filterData();
+        })
+        .catch(err => {
+          console.error('Failed to fetch attendance', err);
+          fetchError = String(err);
+          filterData();
+        });
     });
+
+      // keep showSingle in sync with useDateRange and clear values when toggling
+      $: showSingle = !useDateRange;
+      $: if (useDateRange) {
+        // when switching to range, clear single date
+        date = '';
+      } else {
+        // when switching off range, clear the range
+        dateFrom = '';
+        dateTo = '';
+      }
+
+    // Format a date string like '2025-03-09 14:30' to MM/DD/YYYY
+    function fmtDisplayDate(dtString) {
+      if (!dtString) return '';
+      const d = parseDate(dtString);
+      if (!d || isNaN(d.getTime())) return dtString;
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+    }
+
+  // DatePicker binds directly to ISO date variables; no extra sync required
+
+    // Format date+time to MM/DD/YYYY h:mm AM/PM for table display
+    function fmtDisplayDateTime(dtString) {
+      if (!dtString) return '';
+      const d = parseDate(dtString);
+      if (!d || isNaN(d.getTime())) return dtString;
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      let hh = d.getHours();
+      const min = String(d.getMinutes()).padStart(2, '0');
+      const ampm = hh >= 12 ? 'PM' : 'AM';
+      hh = hh % 12;
+      if (hh === 0) hh = 12;
+      return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()} ${hh}:${min} ${ampm}`;
+    }
+
+    // Parse many date formats into a Date object (date-only or timestamp)
+    function parseDate(input) {
+      if (!input && input !== 0) return null;
+      const s = String(input).trim();
+      // numeric timestamp (seconds or ms)
+      if (/^\d+$/.test(s)) {
+        const n = Number(s);
+        return new Date(n > 1e12 ? n : n * 1000);
+      }
+
+      // ISO or datetime with space
+      // if contains '/', assume MM/DD/YYYY or similar
+      if (s.includes('/')) {
+        // mm/dd/yyyy or dd/mm/yyyy — assume mm/dd/yyyy for this app
+        const parts = s.split(/[\/ ]/)[0].split('/');
+        if (parts.length === 3) {
+          const mm = Number(parts[0]);
+          const dd = Number(parts[1]);
+          const yyyy = Number(parts[2]);
+          return new Date(yyyy, mm - 1, dd);
+        }
+      }
+
+      // try to extract YYYY-MM-DD HH:MM:SS or YYYY-MM-DD from strings
+      const mFull = s.match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+      if (mFull) {
+        const yy = Number(mFull[1]);
+        const mo = Number(mFull[2]) - 1;
+        const dd = Number(mFull[3]);
+        const hh = Number(mFull[4]);
+        const mi = Number(mFull[5]);
+        const ss = mFull[6] ? Number(mFull[6]) : 0;
+        return new Date(yy, mo, dd, hh, mi, ss);
+      }
+
+      const m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+      if (m) {
+        return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      }
+
+      // fallback to Date constructor
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    // Convert ISO (YYYY-MM-DD) to MM/DD/YYYY
+    function isoToMmdd(iso) {
+      if (!iso) return '';
+      const m = iso.match(/(\d{4})-(\d{2})-(\d{2})/);
+      if (!m) return '';
+      return `${m[2]}/${m[3]}/${m[1]}`;
+    }
+
+    // Convert MM/DD/YYYY to ISO (YYYY-MM-DD); returns '' on invalid
+    function mmddToIso(txt) {
+      if (!txt) return '';
+      const parts = String(txt).trim().split('/');
+      if (parts.length !== 3) return '';
+      const mm = Number(parts[0]);
+      const dd = Number(parts[1]);
+      const yyyy = Number(parts[2]);
+      if (!mm || !dd || !yyyy) return '';
+      // basic validation
+      if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return '';
+      return `${yyyy}-${String(mm).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+    }
+
+    // derive numeric level (0..3) and progress bar width
+    function deriveLevel(person) {
+      const prog = Number(person.progress ?? 0);
+      let level = 0;
+
+      // treat explicit studentLevel if provided (including '0')
+      if (
+        person.studentLevel !== undefined &&
+        person.studentLevel !== null &&
+        String(person.studentLevel).trim() !== ""
+      ) {
+        const n = Number(person.studentLevel);
+        level = Number.isFinite(n) ? n : 0;
+      } else {
+        // map progress buckets to levels: <40 -> 0, 40-59 ->1, 60-79 ->2, >=80 ->3
+        if (prog < 40) level = 0;
+        else if (prog < 60) level = 1;
+        else if (prog < 80) level = 2;
+        else level = 3;
+      }
+
+      // Compute width: prefer explicit progress when it's > 0, otherwise fall back
+      // to a reasonable level-derived percentage so Level 1/2 show a visible bar
+      // even when historical progress is missing (progress == 0).
+      let width;
+      if (prog > 0) {
+        width = Math.max(0, Math.min(100, prog));
+      } else {
+        // level -> percentage mapping (approximate): 0->0%, 1->33%, 2->66%, 3->100%
+        const map = [0, 33, 66, 100];
+        const idx = Math.min(Math.max(0, level), 3);
+        width = map[idx];
+      }
+
+      return { level, width };
+    }
+
+    async function fetchStudentDetails(pk_studentID) {
+      if (!pk_studentID) return null;
+      try {
+        const res = await fetch('http://localhost/shenieva-teacher/src/lib/api/fetch_students.php');
+        if (!res.ok) return null;
+        const arr = await res.json();
+        if (!Array.isArray(arr)) return null;
+        return arr.find(s => String(s.pk_studentID) === String(pk_studentID)) || null;
+      } catch (e) {
+        console.error('Failed to fetch student details', e);
+        return null;
+      }
+    }
   </script>
   
   <div class="p-6 max-w-6xl mx-auto bg-white rounded-xl shadow-lg">
@@ -103,9 +294,29 @@
         {/each}
       </select>
   
-      <!-- Date Filter -->
-      <input type="date" bind:value={date} on:change={filterData}
-        class="p-2 border border-gray-300 rounded-md text-gray-700 shadow-sm focus:ring-2 focus:ring-orange-500" />
+      <!-- Date Filter: single date or range -->
+      <div class="flex items-center gap-2">
+        <label class="flex items-center gap-2">
+          <input type="checkbox" bind:checked={useDateRange} on:change={filterData} />
+          <span class="text-sm">Use date range</span>
+        </label>
+
+        {#if showSingle}
+          <DatePicker bind:value={date} on:change={() => { filterData(); }} />
+          <span class="ml-2 text-sm text-gray-600">{date ? fmtDisplayDate(date) : ''}</span>
+        {:else}
+          <DatePicker bind:value={dateFrom} on:change={() => { if(dateTo && dateTo < dateFrom) dateTo = dateFrom; filterData(); }} />
+          <span class="text-sm">to</span>
+          <DatePicker bind:value={dateTo} on:change={() => { if(dateFrom && dateTo < dateFrom) dateTo = dateFrom; filterData(); }} />
+          <span class="ml-2 text-sm text-gray-600">{dateFrom ? fmtDisplayDate(dateFrom) : ''} {dateTo ? ' — ' + fmtDisplayDate(dateTo) : ''}</span>
+        {/if}
+      </div>
+      <div class="ml-4 text-sm text-gray-500">
+        <div>Rows: {rowsLoaded}</div>
+        {#if fetchError}
+          <div class="text-red-500">Error: {fetchError}</div>
+        {/if}
+      </div>
     </div>
   
     <!-- <div class="overflow-x-auto rounded-lg shadow-md"> -->
@@ -121,44 +332,44 @@
             {/each}
           </tr>
         </thead>
-        <tbody>
+          <tbody>
           {#each $attendees as person}
-            <tr class="border-b last:border-none bg-gray-50 hover:bg-orange-100 transition">
-              <td class="p-2">{person.name}</td>
-              <!-- <td class="p-2">{person.gender}</td> -->
+            <tr class="border-b last:border-none bg-gray-50 hover:bg-orange-100 transition cursor-pointer" on:click={async () => {
+                // fetch full student info if available
+                console.log('Opening student modal for', person);
+                try {
+                  const details = await fetchStudentDetails(person.pk_studentID);
+                  console.log('Fetched details', details);
+                  selectedPerson = { ...person, ...(details || {}) };
+                } catch(e) {
+                  console.error('Error fetching student details', e);
+                  selectedPerson = person;
+                }
+                showStudentModal = true;
+              }}>
+              <td class="p-2">{person.studentName}</td>
+              <td class="p-2 text-center">{person.idNo}</td>
+              <!-- <td class="p-2">{person.studentGender}</td> -->
               <td class="p-2 flex items-center justify-center space-x-2">
-                {#if person.gender === 'Male'}
+                {#if person.studentGender === 'Male'}
                   <svg class="w-5 h-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M14 2h8v8h-2V5.414l-4.293 4.293a7 7 0 1 1-1.414-1.414L18.586 4H14V2ZM5 11a5 5 0 1 0 10 0 5 5 0 0 0-10 0Z"/>
                   </svg>
                 {/if}
-                {#if person.gender === 'Female'}
+                {#if person.studentGender === 'Female'}
                   <svg class="w-5 h-5 text-pink-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2a7 7 0 1 1-1 13.93V18h2v-2.07A7 7 0 0 1 12 2Zm0 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm-1 6v-2h2v2h3v2H8v-2h3Z"/>
                   </svg>
                 {/if}
               </td>
                           
-              <td class="p-2 text-center justify-center">{person.datetime}</td>
-              <td class="p-2 text-center justify-center">{person.quiz1}</td>
-              <td class="p-2 text-center justify-center">{person.quiz2}</td>
-              <td class="p-2 text-center justify-center">{person.quiz3}</td>
-              <td class="p-2">
-                <div class="w-full bg-gray-300 rounded-xl h-4 relative flex items-center text-xs text-gray-700 z-0">
-                  <span class="absolute w-full text-center">
-                    {#if person.progress == 20 } Intro {/if}
-                    {#if person.progress == 40 } Story 1 {/if}
-                    {#if person.progress == 60 } Story 2 {/if}
-                    {#if person.progress == 80 } Story 3 {/if}
-                    {#if person.progress == 100 } Finished {/if}
-                  </span>
-                  <div class="h-4 rounded-xl"
-                    style="width: {person.progress}%; background: linear-gradient(to right, 
-                      {person.progress == 20 ? 'orangered, orange' :
-                       person.progress == 40 ? 'orange, yellow' :
-                       person.progress == 60 ? 'yellow, lawngreen' :
-                       person.progress == 80 ? 'lawngreen, lime' :
-                       'lime, limegreen'})">
+              <td class="p-2 text-center justify-center">{fmtDisplayDateTime(person.datetime)}</td>
+              <td class="p-2 text-center">
+                <div class="flex flex-col items-center gap-1">
+                  <div class="font-semibold">{deriveLevel(person).level ?? 0}</div>
+                  <div class="w-full bg-gray-300 rounded-xl h-4 relative flex items-center text-xs text-gray-700 z-0 max-w-[120px]">
+                    <div class="absolute left-0 h-4 rounded-xl" style="width: {deriveLevel(person).width}%; background: linear-gradient(to right, #f97316, #84cc16)"></div>
+                    <!-- removed percentage overlay per request -->
                   </div>
                 </div>
               </td>
@@ -168,4 +379,7 @@
       </table>
     </div>
   </div>
+    {#if showStudentModal}
+      <ViewStudentModal selectedPerson={selectedPerson} on:close={() => { showStudentModal = false; selectedPerson = null; }} />
+    {/if}
   

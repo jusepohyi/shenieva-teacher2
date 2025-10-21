@@ -20,6 +20,15 @@ if ($conn->connect_error) {
 $tableName = "quizzes_store3";
 $choicesTable = "choices_store3";
 
+// Ensure tables exist, return empty list if missing
+$checkTable = $conn->query("SHOW TABLES LIKE '$tableName'");
+$checkChoices = $conn->query("SHOW TABLES LIKE '$choicesTable'");
+if (!$checkTable || $checkTable->num_rows === 0 || !$checkChoices || $checkChoices->num_rows === 0) {
+    echo json_encode([]);
+    $conn->close();
+    exit();
+}
+
 $sql = "SELECT q.id, q.question, q.points, 
                GROUP_CONCAT(c.choice_text) AS choices,
                (SELECT c2.choice_text FROM $choicesTable c2 WHERE c2.quiz_id = q.id AND c2.is_correct = 1) AS answer
@@ -29,7 +38,8 @@ $sql = "SELECT q.id, q.question, q.points,
 $result = $conn->query($sql);
 
 if (!$result) {
-    echo json_encode(["error" => "Query failed: " . $conn->error]);
+    echo json_encode([]);
+    $conn->close();
     exit();
 }
 

@@ -4,6 +4,7 @@
       TrashBinSolid,
       EditSolid,
     } from "flowbite-svelte-icons";
+    import sanitizeForDisplay from '$lib/utils/sanitize';
   
     interface Quiz {
       id: number;
@@ -229,7 +230,7 @@
             >
               <td class="p-4 text-gray-800">
                 <span class="text-lg float-left"><CaretDownSolid /></span>
-                {quiz.question}
+                {sanitizeForDisplay(quiz.question) ?? quiz.question}
               </td>
               <td class="p-4 text-center text-gray-800">{quiz.points}</td>
               <td class="p-4 text-center text-gray-700">
@@ -253,12 +254,12 @@
                   <p class="text-gray-700">
                     <strong>Choices:</strong>
                     {#each quiz.choices as choice}
-                      <br />   ‣ {choice}
+                      <br />   ‣ {sanitizeForDisplay(choice) ?? choice}
                     {/each}
                   </p>
                   <p class="text-green-600 font-semibold mt-2">
                     <strong>Answer: </strong>
-                    {quiz.answer}
+                    {sanitizeForDisplay(quiz.answer) ?? quiz.answer}
                   </p>
                   <p class="text-blue-600 font-semibold mt-2">
                     <strong>Points: </strong>

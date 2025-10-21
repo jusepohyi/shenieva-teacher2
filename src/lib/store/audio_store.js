@@ -1,218 +1,153 @@
 // @ts-check
 import { writable } from 'svelte/store';
 
+/**
+ * @typedef {{ isMuted: boolean, currentTrack: 'default'|'village'|null, isPlaying: boolean }} AudioState
+ */
+
 // Audio state store
 function createAudioStore() {
-    const { subscribe, set, update } = writable({
+    /** @type {import('svelte/store').Writable<AudioState>} */
+    const store = writable(/** @type {AudioState} */({
         isMuted: false,
-        currentTrack: /** @type {string | null} */ (null), // 'default' or 'village'
+        currentTrack: /** @type {'default' | 'village' | null} */ (null),
         isPlaying: false
-    });
+    }));
+    const { subscribe, update, set } = store;
 
-    // Audio elements (singleton instances)
     /** @type {HTMLAudioElement | null} */
     let defaultBGM = null;
     /** @type {HTMLAudioElement | null} */
     let villageBGM = null;
     let initialized = false;
     /** @type {'default' | 'village' | null} */
-    let currentlyPlaying = null; // Track which audio is currently playing
+    let currentlyPlaying = null;
+
+    // story mode lock prevents other callers from changing BGM volume while narration plays
+    let storyModeLock = false;
+    /** @type {number | null} */
+    let _lockedPrevVolume = null;
 
     function initAudio() {
         if (initialized) return;
-        
-        // Check if we're in browser context
-        if (typeof window === 'undefined' || typeof document === 'undefined') {
-            console.warn('⚠️ Audio not available (SSR context)');
-            return;
-        }
-        
-        // Use document.createElement instead of new Audio() to avoid Vite StubAudio
+        if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
         defaultBGM = document.createElement('audio');
         villageBGM = document.createElement('audio');
-        
+
         defaultBGM.src = '/assets/audio/bgm/bgm-default.mp3';
         villageBGM.src = '/assets/audio/bgm/bgm-ingame.mp3';
-        
+
         defaultBGM.loop = true;
         villageBGM.loop = true;
-        
+
         defaultBGM.volume = 0.7;
         villageBGM.volume = 0.7;
-        
+
         defaultBGM.preload = 'auto';
         villageBGM.preload = 'auto';
-        
-        // Add ended event listeners as a backup to ensure looping
-        defaultBGM.addEventListener('ended', () => {
-            if (currentlyPlaying === 'default' && defaultBGM) {
-                defaultBGM.currentTime = 0;
-                defaultBGM.play().catch(err => console.warn('Loop restart failed:', err));
-            }
-        });
-        
-        villageBGM.addEventListener('ended', () => {
-            if (currentlyPlaying === 'village' && villageBGM) {
-                villageBGM.currentTime = 0;
-                villageBGM.play().catch(err => console.warn('Loop restart failed:', err));
-            }
-        });
-        
-        // Add event listeners to track playback state
+
         defaultBGM.addEventListener('play', () => {
             currentlyPlaying = 'default';
-            // Ensure village BGM is paused
-            if (villageBGM && !villageBGM.paused) {
-                villageBGM.pause();
-            }
+            if (villageBGM && !villageBGM.paused) villageBGM.pause();
         });
-        
+
         villageBGM.addEventListener('play', () => {
             currentlyPlaying = 'village';
-            // Ensure default BGM is paused
-            if (defaultBGM && !defaultBGM.paused) {
-                defaultBGM.pause();
-            }
+            if (defaultBGM && !defaultBGM.paused) defaultBGM.pause();
         });
-        
+
         defaultBGM.addEventListener('pause', () => {
-            if (currentlyPlaying === 'default') {
-                currentlyPlaying = null;
-            }
+            if (currentlyPlaying === 'default') currentlyPlaying = null;
         });
-        
         villageBGM.addEventListener('pause', () => {
-            if (currentlyPlaying === 'village') {
-                currentlyPlaying = null;
-            }
+            if (currentlyPlaying === 'village') currentlyPlaying = null;
         });
-        
-        // Store references for event handlers
-        const defaultAudio = defaultBGM;
-        const villageAudio = villageBGM;
-        
-        // Add metadata loaded handlers
-        defaultAudio.addEventListener('loadedmetadata', () => {
-            console.log('🎵 Background music loaded');
-        });
-        
-        villageAudio.addEventListener('loadedmetadata', () => {
-            console.log('🎵 Village music loaded');
-        });
-        
-        // Add error handlers
-        defaultAudio.addEventListener('error', (e) => {
-            console.error('❌ Error loading background music:', defaultAudio.error);
-        });
-        
-        villageAudio.addEventListener('error', (e) => {
-            console.error('❌ Error loading village music:', villageAudio.error);
-        });
-        
-        // Force load the audio files
-        defaultAudio.load();
-        villageAudio.load();
-        
+
+        defaultBGM.addEventListener('error', () => console.error('❌ Error loading background music:', defaultBGM && defaultBGM.error));
+        villageBGM.addEventListener('error', () => console.error('❌ Error loading village music:', villageBGM && villageBGM.error));
+
+        // preload
+        defaultBGM.load();
+        villageBGM.load();
+
         initialized = true;
     }
 
     return {
         subscribe,
-        
-        // Initialize audio (call this once on app mount)
+
         init() {
             initAudio();
         },
 
-        // Play specific track
         /**
-         * @param {'default' | 'village'} trackName
+         * Play specific track
+         * @param {'default'|'village'} trackName
          */
         playTrack(trackName) {
             initAudio();
-            
-            // If same track is already playing, don't restart it
+
             if (currentlyPlaying === trackName) {
-                console.log(`🎵 Track "${trackName}" is already playing`);
+                // already playing
                 return;
             }
-            
-            console.log(`🎵 Switching to track: ${trackName}`);
-            
-            update(state => {
-                // CRITICAL: Stop ALL tracks first to prevent simultaneous playback
-                if (defaultBGM && !defaultBGM.paused) {
-                    defaultBGM.pause();
-                    defaultBGM.currentTime = 0;
-                }
-                if (villageBGM && !villageBGM.paused) {
-                    villageBGM.pause();
-                    villageBGM.currentTime = 0;
-                }
-                
-                // Wait a moment to ensure previous audio is fully stopped
-                setTimeout(() => {
-                    // Play the requested track if not muted
-                    if (!state.isMuted) {
+
+            // stop both first
+            if (defaultBGM && !defaultBGM.paused) {
+                defaultBGM.pause();
+                defaultBGM.currentTime = 0;
+            }
+            if (villageBGM && !villageBGM.paused) {
+                villageBGM.pause();
+                villageBGM.currentTime = 0;
+            }
+
+            // small delay to ensure previous audio finishes stopping
+            setTimeout(() => {
+            update((/** @type {AudioState} */ state) => {
+                    const shouldPlay = !state.isMuted;
+                    if (shouldPlay) {
                         if (trackName === 'default' && defaultBGM) {
                             defaultBGM.currentTime = 0;
-                            defaultBGM.play()
-                                .then(() => {
-                                    console.log('🎵 Playing background music');
-                                })
-                                .catch(/** @param {any} err */ err => {
-                                    console.warn('⚠️ Audio play blocked:', err.message);
-                                });
-                        } else if (trackName === 'village' && villageBGM) {
+                            defaultBGM.play().catch(err => console.warn('⚠️ Audio play blocked:', err && err.message));
+                        }
+                        if (trackName === 'village' && villageBGM) {
                             villageBGM.currentTime = 0;
-                            villageBGM.play()
-                                .then(() => {
-                                    console.log('🎵 Playing village music');
-                                })
-                                .catch(/** @param {any} err */ err => {
-                                    console.warn('⚠️ Audio play blocked:', err.message);
-                                });
+                            villageBGM.play().catch(err => console.warn('⚠️ Audio play blocked:', err && err.message));
                         }
                     }
-                }, 50); // 50ms delay to ensure clean transition
-                
-                return {
-                    ...state,
-                    currentTrack: trackName,
-                    isPlaying: !state.isMuted
-                };
-            });
+
+                    return {
+                        ...state,
+                        currentTrack: trackName,
+                        isPlaying: shouldPlay
+                    };
+                });
+            }, 50);
         },
 
-        // Toggle mute/unmute
         toggleMute() {
-            update(state => {
-                const newMutedState = !state.isMuted;
-                
-                if (newMutedState) {
-                    // Mute - pause current track
+            update((/** @type {AudioState} */ state) => {
+                const newMuted = !state.isMuted;
+
+                if (newMuted) {
                     if (defaultBGM) defaultBGM.pause();
                     if (villageBGM) villageBGM.pause();
                 } else {
-                    // Unmute - resume current track
-                    if (state.currentTrack === 'default' && defaultBGM) {
-                        defaultBGM.play().catch(/** @param {any} err */ err => console.warn('Audio play failed:', err));
-                    } else if (state.currentTrack === 'village' && villageBGM) {
-                        villageBGM.play().catch(/** @param {any} err */ err => console.warn('Audio play failed:', err));
-                    }
+                    if (state.currentTrack === 'default' && defaultBGM) defaultBGM.play().catch(err => console.warn('Audio play failed:', err));
+                    if (state.currentTrack === 'village' && villageBGM) villageBGM.play().catch(err => console.warn('Audio play failed:', err));
                 }
-                
+
                 return {
                     ...state,
-                    isMuted: newMutedState,
-                    isPlaying: !newMutedState && state.currentTrack !== null
+                    isMuted: newMuted,
+                    isPlaying: !newMuted && state.currentTrack !== null
                 };
             });
         },
 
-        // Stop all music
         stopAll() {
-            console.log('🔇 Stopping all audio');
             if (defaultBGM) {
                 defaultBGM.pause();
                 defaultBGM.currentTime = 0;
@@ -222,86 +157,93 @@ function createAudioStore() {
                 villageBGM.currentTime = 0;
             }
             currentlyPlaying = null;
-            
-            update(state => ({
-                ...state,
-                currentTrack: null,
-                isPlaying: false
-            }));
+            set({ isMuted: false, currentTrack: null, isPlaying: false });
         },
 
-        // Save current track to sessionStorage (for preserving across page reloads)
         saveCurrentTrack() {
-            update(state => {
-                if (state.currentTrack && typeof sessionStorage !== 'undefined') {
-                    sessionStorage.setItem('audioTrack', state.currentTrack);
-                    sessionStorage.setItem('audioMuted', String(state.isMuted));
-                    console.log(`💾 Saved audio state: ${state.currentTrack}, muted: ${state.isMuted}`);
-                }
-                return state;
-            });
+            let snapshot;
+            const unsubscribe = subscribe((/** @type {AudioState} */ s) => (snapshot = s));
+            unsubscribe();
+            if (snapshot && snapshot.currentTrack && typeof sessionStorage !== 'undefined') {
+                sessionStorage.setItem('audioTrack', snapshot.currentTrack);
+                sessionStorage.setItem('audioMuted', String(snapshot.isMuted));
+            }
         },
 
-        // Restore track from sessionStorage (after page reload)
         restoreSavedTrack() {
             if (typeof sessionStorage === 'undefined') return;
-            
             const savedTrack = sessionStorage.getItem('audioTrack');
             const savedMuted = sessionStorage.getItem('audioMuted') === 'true';
-            
             if (savedTrack) {
-                console.log(`🔄 Restoring audio state: ${savedTrack}, muted: ${savedMuted}`);
-                
-                update(state => ({
-                    ...state,
-                    isMuted: savedMuted
-                }));
-                
+                update((/** @type {AudioState} */ state) => ({ ...state, isMuted: savedMuted }));
                 if (!savedMuted && (savedTrack === 'default' || savedTrack === 'village')) {
-                    this.playTrack(savedTrack);
+                    // play after updating state
+                    setTimeout(() => this.playTrack(savedTrack === 'default' ? 'default' : 'village'), 10);
                 }
-                
-                // Clear after restoring
                 sessionStorage.removeItem('audioTrack');
                 sessionStorage.removeItem('audioMuted');
             }
         },
 
-        // Completely destroy audio elements (call on logout)
         destroy() {
-            console.log('🗑️ Destroying audio elements');
-            
-            // Stop and remove all audio
             if (defaultBGM) {
                 defaultBGM.pause();
                 defaultBGM.src = '';
-                defaultBGM.load();
+                try { defaultBGM.load(); } catch (e) {}
                 defaultBGM = null;
             }
             if (villageBGM) {
                 villageBGM.pause();
                 villageBGM.src = '';
-                villageBGM.load();
+                try { villageBGM.load(); } catch (e) {}
                 villageBGM = null;
             }
-            
-            currentlyPlaying = null;
             initialized = false;
-            
-            update(state => ({
-                ...state,
-                currentTrack: null,
-                isPlaying: false
-            }));
+            currentlyPlaying = null;
+            set({ isMuted: false, currentTrack: null, isPlaying: false });
         },
 
-        // Set volume (0.0 to 1.0)
         /**
+         * Set volume on both BGMs. If storyModeLock is active and force is false, this is a no-op.
          * @param {number} volume
+         * @param {boolean} [force]
          */
-        setVolume(volume) {
+        setVolume(volume, force = false) {
+            if (storyModeLock && !force) return;
             if (defaultBGM) defaultBGM.volume = volume;
             if (villageBGM) villageBGM.volume = volume;
+        },
+
+    /** Lock volume to a specific value and remember previous volume */
+    /** @param {number} volume */
+    lockVolume(volume) {
+            try {
+                if (!storyModeLock) {
+                    _lockedPrevVolume = this.getVolume();
+                    storyModeLock = true;
+                }
+            } catch (e) {
+                _lockedPrevVolume = 0.7;
+                storyModeLock = true;
+            }
+            this.setVolume(volume, true);
+        },
+
+        /** Unlock and restore previous volume */
+        unlockVolume() {
+            if (storyModeLock) {
+                const prev = typeof _lockedPrevVolume === 'number' ? _lockedPrevVolume : 0.7;
+                storyModeLock = false;
+                _lockedPrevVolume = null;
+                this.setVolume(prev, true);
+            }
+        },
+
+        /** @returns {number} */
+        getVolume() {
+            if (defaultBGM) return defaultBGM.volume;
+            if (villageBGM) return villageBGM.volume;
+            return 0.7;
         }
     };
 }

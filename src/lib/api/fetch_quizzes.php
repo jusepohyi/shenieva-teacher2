@@ -31,17 +31,32 @@ if (!in_array($story, $allowedStories)) {
 }
 
 $tableName = "quizzes_{$story}";
+// Ensure the quiz table exists before querying to avoid fatal errors when the DB/table
+// isn't present on the developer machine. If the table doesn't exist, return an
+// empty JSON array so the front-end can handle it gracefully.
+$escapedTable = $conn->real_escape_string($tableName);
+$check = $conn->query("SHOW TABLES LIKE '$escapedTable'");
+if (!$check || $check->num_rows === 0) {
+    echo json_encode([]);
+    exit();
+}
 
-// Logic for each story
+// Build SQL per story, but guard for the choices table when needed.
+$quizzes = [];
 if ($story === 'story3') {
-    // ✅ Story 3: Only fetch questions
     $sql = "SELECT id, points, question FROM $tableName";
 } elseif ($story === 'story2') {
-    // ✅ Story 2: Fetch without choices
     $sql = "SELECT id, question, answer, points FROM $tableName";
 } else {
-    // ✅ Story 1: Fetch with choices
     $choicesTable = "choices_{$story}";
+    // Verify choices table exists too — if it doesn't exist return empty list.
+    $escapedChoices = $conn->real_escape_string($choicesTable);
+    $checkChoices = $conn->query("SHOW TABLES LIKE '$escapedChoices'");
+    if (!$checkChoices || $checkChoices->num_rows === 0) {
+        echo json_encode([]);
+        exit();
+    }
+
     $sql = "SELECT q.id, q.question, q.answer, q.points, 
                    GROUP_CONCAT(c.choice_text) AS choices
             FROM $tableName q
@@ -50,10 +65,15 @@ if ($story === 'story3') {
 }
 
 $result = $conn->query($sql);
+if (!$result) {
+    // Query failed for some reason (e.g. malformed schema) — return empty array
+    // instead of letting PHP throw an exception.
+    echo json_encode([]);
+    exit();
+}
 
-$quizzes = [];
 while ($row = $result->fetch_assoc()) {
-    if ($story === 'story1') {
+    if ($story === 'story1' && isset($row['choices'])) {
         $row['choices'] = explode(',', $row['choices']);
     }
     $row['points'] = isset($row['points']) ? (int)$row['points'] : null;

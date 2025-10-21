@@ -20,6 +20,7 @@
 
   // Table headers configuration
   const tableHeaders = [
+    { key: "idNo", label: "Student ID" },
     { key: "studentName", label: "Name" },
     { key: "studentGender", label: "Gender" },
     { key: "studentLevel", label: "Level" },
@@ -188,6 +189,7 @@
             class="border border-black/10 border-x-0 bg-gray-50 hover:bg-orange-200 transition" 
             on:click={() => openModal(student)}
           >
+            <td class="p-2 text-center font-mono text-sm">{student.idNo}</td>
             <td class="p-2">{student.studentName}</td>
             <td class="p-2 flex justify-center items-center">
               {#if student.studentGender === 'Male'}

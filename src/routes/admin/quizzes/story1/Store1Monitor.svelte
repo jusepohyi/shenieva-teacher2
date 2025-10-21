@@ -1,7 +1,9 @@
 <script lang="ts">
     import { onMount } from 'svelte';
+    import sanitizeForDisplay from '$lib/utils/sanitize';
     
     export let storyTitle: string = "Maria's Promise";
+    export let storyKey: string = 'story1-1';
     
     interface QuizResult {
         quizID: number;
@@ -46,14 +48,12 @@
         fetchResults();
     });
     
-    // Reactive statement to refetch when storyTitle changes
-    $: if (storyTitle) {
+    $: if (typeof storyKey !== 'undefined') {
         fetchResults();
         selectedStudent = null;
         searchQuery = '';
     }
     
-    // Reactive filtering and sorting
     $: {
         filteredStudents = students.filter(student => {
             const query = searchQuery.toLowerCase();
@@ -67,15 +67,19 @@
     async function fetchResults() {
         loading = true;
         try {
-            // Fetch all Level 1 quiz results (not filtered by story initially)
             const response = await fetch(
                 `http://localhost/shenieva-teacher/src/lib/api/get_level1_quiz_results.php`
             );
             const data = await response.json();
             
             if (data.success) {
-                // Filter by current storyTitle
-                const filteredResults = data.data.filter((result: QuizResult) => result.storyTitle === storyTitle);
+                const filteredResults = data.data.filter((result: QuizResult) => {
+                    if (storyKey === 'all') return true;
+                    // normalize both and check match by title or key
+                    const val = result.storyTitle ?? '';
+                    const normalized = val.trim().toLowerCase();
+                    return normalized === (storyTitle ?? '').trim().toLowerCase() || normalized === (storyKey ?? '').trim().toLowerCase();
+                });
                 processStudentData(filteredResults);
             }
         } catch (error) {
@@ -94,7 +98,7 @@
                     studentID: result.studentID,
                     studentName: result.studentName,
                     idNo: result.idNo,
-                    storyTitle: result.storyTitle,
+                    storyTitle: sanitizeForDisplay(result.storyTitle) ?? result.storyTitle,
                     dateTaken: result.createdAt,
                     totalScore: 0,
                     maxScore: 0,
@@ -106,7 +110,6 @@
             
             const student = studentMap.get(result.studentID)!;
             
-            // Keep only the latest attempt
             if (result.attempt > student.attempt) {
                 student.attempt = result.attempt;
                 student.quizResults = [];
@@ -114,11 +117,20 @@
             }
             
             if (result.attempt === student.attempt) {
-                student.quizResults.push(result);
+                const normalizedCorrect = normalizeAnswer(result.correctAnswer) ?? sanitizeForDisplay(result.correctAnswer) ?? result.correctAnswer;
+                const normalizedSelected = normalizeAnswer(result.selectedAnswer) ?? sanitizeForDisplay(result.selectedAnswer) ?? result.selectedAnswer;
+
+                student.quizResults.push({
+                    ...result,
+                    score: Number(result.score),
+                    // sanitize question and choice text for display
+                    question: sanitizeForDisplay(result.question) ?? result.question,
+                    correctAnswer: normalizedCorrect,
+                    selectedAnswer: normalizedSelected
+                });
             }
         });
         
-        // Calculate scores
         students = Array.from(studentMap.values()).map(student => {
             student.totalScore = student.quizResults.reduce((sum, r) => sum + r.score, 0);
             student.maxScore = student.quizResults.length;
@@ -179,25 +191,48 @@
         return 'text-red-600';
     }
     
+    type ChoiceKey = 'choiceA' | 'choiceB' | 'choiceC' | 'choiceD';
+
     function getScoreBadgeColor(percentage: number) {
         if (percentage >= 80) return 'bg-lime-500 text-white';
         if (percentage >= 60) return 'bg-orange-500 text-white';
         return 'bg-red-500 text-white';
     }
+
+    function normalizeAnswer(value: string | null | undefined): 'A' | 'B' | 'C' | 'D' | null {
+        if (!value) return null;
+
+        const upper = value.trim().toUpperCase();
+
+        if (['A', 'B', 'C', 'D'].includes(upper)) {
+            return upper as 'A' | 'B' | 'C' | 'D';
+        }
+
+        const match = upper.match(/CHOICE([ABCD])/);
+        if (match && match[1]) {
+            return match[1] as 'A' | 'B' | 'C' | 'D';
+        }
+
+        return null;
+    }
+
+    function getChoiceText(result: QuizResult, choice: string): string | undefined {
+        const normalized = choice as 'A' | 'B' | 'C' | 'D';
+        const key = `choice${normalized}` as ChoiceKey;
+        const val = result[key];
+        return sanitizeForDisplay(val) ?? val;
+    }
 </script>
 
 {#if !selectedStudent}
-    <!-- Student List View -->
     <div class="p-4 bg-gray-50 min-h-screen">
         <div class="max-w-6xl mx-auto">
-            <!-- Header -->
             <div class="mb-4">
                 <h2 class="text-xl font-bold text-gray-800">
                     🎓 Student Quiz Results
                 </h2>
             </div>
             
-            <!-- Search Bar -->
             <div class="mb-4">
                 <div class="relative">
                     <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-lg">🔍</span>
@@ -220,7 +255,6 @@
                     <p>📚 No students found.</p>
                 </div>
             {:else}
-                <!-- Student Table -->
                 <div class="bg-white rounded-lg shadow overflow-hidden">
                     <table class="w-full">
                         <thead class="bg-lime-100 border-b border-gray-200">
@@ -298,10 +332,8 @@
         </div>
     </div>
 {:else}
-    <!-- Student Quiz Detail View -->
     <div class="p-4 bg-gray-50 min-h-screen">
         <div class="max-w-5xl mx-auto">
-            <!-- Back Button -->
             <button
                 on:click={backToList}
                 class="mb-4 inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors text-gray-700 font-medium"
@@ -312,7 +344,6 @@
                 ⬅️ Back to Students
             </button>
             
-            <!-- Student Info Card -->
             <div class="bg-white rounded-lg shadow p-6 mb-4">
                 <div class="flex justify-between items-start">
                     <div>
@@ -342,104 +373,87 @@
                 </div>
             </div>
             
-            <!-- Quiz Questions -->
-            <div class="space-y-6">
+            <div class="space-y-5">
                 {#each selectedStudent.quizResults as result, index}
-                    <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
-                        <!-- Question Header -->
-                        <div class="px-6 py-4 {result.score === 1 ? 'bg-green-500' : 'bg-red-500'} flex justify-between items-center">
-                            <h3 class="text-lg font-bold text-white">
-                                Question {index + 1}
-                            </h3>
-                            <span class="px-4 py-1.5 rounded-lg text-sm font-bold bg-white {result.score === 1 ? 'text-green-700' : 'text-red-700'}">
-                                {result.score === 1 ? '✓ CORRECT' : '✗ WRONG'}
-                            </span>
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <div class="px-5 py-4 {result.score === 1 ? 'bg-green-500' : 'bg-red-500'}">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-white font-bold text-lg">
+                                    Question {index + 1}
+                                </h3>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-white {result.score === 1 ? 'text-green-600' : 'text-red-600'}">
+                                    {result.score === 1 ? '✓ CORRECT' : '✗ WRONG'}
+                                </span>
+                            </div>
                         </div>
                         
-                        <!-- Question Text -->
-                        <div class="px-6 py-5 bg-gray-50 border-b border-gray-200">
-                            <p class="text-lg text-gray-900 font-semibold leading-relaxed">
-                                {result.question}
+                        <div class="px-5 py-4 bg-gray-50">
+                            <p class="text-base font-medium text-gray-800 mb-4">
+                                {sanitizeForDisplay(result.question) ?? result.question}
                             </p>
                         </div>
                         
-                        <!-- Answer Choices -->
-                        <div class="p-6">
-                            <div class="space-y-4">
-                                {#each ['A', 'B', 'C'] as choice}
-                                    {@const isCorrect = result.correctAnswer === choice}
-                                    {@const isSelected = result.selectedAnswer === choice}
-                                    {@const choiceText = result[`choice${choice}`]}
-                                    
-                                    <!-- STUDENT'S CORRECT ANSWER -->
+                        <div class="px-5 py-4 space-y-3">
+                            {#each ['A', 'B', 'C', 'D'] as choice}
+                                {@const choiceText = getChoiceText(result, choice)}
+                                {@const isCorrect = result.correctAnswer === choice}
+                                {@const isSelected = result.selectedAnswer === choice}
+                                
+                                {#if choiceText}
                                     {#if isSelected && result.score === 1}
-                                        <div class="relative">
-                                            <div class="flex items-start gap-4 p-5 rounded-xl border-4" style="background-color: #d1fae5; border-color: #10b981;">
-                                                <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl" style="background-color: #059669; color: white;">
-                                                    {choice}
-                                                </div>
-                                                <div class="flex-1 pt-2">
-                                                    <p class="text-lg text-gray-900 font-semibold">{choiceText}</p>
-                                                </div>
-                                                <div class="flex-shrink-0 pt-2">
-                                                    <span class="px-4 py-2 rounded-lg font-bold text-sm" style="background-color: #059669; color: white;">
-                                                        ✓ STUDENT'S ANSWER
-                                                    </span>
-                                                </div>
+                                        <div class="flex items-center gap-3 p-4 rounded-lg bg-green-100 border-2 border-green-500 shadow-sm">
+                                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
+                                                <span class="text-white font-bold text-lg">{choice}</span>
+                                            </div>
+                                            <div class="flex-1">
+                                                <p class="text-gray-900 font-medium">{choiceText}</p>
+                                            </div>
+                                            <div class="flex-shrink-0">
+                                                <span class="px-3 py-1 rounded-full bg-green-500 text-white text-xs font-bold">
+                                                    ✓ Student Answer (Correct)
+                                                </span>
                                             </div>
                                         </div>
-                                    
-                                    <!-- STUDENT'S WRONG ANSWER -->
                                     {:else if isSelected && result.score === 0}
-                                        <div class="relative">
-                                            <div class="flex items-start gap-4 p-5 rounded-xl border-4" style="background-color: #fee2e2; border-color: #ef4444;">
-                                                <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl" style="background-color: #dc2626; color: white;">
-                                                    {choice}
-                                                </div>
-                                                <div class="flex-1 pt-2">
-                                                    <p class="text-lg text-gray-900 font-semibold">{choiceText}</p>
-                                                </div>
-                                                <div class="flex-shrink-0 pt-2">
-                                                    <span class="px-4 py-2 rounded-lg font-bold text-sm" style="background-color: #dc2626; color: white;">
-                                                        ✗ STUDENT'S ANSWER
-                                                    </span>
-                                                </div>
+                                        <div class="flex items-center gap-3 p-4 rounded-lg bg-red-100 border-2 border-red-500 shadow-sm">
+                                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-red-500 flex items-center justify-center">
+                                                <span class="text-white font-bold text-lg">{choice}</span>
+                                            </div>
+                                            <div class="flex-1">
+                                                <p class="text-gray-900 font-medium">{choiceText}</p>
+                                            </div>
+                                            <div class="flex-shrink-0">
+                                                <span class="px-3 py-1 rounded-full bg-red-500 text-white text-xs font-bold">
+                                                    ✗ Student Answer
+                                                </span>
                                             </div>
                                         </div>
-                                    
-                                    <!-- CORRECT ANSWER (when student was wrong) -->
-                                    {:else if isCorrect && result.score === 0}
-                                        <div class="relative">
-                                            <div class="flex items-start gap-4 p-5 rounded-xl border-4" style="background-color: #d1fae5; border-color: #10b981;">
-                                                <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl" style="background-color: #059669; color: white;">
-                                                    {choice}
-                                                </div>
-                                                <div class="flex-1 pt-2">
-                                                    <p class="text-lg text-gray-900 font-semibold">{choiceText}</p>
-                                                </div>
-                                                <div class="flex-shrink-0 pt-2">
-                                                    <span class="px-4 py-2 rounded-lg font-bold text-sm" style="background-color: #059669; color: white;">
-                                                        ✓ CORRECT ANSWER
-                                                    </span>
-                                                </div>
+                                    {:else if isCorrect}
+                                        <div class="flex items-center gap-3 p-4 rounded-lg bg-green-100 border-2 border-green-500 shadow-sm">
+                                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
+                                                <span class="text-white font-bold text-lg">{choice}</span>
+                                            </div>
+                                            <div class="flex-1">
+                                                <p class="text-gray-900 font-medium">{choiceText}</p>
+                                            </div>
+                                            <div class="flex-shrink-0">
+                                                <span class="px-3 py-1 rounded-full bg-green-500 text-white text-xs font-bold">
+                                                    ✓ Correct Answer
+                                                </span>
                                             </div>
                                         </div>
-                                    
-                                    <!-- OTHER CHOICES (not selected, not correct answer to show) -->
                                     {:else}
-                                        <div class="relative">
-                                            <div class="flex items-start gap-4 p-5 rounded-xl border-2" style="background-color: #f9fafb; border-color: #d1d5db;">
-                                                <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl" style="background-color: #e5e7eb; color: #4b5563;">
-                                                    {choice}
-                                                </div>
-                                                <div class="flex-1 pt-2">
-                                                    <p class="text-lg text-gray-700">{choiceText}</p>
-                                                </div>
+                                        <div class="flex items-center gap-3 p-4 rounded-lg bg-gray-50 border border-gray-200">
+                                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                                <span class="text-gray-700 font-bold text-lg">{choice}</span>
+                                            </div>
+                                            <div class="flex-1">
+                                                <p class="text-gray-700">{choiceText}</p>
                                             </div>
                                         </div>
                                     {/if}
-                                {/each}
-                            </div>
+                                {/if}
+                            {/each}
                         </div>
                     </div>
                 {/each}
@@ -449,8 +463,14 @@
 {/if}
 
 <style>
-    /* Smooth transitions */
     * {
         transition: background-color 0.2s ease;
+    }
+    .answer-card {
+        animation: fadeIn 0.3s ease-in;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 </style>

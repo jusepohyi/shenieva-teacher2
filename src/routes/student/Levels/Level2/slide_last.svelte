@@ -59,10 +59,12 @@
 
     // Note: avoid onMount import — use reactive $studentData where needed
 
-    // Questions metadata for summary display (if/when available)
-    const questionsByStory: Record<string, any> = {
-        'story2-1': {}
-    };
+    // Questions metadata for summary display (populated by individual slide components)
+    // Prefer the store-provided mapping when available so server receives the real question text.
+    let questionsByStory: Record<string, any> = {};
+    $: if ($studentData && $studentData.questionsByStory) {
+        questionsByStory = $studentData.questionsByStory;
+    }
 
     const storyTitles: Record<string, string> = {
         'story2-1': "Hector's Health",
@@ -296,7 +298,7 @@
                         // Don't return - continue to save quiz
                     } else {
                         // Only update local store after DB confirms success
-                        studentData.update((d:any) => {
+                        studentData.update((d: any) => {
                             if (!d) return d;
                             const current = d.studentRibbon || 0;
                             console.log('Local studentRibbon before:', current, 'adding', ribbons);
@@ -311,7 +313,7 @@
             } else {
                 console.log('No ribbons to award (score is 0), but saving quiz submission');
                 // Mark as claimed even with 0 ribbons
-                studentData.update((d:any) => {
+                studentData.update((d: any) => {
                     if (!d) return d;
                     const claimed = { ...(d.claimedStories || {}), [storyKey]: true };
                     try { localStorage.setItem(`claimed_${storyKey}`, 'true'); } catch (e) {}
@@ -412,7 +414,7 @@
             
             // Clear Level 2 answers by updating the store
             try {
-                studentData.update(data => {
+                studentData.update((data: any) => {
                     if (!data) return data;
                     const answeredQuestions = data.answeredQuestions || {};
                     
@@ -460,7 +462,7 @@
 
     try {
         // Clear Level 2 answers by updating the store (which will sync to localStorage)
-        studentData.update(data => {
+    studentData.update((data: any) => {
             if (!data) return data;
             const answeredQuestions = data.answeredQuestions || {};
             

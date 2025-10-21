@@ -71,6 +71,9 @@ $attemptNum = isset($attempt['retakeCount']) ? (int)$attempt['retakeCount'] : 0;
 // optional: correctAnswers mapping sent from client
 $correctAnswers = isset($payload['correctAnswers']) ? $payload['correctAnswers'] : [];
 
+// optional: questions metadata mapping sent from client (helps store a human-friendly question text)
+$questions = isset($payload['questions']) ? $payload['questions'] : [];
+
 // Log the data for debugging
 error_log("=== Level 2 Quiz Submission START ===");
 error_log("Student ID: $student_id, Story: $storyKey, Title: $storyTitle");
@@ -135,14 +138,37 @@ try {
         // If we have mappings, insert a row for each sub-question
         if ($selectedMap && $correctMap && is_array($selectedMap) && is_array($correctMap)) {
             foreach ($correctMap as $subKey => $correctVal) {
-                $questionText = "Question $subKey: " . $conn->real_escape_string($correctVal);
+                // Prefer a human-friendly question text if provided by the client
+                $questionText = '';
+                if (isset($questions[$qid])) {
+                    $qMeta = $questions[$qid];
+                    // If question metadata is an array and contains subitems
+                    if (is_array($qMeta) && isset($qMeta[$subKey])) {
+                        if (is_array($qMeta[$subKey]) && isset($qMeta[$subKey]['text'])) {
+                            $questionText = $conn->real_escape_string($qMeta[$subKey]['text']);
+                        } else if (is_string($qMeta[$subKey])) {
+                            $questionText = $conn->real_escape_string($qMeta[$subKey]);
+                        }
+                    } else if (is_array($qMeta) && isset($qMeta['text'])) {
+                        $questionText = $conn->real_escape_string($qMeta['text']);
+                    } else if (is_string($qMeta)) {
+                        $questionText = $conn->real_escape_string($qMeta);
+                    }
+                }
+
+                // Fallback: use qid and subKey to identify the saved row (do NOT use the correct answer as the question)
+                if (empty($questionText)) {
+                    $questionText = $conn->real_escape_string($qid . ' - part ' . $subKey);
+                }
+
                 $correctAnswer = $conn->real_escape_string($correctVal);
                 $selectedAnswer = isset($selectedMap[$subKey]) ? $conn->real_escape_string($selectedMap[$subKey]) : '';
                 
-                // Check if data will fit in varchar(255) columns
-                if (strlen($correctAnswer) > 255 || strlen($selectedAnswer) > 255) {
-                    error_log("WARNING: Data too long for varchar(255) - correctAnswer: " . strlen($correctAnswer) . " chars, selectedAnswer: " . strlen($selectedAnswer) . " chars");
+                // Check if data will fit in varchar(255) columns and truncate if necessary
+                if (strlen($questionText) > 255 || strlen($correctAnswer) > 255 || strlen($selectedAnswer) > 255) {
+                    error_log("WARNING: Data too long for varchar(255) - questionText: " . strlen($questionText) . ", correctAnswer: " . strlen($correctAnswer) . ", selectedAnswer: " . strlen($selectedAnswer));
                     // Truncate to fit in database
+                    $questionText = substr($questionText, 0, 255);
                     $correctAnswer = substr($correctAnswer, 0, 255);
                     $selectedAnswer = substr($selectedAnswer, 0, 255);
                 }
@@ -151,7 +177,7 @@ try {
                 $point = ((string)($selectedMap[$subKey] ?? '') === (string)$correctVal) ? 1 : 0;
                 $aNum = $attemptNum + 1; // attempt number: retakeCount + 1
 
-                error_log("Inserting: studentID=$student_id, storyTitle=$storyTitle, question=" . substr($questionText, 0, 50) . "..., point=$point, attempt=$aNum");
+                error_log("Inserting: studentID=$student_id, storyTitle=$storyTitle, question=" . substr($questionText, 0, 80) . "..., point=$point, attempt=$aNum");
                 
                 $stmt->bind_param("issssii", $student_id, $storyTitle, $questionText, $correctAnswer, $selectedAnswer, $point, $aNum);
                 if (!$stmt->execute()) {

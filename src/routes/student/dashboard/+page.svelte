@@ -188,14 +188,14 @@
         on:mouseenter={() => setHoveredTab("settings")}
         on:mouseleave={clearHoveredTab}
       >
-        ⚙️
+        🎖️
       </button>
       <span
         class="mt-[0.5vh] text-[1.5vw] md:text-[0.875rem] font-bold text-white drop-shadow-[0_0.125vw_0.125vw_rgba(0,0,0,0.8)] transition-all duration-300"
         class:scale-150={activeTab === "settings" || hoveredTab === "settings"}
         class:animate-wiggle={activeTab === "settings"}
       >
-        Settings
+        Ribbons
       </span>
       {#if activeTab === "settings"}
         <div class="w-[4vw] h-[0.125vh] bg-gray-400 mt-[0.25vh] rounded transition-all duration-300" in:slide={{ duration: 200 }}></div>

@@ -4,34 +4,24 @@
     import { fly } from 'svelte/transition';
     import { writable } from 'svelte/store';
   import { flip } from 'svelte/animate';
-  import Attendance from './attendance.svelte';
-  import Quiz1 from './quiz1.svelte';
-  import Quiz2 from './quiz2.svelte';
-  import Quiz3 from './quiz3.svelte';
+    import Attendance from './attendance.svelte';
 
-
-    let activeTab = writable("attendance");
+        let activeTab = writable("attendance");
 </script>
 
 
 <div class=" text-gray-500 font-bold text-2xl pl-10">
-    <h1>Record Management</h1>
+        <h1>Attendance Record</h1>
 </div>
 
 <div class="p-6 pb-0 max-w-6xl mx-auto">
-    <!-- Tab Buttons with Improved Slide Hover Effect -->
-    <div class="flex space-x-2 border-b-2 pb-2 justify-evenly">
-        {#each ["attendance", "quiz1", "quiz2", "quiz3"] as tab}
-            <button 
-                class="group px-4 py-2 w-full font-semibold rounded-lg transition-all duration-300 ease-out transform
-                {tab === $activeTab ? 'bg-orange-500 text-white' : 'text-gray-600 hover:bg-gray-200'}
-                hover:-translate-y"
-                on:click={() => activeTab.set(tab)}>
-                {#if tab === "attendance"} Attendance
-                {:else} {tab.replace("quiz", "Quiz ")}
-                {/if}
-            </button>
-        {/each}
+    <!-- Only Attendance tab is available -->
+    <div class="flex space-x-2 border-b-2 pb-2 justify-start">
+        <button 
+            class="px-4 py-2 font-semibold rounded-lg bg-orange-500 text-white"
+        >
+            Attendance
+        </button>
     </div>
 </div>
 

@@ -13,6 +13,15 @@ if (!isset($_GET['studentID'])) {
 }
 
 $studentID = $conn->real_escape_string($_GET['studentID']);
+// Ensure expected tables exist to avoid throwing SQL exceptions on absent schema
+$check1 = $conn->query("SHOW TABLES LIKE 'student_items'");
+$check2 = $conn->query("SHOW TABLES LIKE 'items_table'");
+if (!$check1 || $check1->num_rows === 0 || !$check2 || $check2->num_rows === 0) {
+    // Return an empty gifts list rather than an error to keep the client resilient
+    echo json_encode(["success" => true, "gifts" => []]);
+    $conn->close();
+    exit;
+}
 
 $sql = "SELECT i.itemName 
         FROM student_items si 
@@ -21,7 +30,8 @@ $sql = "SELECT i.itemName
 $result = $conn->query($sql);
 
 if ($result === FALSE) {
-    echo json_encode(["success" => false, "message" => "Error fetching gifts: " . $conn->error]);
+    echo json_encode(["success" => true, "gifts" => []]);
+    $conn->close();
     exit;
 }
 

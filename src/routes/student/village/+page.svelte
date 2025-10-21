@@ -1104,6 +1104,11 @@
     <!-- Background scene -->
     <div class="scene-background" style="background-image: url({scenes[currentScene].path})"></div>
 
+    <!-- Center arrow indicator for key level scenes (Sari-Sari Store, Wet Market, Plaza) -->
+    {#if (currentScene === 2 || currentScene === 4 || currentScene === 6) && !scenes[currentScene].isInterior}
+        <div class="scene-center-arrow" aria-hidden="true">⬇️</div>
+    {/if}
+
     <!-- White fade overlay -->
     {#if showFade}
         <div class="fade-overlay"></div>
@@ -2295,5 +2300,64 @@
             padding: 8px 16px;
             font-size: 0.9rem;
         }
+    }
+
+    /* Center arrow indicator styles (decorative, non-interactive) */
+    .scene-center-arrow {
+        position: absolute;
+        left: 50%;
+        top: 28%; /* moved noticeably higher */
+        transform: translate(-50%, -50%);
+        z-index: 30;
+        pointer-events: none; /* never block interactions */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0.92; /* visible */
+        will-change: transform, opacity;
+        /*
+            Combined animation:
+            - arrow-bounce: continuous (1.1s loop)
+            - arrow-cycle: overall 13s loop where first ~5s is visible (with internal fade), then ~8s hidden
+        */
+        animation: arrow-bounce 1.1s ease-in-out infinite, arrow-cycle 13s linear infinite;
+    }
+
+    .scene-center-arrow {
+        /* emoji styling */
+        font-size: 72px;
+        line-height: 1;
+        text-align: center;
+        filter: drop-shadow(0 6px 12px rgba(0,0,0,0.35));
+    }
+
+    @keyframes arrow-bounce {
+        0% { transform: translate(-50%, -50%) translateY(0); }
+        50% { transform: translate(-50%, -50%) translateY(-10px); }
+        100% { transform: translate(-50%, -50%) translateY(0); }
+    }
+
+    /* Fades the arrow in/out subtly so it appears to breathe and partially disappear */
+    /* keyframes for short fade breathing used inside the visible window (first ~5s) */
+    @keyframes arrow-fade-short {
+        0% { opacity: 0.92; }
+        50% { opacity: 0.18; }
+        100% { opacity: 0.92; }
+    }
+
+    /* overall cycle: 0-38% (~5s of 13s) -> visible breathing (map to arrow-fade-short), 38%-100% -> hidden
+       We emulate this by stepping opacity across the long animation timeline. */
+    @keyframes arrow-cycle {
+        /* Visible breathing window (0% - 38%) */
+        0%   { opacity: 0.92; }
+        6%   { opacity: 0.5; }
+        12%  { opacity: 0.2; }
+        18%  { opacity: 0.6; }
+        24%  { opacity: 0.25; }
+        30%  { opacity: 0.7; }
+        36%  { opacity: 0.3; }
+        38%  { opacity: 0.0; } /* start hidden */
+        /* Hidden period (38% - 100%) - remain invisible */
+        100% { opacity: 0.0; }
     }
 </style>

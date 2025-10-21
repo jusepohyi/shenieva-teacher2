@@ -2,6 +2,10 @@
     import { studentData } from '$lib/store/student_data';
 
     // fitText action copied from other slides
+    /**
+     * @param {HTMLElement} node
+     * @param {{min?:number,step?:number}} [opts]
+     */
     function fitText(node, { min = 6, step = 1 } = {}) {
         const style = window.getComputedStyle(node);
         let max = parseFloat(style.fontSize) || 16;
@@ -22,7 +26,10 @@
         const mo = new MutationObserver(resize);
         mo.observe(node, { childList: true, subtree: true, characterData: true });
         window.addEventListener('resize', resize);
-        return { update(newOpts) { if (newOpts && newOpts.min) min = newOpts.min; if (newOpts && newOpts.step) step = newOpts.step; resize(); }, destroy() { ro.disconnect(); mo.disconnect(); window.removeEventListener('resize', resize); } }
+    /** @param {{min?:number,step?:number}} newOpts */
+    function updateFn(newOpts) { if (newOpts && newOpts.min) min = newOpts.min; if (newOpts && newOpts.step) step = newOpts.step; resize(); }
+    function destroyFn() { ro.disconnect(); mo.disconnect(); window.removeEventListener('resize', resize); }
+    return { update: updateFn, destroy: destroyFn };
     }
 
     const questions = [
@@ -32,6 +39,7 @@
         { id: 4, text: "What will the old woman do after?" }
     ];
 
+    /** @type {{id:string,text:string,assignedTo:number|null}[]} */
     let answers = [
         { id: 'a1', text: "Maya will run and check the old woman.", assignedTo: null },
         { id: 'a2', text: "By helping her to get up and asking someone who passes by to help the old woman too.", assignedTo: null },
@@ -41,12 +49,18 @@
 
     answers = shuffleArray(answers);
 
+    /** @type {{id:string,text:string,assignedTo:number|null}|null} */
     let dragged = null;
+    /** @param {DragEvent} event @param {{id:string,text:string,assignedTo:number|null}} ans */
     function handleDragStart(event, ans) { dragged = ans; if (event.dataTransfer) event.dataTransfer.setData('text/plain', ans.id); }
-    function makeStartDrag(ans) { return function (ev) { handleDragStart(ev, ans); }; }
-    function makeStartDragAssigned(ans) { return function (ev) { handleDragStart(ev, ans); }; }
+    /** @param {{id:string,text:string,assignedTo:number|null}} ans */
+    function makeStartDrag(ans) { return /** @param {DragEvent} ev */ function (ev) { handleDragStart(ev, ans); }; }
+    /** @param {{id:string,text:string,assignedTo:number|null}} ans */
+    function makeStartDragAssigned(ans) { return /** @param {DragEvent} ev */ function (ev) { handleDragStart(ev, ans); }; }
+    /** @param {DragEvent} event */
     function handleDragOver(event) { event.preventDefault(); }
 
+    /** @param {DragEvent} event @param {{id:number}} q */
     function handleDropOnQuestion(event, q) {
         event.preventDefault();
         if (!dragged) return;
@@ -62,17 +76,28 @@
         persistAnswers();
     }
 
+    /** @param {DragEvent} event */
     function handleDropToBox(event) { event.preventDefault(); if (!dragged) return; const draggedId = dragged.id; answers = answers.map(a => a.id === draggedId ? { ...a, assignedTo: null } : a); dragged = null; persistAnswers(); }
 
     function persistAnswers() {
+        /** @type {Record<number,string>} */
         const mapped = {};
         answers.forEach(a => { if (a.assignedTo !== null) mapped[a.assignedTo] = a.text; });
         try {
+            /** @param {any} d */
             const updater = function (d) {
                 const data = d || {};
                 const answered = data.answeredQuestions || {};
                 answered['story2-2_slide5'] = JSON.stringify(mapped);
-                return { ...data, answeredQuestions: answered };
+                // Persist question metadata for final submit
+                const questionsByStory = data.questionsByStory || {};
+                const storyMap = questionsByStory['story2-2'] || {};
+                /** @type {Record<string, any>} */
+                const qMeta = {};
+                questions.forEach(q => { qMeta[String(q.id)] = { text: q.text }; });
+                storyMap['story2-2_slide5'] = qMeta;
+                questionsByStory['story2-2'] = storyMap;
+                return { ...data, answeredQuestions: answered, questionsByStory };
             };
             studentData.update(updater);
         } catch (e) { console.error('Failed to persist quiz answers', e); }
@@ -82,6 +107,7 @@
     $: if (typeof window !== 'undefined') { window.dispatchEvent(new CustomEvent('slideAnswered', { detail: { allAnswered } })); }
 
     (function restore() {
+        /** @param {any} data */
         const subscriber = function (data) {
             try {
                 const answered = (data && data.answeredQuestions) || {};
@@ -101,7 +127,7 @@
         const unsub = studentData.subscribe(subscriber);
         unsub();
     })();
-
+    /** @param {{id:string,text:string,assignedTo:number|null}[]} arr */
     function shuffleArray(arr) { const copy = arr.slice(); for (let i = copy.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const tmp = copy[i]; copy[i] = copy[j]; copy[j] = tmp; } return copy; }
 </script>
 

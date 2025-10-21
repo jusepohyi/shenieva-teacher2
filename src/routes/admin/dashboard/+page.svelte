@@ -1,4 +1,5 @@
 <script>
+  // @ts-nocheck
   import { Card, Button, Modal, Chart } from "flowbite-svelte";
   import {
     ExclamationCircleOutline,
@@ -15,22 +16,66 @@
   let showLogoutModal = false;
   let showSettingsModal = false;
 
-  let studentCount = 256;
-  let quizzesTaken = 128;
+  import sanitizeForDisplay from '$lib/utils/sanitize';
 
-  // Quiz data for Quiz 1, Quiz 2, Quiz 3
-  let quizData = [
-    { name: "Quiz 1", scores: [85, 90, 75, 80, 95] }, // Scores for Alice, Bob, Charlie, David, Eve
-    { name: "Quiz 2", scores: [88, 85, 70, 82, 90] },
-    { name: "Quiz 3", scores: [80, 92, 78, 85, 93] },
-  ];
-  let studentNames = ["Alice", "Bob", "Charlie", "David", "Eve"];
+  // Live counts (will be fetched)
+  let studentCount = 0;
+  let quizzesTaken = 0;
+  let totalMale = 0;
+  let totalFemale = 0;
 
-  // Male/Female data for pie chart
+  // data holders for charts
+  /** @type {{name:string,scores:number[]}[]} */
+  let quizData = []; // series will be built from fetched quizzes
+  /** @type {string[]} */
+  let studentNames = [];
+  // recent attendance rows for quick view
+  let recentAttendance = [];
+  // raw attendance rows fetched from server (kept for re-aggregation)
+  let allAttendanceRows = [];
+  // selected attendance view: 'today'|'weekly'|'monthly'|'year'
+  let attendanceView = 'weekly';
+  let attendanceViewLabel = 'This Week';
+  let attendanceTotal = 0;
+  // per-story unique quiz takers
+  let quizzesPerStoryUnique = [0,0,0];
+  // male/female counts per level: array index = level
+  let maleFemalePerLevel = [ {M:0,F:0}, {M:0,F:0}, {M:0,F:0}, {M:0,F:0} ];
+  // quiz modal state
+  let showQuizModal = false;
+  let quizModalTitle = '';
+  let quizModalStudents = [];
+
+  // Male/Female data for pie chart (default empty)
   let genderData = {
-    series: [150, 106], // Males, Females (summing to studentCount)
+    series: [0, 0], // Males, Females
     labels: ["Male", "Female"],
   };
+
+  // lightweight tween for animated counters
+  /**
+   * Svelte action to tween a number into view.
+   * @param {HTMLElement} node
+   * @param {{from?:number,to?:number,duration?:number}} opts
+   */
+  function tweenNumber(node, { from = 0, to = 0, duration = 800 } = {}) {
+    const start = performance.now();
+    /** @param {number} now */
+    function frame(now) {
+      const t = Math.min(1, (now - start) / duration);
+      const val = Math.floor(from + (to - from) * (1 - Math.pow(1 - t, 3)));
+      node.textContent = String(val);
+      if (t < 1) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+    return {
+      /** @param {{from?:number,to?:number,duration?:number}} opts */
+      update(opts) {
+        // allow manual re-run if needed
+        requestAnimationFrame(() => tweenNumber(node, opts));
+      },
+    };
+  }
 
   $: options = {
     series: quizData.map(quiz => ({
@@ -43,131 +88,14 @@
       height: 230, // Back to fixed height
       toolbar: { show: false },
     },
-    plotOptions: {
-      bar: {
-        horizontal: true,
-        columnWidth: "60%",
-        borderRadius: 6,
-      },
-    },
-    dataLabels: { enabled: false },
-    xaxis: {
-      categories: [...studentNames],
-      labels: {
-        style: {
-          fontFamily: "Inter, sans-serif",
-          fontSize: "12px",
-          cssClass: "text-xs font-normal text-gray-600",
-        },
-      },
-    },
-    yaxis: {
-      labels: {
-        style: {
-          fontFamily: "Inter, sans-serif",
-          fontSize: "12px",
-          cssClass: "text-xs font-normal text-gray-600",
-        },
-      },
-    },
-    grid: {
-      strokeDashArray: 4,
-      padding: { left: 10, right: 10, top: -10 },
-    },
-    legend: {
-      position: "top",
-      horizontalAlign: "left",
-      fontFamily: "Inter, sans-serif",
-      fontSize: "12px",
-    },
-  };
-
-  let attendanceOptions = {
-    chart: {
-      height: 200,
-      maxWidth: "100%",
-      type: "area",
-      fontFamily: "Inter, sans-serif",
-      dropShadow: {
-        enabled: false,
-      },
-      toolbar: {
-        show: false,
-      },
-    },
-    tooltip: {
-      enabled: true,
-      x: {
-        show: false,
-      },
-    },
-    fill: {
-      type: "gradient",
-      gradient: {
-        opacityFrom: 0.55,
-        opacityTo: 0,
-        shade: "#FF5733",
-        gradientToColors: ["#FF5733"],
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    stroke: {
-      width: 6,
-      curve: "smooth",
-    },
-    grid: {
-      show: true,
-      strokeDashArray: 4,
-      padding: {
-        left: 10,
-        right: 10,
-        top: 0,
-      },
-    },
-    series: [
-      {
-        name: "Attendance",
-        data: [42, 48, 46, 50, 47, 53, 49],
-        color: "#FF5733",
-      },
-    ],
-    xaxis: {
-      categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-      labels: {
-        show: true,
-        rotate: -45,
-        trim: true,
-        style: {
-          fontFamily: "Inter, sans-serif",
-          fontSize: "12px",
-          cssClass: "text-xs font-normal text-gray-600",
-        },
-      },
-      axisBorder: {
-        show: false,
-      },
-      axisTicks: {
-        show: false,
-      },
-    },
-    yaxis: {
-      show: true,
-      labels: {
-        style: {
-          fontFamily: "Inter, sans-serif",
-          fontSize: "12px",
-          cssClass: "text-xs font-normal text-gray-600",
-        },
-      },
-    },
   };
 
   // Pie chart options for Male/Female count
+  let levelColors = ["#9CA3AF", "#10B981", "#3B82F6", "#F59E0B"]; // Level 0,1,2,3 colors
+
   let genderOptions = {
-    series: genderData.series,
-    colors: ["#2196F3", "#FF4081"], // Blue for Male, Pink for Female
+      series: genderData.series,
+      colors: levelColors,
     chart: {
       height: 200,
       width: "100%",
@@ -232,12 +160,199 @@
     },
   };
 
+  // Attendance chart options (default) — defined so aggregateAttendance can update it
+  let attendanceOptions = {
+    series: [{ name: 'Attendance', data: [] }],
+    chart: { type: 'line', height: 240, toolbar: { show: false } },
+    xaxis: { categories: [] },
+    colors: ['#FF5733'],
+    stroke: { curve: 'smooth' },
+  };
+
   // Podium data for top 3 students
   let topStudents = [
     { name: "Eve", totalScore: 278, place: 1 },
     { name: "Bob", totalScore: 267, place: 2 },
     { name: "Alice", totalScore: 253, place: 3 },
   ];
+
+  // fetch live data for dashboard
+
+  /**
+   * Fetch dashboard data client-side only.
+   */
+  async function fetchDashboardData() {
+    try {
+  // construct base URL to php APIs (target Apache/PHP host at same hostname, default port)
+  const base = window.location.protocol + '//' + window.location.hostname + '/shenieva-teacher/src/lib/api';
+      // students
+      const studentsRes = await fetch(base + '/fetch_students.php');
+      const students = await studentsRes.json();
+      studentCount = Array.isArray(students) ? students.length : 0;
+
+      // gender breakdown
+      // compute gender breakdown without callback parameter types to avoid implicit any diagnostics
+      let males = 0;
+      let females = 0;
+      for (let i = 0; i < students.length; i++) {
+        const s = students[i];
+        if (s && s.studentGender === 'Male') males++;
+        if (s && s.studentGender === 'Female') females++;
+      }
+      genderData.series = [males, females];
+
+      // attendance: get all rows, store them and call aggregator for selected view
+      const attendanceRes = await fetch(base + '/fetch_all_attendance.php');
+      const attendanceRows = await attendanceRes.json();
+      allAttendanceRows = Array.isArray(attendanceRows) ? attendanceRows : [];
+      // compute initial attendance view
+      aggregateAttendance(attendanceView);
+      // recent attendance rows (sorted desc by datetime)
+      recentAttendance = attendanceRows.slice().sort((a,b) => new Date(b.attendanceDateTime) - new Date(a.attendanceDateTime)).slice(0,8);
+
+      // quizzes: aggregate unique students per story across level1/2/3
+      const stories = ['story1','story2','story3'];
+      const studentSets = { story1:new Set(), story2:new Set(), story3:new Set() };
+      const levelApis = [
+        '/src/lib/api/get_level1_quiz_results.php',
+        '/src/lib/api/get_level2_quiz_results.php',
+        '/src/lib/api/get_level3_quiz_results.php'
+      ];
+  for (let i=0;i<levelApis.length;i++){
+        try{
+          // fetch via base
+          const res = await fetch(base + levelApis[i].replace('/src/lib/api',''));
+          const jr = await res.json();
+          if (jr && jr.success && Array.isArray(jr.data)){
+            for (let j=0;j<jr.data.length;j++){
+              const row = jr.data[j];
+              if (row && row.storyTitle && row.studentID){
+                const st = sanitizeForDisplay(row.storyTitle) ?? row.storyTitle;
+                if (studentSets[st]) studentSets[st].add(String(row.studentID));
+              }
+            }
+          }
+        } catch(e){}
+  }
+      const quizzesPerStoryArr = stories.map(s => studentSets[s] ? studentSets[s].size : 0);
+      quizData = [ { name: 'Quizzes', scores: quizzesPerStoryArr } ];
+      studentNames = stories.map(s => s.replace('story','Story '));
+      quizzesTaken = quizzesPerStoryArr.reduce((a,b)=>a+b,0);
+
+      // students by level (0..3) and male/female per level
+      const levelCounts = { 0:0, 1:0, 2:0, 3:0 };
+      maleFemalePerLevel = [ {M:0,F:0}, {M:0,F:0}, {M:0,F:0}, {M:0,F:0} ];
+      totalMale = 0; totalFemale = 0;
+      for (let i=0;i<students.length;i++){
+        const s = students[i];
+        const lvl = Number(s.studentLevel) || 0;
+        levelCounts[lvl] = (levelCounts[lvl]||0) + 1;
+        const g = s.studentGender;
+        if (g === 'Male'){ maleFemalePerLevel[lvl].M++; totalMale++; }
+        else if (g === 'Female'){ maleFemalePerLevel[lvl].F++; totalFemale++; }
+      }
+      genderData.series = [levelCounts[0], levelCounts[1], levelCounts[2], levelCounts[3]];
+      genderData.labels = ['Level 0','Level 1','Level 2','Level 3'];
+      // update genderOptions to use these new labels/series
+      genderOptions.series = genderData.series;
+      genderOptions.labels = genderData.labels;
+      // store per-story unique quiz takers for UI
+      quizzesPerStoryUnique = quizzesPerStoryArr;
+    } catch (e) {
+      console.error('Failed to fetch dashboard data', e);
+    }
+  }
+
+  // run only in browser to avoid SSR fetches
+  if (typeof window !== 'undefined') {
+    fetchDashboardData();
+  }
+
+  /**
+   * Re-aggregate allAttendanceRows into attendanceOptions based on view
+   * view - 'today'|'weekly'|'monthly'|'year'
+   */
+  function aggregateAttendance(view){
+    attendanceView = view;
+    if (view === 'today') {
+      attendanceViewLabel = 'Today';
+      // group by hour
+      const hours = Array.from({length:24},()=>0);
+      for (let i=0;i<allAttendanceRows.length;i++){
+        const r = allAttendanceRows[i];
+        const d = new Date(r.attendanceDateTime);
+        if (isNaN(d.getTime())) continue;
+        const today = new Date();
+        if (d.toDateString() !== today.toDateString()) continue;
+        hours[d.getHours()]++;
+      }
+      const labels = hours.map((_,i)=> i + ':00');
+      attendanceOptions.series = [{ name: 'Attendance', data: hours, color: '#FF5733' }];
+      attendanceOptions.xaxis.categories = labels;
+      attendanceTotal = hours.reduce((a,b)=>a+b,0);
+    } else if (view === 'weekly') {
+      attendanceViewLabel = 'This Week';
+      // last 7 days
+      const lastN = 7;
+      const countsByDate = {};
+      for (let i=0;i<allAttendanceRows.length;i++){
+        const r = allAttendanceRows[i];
+        const d = new Date(r.attendanceDateTime);
+        if (isNaN(d.getTime())) continue;
+        const ymd = d.toISOString().slice(0,10);
+        countsByDate[ymd] = (countsByDate[ymd]||0)+1;
+      }
+      const series = [];
+      const labels = [];
+      for (let i = lastN-1; i >= 0; i--) {
+        const dt = new Date();
+        dt.setDate(dt.getDate() - i);
+        const ymd = dt.toISOString().slice(0,10);
+        labels.push(`${dt.getMonth()+1}/${dt.getDate()}`);
+        series.push(countsByDate[ymd] || 0);
+      }
+      attendanceOptions.series = [{ name: 'Attendance', data: series, color: '#FF5733' }];
+      attendanceOptions.xaxis.categories = labels;
+      attendanceTotal = series.reduce((a,b)=>a+b,0);
+    } else if (view === 'monthly') {
+      attendanceViewLabel = 'This Month';
+      // group by day for current month
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const daysInMonth = new Date(year, month+1, 0).getDate();
+      const counts = Array.from({length:daysInMonth},()=>0);
+      for (let i=0;i<allAttendanceRows.length;i++){
+        const r = allAttendanceRows[i];
+        const d = new Date(r.attendanceDateTime);
+        if (isNaN(d.getTime())) continue;
+        if (d.getFullYear()===year && d.getMonth()===month){
+          counts[d.getDate()-1]++;
+        }
+      }
+      const labels = counts.map((_,i)=> String(i+1));
+      attendanceOptions.series = [{ name: 'Attendance', data: counts, color: '#FF5733' }];
+      attendanceOptions.xaxis.categories = labels;
+      attendanceTotal = counts.reduce((a,b)=>a+b,0);
+    } else if (view === 'year') {
+      attendanceViewLabel = 'This Year';
+      // group by month
+      const year = new Date().getFullYear();
+      const counts = Array.from({length:12},()=>0);
+      for (let i=0;i<allAttendanceRows.length;i++){
+        const r = allAttendanceRows[i];
+        const d = new Date(r.attendanceDateTime);
+        if (isNaN(d.getTime())) continue;
+        if (d.getFullYear()===year){
+          counts[d.getMonth()]++;
+        }
+      }
+      const labels = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      attendanceOptions.series = [{ name: 'Attendance', data: counts, color: '#FF5733' }];
+      attendanceOptions.xaxis.categories = labels;
+      attendanceTotal = counts.reduce((a,b)=>a+b,0);
+    }
+  }
 
   function toggleMenu() {
     showMenu = !showMenu;
@@ -251,6 +366,32 @@
   function logout() {
     console.log("User logged out");
     goto("../");
+  }
+
+  async function showQuizStudents(index){
+    const story = ['story1','story2','story3'][index];
+    quizModalTitle = studentNames[index] || story;
+    quizModalStudents = [];
+    // fetch level results and collect distinct student info
+    const apis = ['/src/lib/api/get_level1_quiz_results.php','/src/lib/api/get_level2_quiz_results.php','/src/lib/api/get_level3_quiz_results.php'];
+    const studentIds = new Set();
+  const base = window.location.protocol + '//' + window.location.hostname + '/shenieva-teacher/src/lib/api';
+    for (let i=0;i<apis.length;i++){
+      try{
+        const r = await fetch(base + '/' + apis[i].split('/').pop() + '?storyTitle='+encodeURIComponent(story));
+        const j = await r.json();
+        if (j && j.success && Array.isArray(j.data)){
+          for (let k=0;k<j.data.length;k++){
+            const row = j.data[k];
+            if (row && row.studentID && !studentIds.has(String(row.studentID))){
+              studentIds.add(String(row.studentID));
+              quizModalStudents.push({ id: row.studentID, name: row.studentName, idNo: row.idNo });
+            }
+          }
+        }
+      }catch(e){/*ignore*/}
+    }
+    showQuizModal = true;
   }
 </script>
 
@@ -299,126 +440,110 @@
       </div>
     </div>
 
-    <!-- Grid Container - Reduced Size -->
-    <div
-      class="grid grid-cols-2 gap-6 max-h-[100vh] mt-20 px-4 w-[calc(100%-1rem)]"
-    >
-      <!-- Left Column (3 Rows) -->
-      <div
-        class="grid gap-4"
-        style="display: grid; grid-template-rows: 1fr 2fr 2fr;"
-      >
-        <!-- Row 1: Two Divs Side by Side -->
-        <div class="grid grid-cols-2 gap-4">
-          <!-- Student Count Card -->
-          <div
-            class="bg-blue-500 p-4 rounded-xl shadow-md flex items-center justify-between text-white"
-          >
-            <UsersGroupSolid class="w-12 h-12 opacity-80" />
-            <div class="text-right">
-              <h2 class="text-3xl font-bold">{studentCount}</h2>
-              <p class="text-base font-medium">Total Students</p>
+    <!-- Top summary row -->
+    <div class="mt-16 px-4 w-[calc(100%-1rem)]">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 justify-items-center">
+        <div class="w-full md:w-9/12 bg-blue-600 p-3 rounded-xl shadow-md text-white">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm opacity-90">Total Students</div>
+              <h2 class="text-3xl font-bold"><span use:tweenNumber={{from:0,to:studentCount,duration:900}}>{studentCount}</span></h2>
+            </div>
+            <UsersGroupSolid class="w-12 h-12 opacity-90" />
+          </div>
+        </div>
+  <div class="w-full md:w-9/12 bg-white p-3 rounded-xl shadow-md">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-xs text-gray-500">Male</div>
+              <div class="text-2xl font-semibold"><span use:tweenNumber={{from:0,to:totalMale,duration:900}}>{totalMale}</span></div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500">Female</div>
+              <div class="text-2xl font-semibold"><span use:tweenNumber={{from:0,to:totalFemale,duration:900}}>{totalFemale}</span></div>
+            </div>
+            <NewspaperSolid class="w-10 h-10 text-gray-400" />
+          </div>
+        </div>
+  </div>
+
+  <!-- Main content: two-column layout -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4 items-start">
+        <!-- Main column (span 2 on large screens) -->
+        <div class="lg:col-span-2 space-y-4">
+          <div class="bg-yellow-50 p-4 rounded-xl shadow-md">
+            <div class="flex items-center justify-between border-b pb-2">
+              <h3 class="text-lg font-semibold text-gray-800">Attendance Trend</h3>
+              <BookOpenOutline class="w-5 h-5 text-gray-500" />
+            </div>
+            <div class="py-3">
+              <div class="flex items-center justify-between mb-2">
+                <div>
+                  <div class="text-sm text-gray-600">{attendanceViewLabel}</div>
+                  <div class="text-2xl font-bold"><span use:tweenNumber={{from:0,to: attendanceTotal,duration:900}}>{attendanceTotal}</span></div>
+                </div>
+                <div class="text-sm text-gray-500">(Aggregated view)</div>
+              </div>
+              <div class="flex gap-2 mb-3">
+                <button class="view-btn" on:click={()=>aggregateAttendance('today')} class:active={attendanceView==='today'}>Today</button>
+                <button class="view-btn" on:click={()=>aggregateAttendance('weekly')} class:active={attendanceView==='weekly'}>Weekly</button>
+                <button class="view-btn" on:click={()=>aggregateAttendance('monthly')} class:active={attendanceView==='monthly'}>Monthly</button>
+                <button class="view-btn" on:click={()=>aggregateAttendance('year')} class:active={attendanceView==='year'}>Year</button>
+              </div>
+              <Chart options={{...attendanceOptions, chart: {...attendanceOptions.chart, height: 200}}} />
             </div>
           </div>
 
-          <!-- Another card (Row 1 - Right) -->
-          <div
-            class="bg-green-500 p-4 rounded-xl shadow-md flex items-center justify-between text-white"
-          >
-            <NewspaperSolid class="w-12 h-12 opacity-80" />
-            <div class="text-right">
-              <h2 class="text-3xl font-bold">{quizzesTaken}</h2>
-              <p class="text-base font-medium">Quizzes Taken</p>
-            </div>
-          </div>
+          <!-- Quizzes Overview removed per request -->
         </div>
 
-        <!-- Row 2: Bar Chart for Quiz Points -->
-        <div class="bg-blue-100 p-3 rounded-xl shadow-md">
-          <div class="flex justify-between items-center border-b pb-2">
-            <h3 class="text-base font-semibold text-gray-800">
-              Quiz Performance
-            </h3>
-            <AwardOutline class="w-5 h-5 text-gray-500" />
-          </div>
-          <div class="py-2">
-            <Chart {options} />
-          </div>
-        </div>
-
-        <!-- Row 3: Attendance Line Graph (Restored) -->
-        <div class="bg-yellow-100 p-3 rounded-xl shadow-md">
-          <div class="flex justify-between items-center border-b pb-2">
-            <h3 class="text-base font-semibold text-gray-800">
-              Attendance Trend
-            </h3>
-            <BookOpenOutline class="w-5 h-5 text-gray-500" />
-          </div>
-          <div class="py-2">
-            <Chart options={attendanceOptions} />
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Column (3 Rows) -->
-      <div
-        class="grid gap-4"
-        style="display: grid; grid-template-rows: 2fr 2fr 2fr;"
-      >
-        <div
-          class="p-3 rounded-xl shadow-md bg-black bg-opacity-50"
-          style="background-image: url('/src/assets/shenievia.png'); background-size: cover; background-position: center;"
-        ></div>
-        <!-- Row 2: Gender Pie Chart (Full Width) -->
-        <div class="bg-green-100 p-3 rounded-xl shadow-md">
-          <div class="flex justify-between items-center border-b pb-2">
-            <h3 class="text-base font-semibold text-gray-800">
-              Gender Distribution
-            </h3>
-            <UsersGroupSolid class="w-5 h-5 text-gray-500" />
-          </div>
-          <div class="py-2">
-            <Chart options={genderOptions} />
-          </div>
-        </div>
-        <!-- Row 3: Podium for Top 3 Students -->
-        <div class="bg-slate-100 p-3 rounded-xl shadow-md">
-          <div class="flex justify-between items-center border-b pb-2">
-            <h3 class="text-base font-semibold text-gray-800">
-              Top Quiz Completers
-            </h3>
-            <AwardOutline class="w-5 h-5 text-gray-500" />
-          </div>
-          <div class="flex justify-around items-end h-[calc(100%-theme(spacing.12))] py-2">
-            <!-- 2nd Place -->
-            <div class="text-center w-1/3">
-              <div class="bg-silver-300 h-20 rounded-t-md flex items-center justify-center text-white font-bold">
-                {topStudents[1].name}
-              </div>
-              <div class="bg-silver-500 h-10 text-white flex items-center justify-center">
-                2nd
-              </div>
-              <div class="text-gray-800 text-sm">{topStudents[1].totalScore} pts</div>
+        <!-- Sidebar -->
+        <div class="space-y-4">
+          <div class="bg-white p-3 rounded-xl shadow-md">
+            <div class="flex justify-between items-center border-b pb-2">
+              <h3 class="text-base font-semibold text-gray-800">Students by Level</h3>
+              <UsersGroupSolid class="w-5 h-5 text-gray-500" />
             </div>
-            <!-- 1st Place -->
-            <div class="text-center w-1/3">
-              <div class="bg-gold-300 h-28 rounded-t-md flex items-center justify-center text-white font-bold">
-                {topStudents[0].name}
+            <div class="py-2">
+              <Chart options={genderOptions} />
+              <div class="mt-2">
+                <table class="w-full text-sm">
+                  <thead><tr><th class="text-left">Level</th><th class="text-right">Male</th><th class="text-right">Female</th></tr></thead>
+                  <tbody>
+                    {#each maleFemalePerLevel as mf, i}
+                      <tr>
+                          <td class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full" style="background:{levelColors[i]}"></span>
+                            <span>L{i}</span>
+                          </td>
+                        <td class="text-right">{mf.M}</td>
+                        <td class="text-right">{mf.F}</td>
+                      </tr>
+                    {/each}
+                  </tbody>
+                </table>
               </div>
-              <div class="bg-gold-500 h-10 text-white flex items-center justify-center">
-                1st
-              </div>
-              <div class="text-gray-800 text-sm">{topStudents[0].totalScore} pts</div>
             </div>
-            <!-- 3rd Place -->
-            <div class="text-center w-1/3">
-              <div class="bg-bronze-300 h-16 rounded-t-md flex items-center justify-center text-white font-bold">
-                {topStudents[2].name}
-              </div>
-              <div class="bg-bronze-500 h-10 text-white flex items-center justify-center">
-                3rd
-              </div>
-              <div class="text-gray-800 text-sm">{topStudents[2].totalScore} pts</div>
+          </div>
+
+          <div class="bg-white p-3 rounded-xl shadow-md">
+            <div class="flex justify-between items-center border-b pb-2 mb-2">
+              <h3 class="text-base font-semibold text-gray-800">Recent Attendance</h3>
+              <div class="text-sm text-gray-500">Latest {recentAttendance.length}</div>
+            </div>
+            <div class="space-y-2 max-h-80 overflow-auto">
+              {#each recentAttendance as row}
+                <div class="flex items-center justify-between px-2 py-1 border rounded">
+                  <div>
+                    <div class="text-sm font-medium">{row.studentName} <span class="text-xs text-gray-500">({row.idNo || '—'})</span></div>
+                    <div class="text-xs text-gray-500">{new Date(row.attendanceDateTime).toLocaleString()}</div>
+                  </div>
+                  <div class="text-sm text-gray-600">Level {row.studentLevel ?? 0}</div>
+                </div>
+              {/each}
+              {#if recentAttendance.length === 0}
+                <div class="text-center text-sm text-gray-500">No recent attendance records</div>
+              {/if}
             </div>
           </div>
         </div>
@@ -446,23 +571,43 @@
 <!-- Settings Modal -->
 <SettingsModal bind:open={showSettingsModal} />
 
+<!-- Quiz Students Modal -->
+<Modal bind:open={showQuizModal} size="md">
+  <div class="p-4">
+    <h3 class="text-lg font-semibold mb-2">Students who took {quizModalTitle}</h3>
+    <div class="max-h-64 overflow-auto">
+      {#if quizModalStudents.length}
+        <ul class="space-y-2">
+          {#each quizModalStudents as s}
+            <li class="flex justify-between items-center border rounded p-2">
+              <div>
+                <div class="font-medium">{s.name}</div>
+                <div class="text-xs text-gray-500">{s.idNo || '—'}</div>
+              </div>
+              <div class="text-sm text-gray-600">ID: {s.id}</div>
+            </li>
+          {/each}
+        </ul>
+      {:else}
+        <div class="text-sm text-gray-500">No students found for this quiz.</div>
+      {/if}
+    </div>
+    <div class="mt-3 text-right">
+      <Button on:click={() => (showQuizModal = false)}>Close</Button>
+    </div>
+  </div>
+</Modal>
+
 <style>
-  .bg-silver-300 {
-    background-color: #d3d3d3; /* Light silver */
+  /* (podium styles removed) */
+  .view-btn{
+    padding:0.4rem 0.6rem;
+    background: white;
+    border-radius:0.375rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    font-size:0.9rem;
+    border: 1px solid transparent;
   }
-  .bg-silver-500 {
-    background-color: #a9a9a9; /* Darker silver */
-  }
-  .bg-gold-300 {
-    background-color: #ffd700; /* Light gold */
-  }
-  .bg-gold-500 {
-    background-color: #daa520; /* Darker gold */
-  }
-  .bg-bronze-300 {
-    background-color: #cd7f32; /* Light bronze */
-  }
-  .bg-bronze-500 {
-    background-color: #8c5523; /* Darker bronze */
-  }
+  .view-btn.active, .view-btn:hover{ background:#f3f4f6; border-color:#e5e7eb; }
+  /* legend removed; table rows now show compact color badges */
 </style>
