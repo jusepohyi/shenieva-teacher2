@@ -45,6 +45,7 @@
     let _savedBgmVolume = null;
     /** @type {boolean} */
     let storyModeActive = false;
+    // narration volume is left at its normal level; do not override
     /** @type {number | null} */
     let _startTimer = null;
     /** @type {number} */
@@ -62,6 +63,7 @@
         _startTimer = setTimeout(() => {
             if (!audioEl) { _startTimer = null; return; }
             if (localToken !== playToken) { _startTimer = null; return; }
+            // no narration-volume modification here; keep audioEl volume as-is
             audioEl.play().then(() => { isPlaying = true; }).catch((/** @type {any} */ err) => { console.warn('safeStart play failed', err); isPlaying = false; });
             _startTimer = null;
         }, 150);
@@ -86,6 +88,7 @@
             const v = typeof _savedBgmVolume === 'number' ? _savedBgmVolume : 0.7;
             try { audioStore.unlockVolume(); } catch (e) { audioStore.setVolume(v, true); }
             _savedBgmVolume = null;
+            // narration volume left unchanged; restore only BGM
             storyModeActive = false;
         }
     }
