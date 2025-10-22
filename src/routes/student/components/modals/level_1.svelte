@@ -17,36 +17,37 @@
     let showLanguageModal: boolean = false;
     let errorMessage: string = ''; // To display feedback when trying to skip
 
-    // Define max slides per story
+    // Define max slides per story (including the title slide at UI index 1)
     const maxSlidesMap: Record<string, number> = {
-        'story1-1': 10,
-        'story1-2': 9,
-        'story1-3': 9
+        'story1-1': 11, // was 10 narration slides -> +1 title
+        'story1-2': 10,
+        'story1-3': 10
     };
 
-    // Define quiz slides per story
+    // Define quiz slides per story (shifted by +1 because UI slide 1 is the title)
     const quizSlidesMap: Record<string, number[]> = {
-        'story1-1': [5, 8, 9],
-        'story1-2': [4, 6, 7],
-        'story1-3': [4, 6, 7]
+        'story1-1': [6, 9, 10],
+        'story1-2': [5, 7, 8],
+        'story1-3': [5, 7, 8]
     };
 
     // Map slide numbers to question IDs
     const questionIdMap: Record<string, Record<number, string>> = {
+        // shifted by +1 to match the UI indexing where slide 1 is the title
         'story1-1': {
-            5: 'story1_q1',
-            8: 'story1_q2',
-            9: 'story1_q3'
+            6: 'story1_q1',
+            9: 'story1_q2',
+            10: 'story1_q3'
         },
         'story1-2': {
-            4: 'story1_2_q1',
-            6: 'story1_2_q2a',
-            7: 'story1_2_q2b'
+            5: 'story1_2_q1',
+            7: 'story1_2_q2a',
+            8: 'story1_2_q2b'
         },
         'story1-3': {
-            4: 'story1_3_q1',
-            6: 'story1_3_q2a',
-            7: 'story1_3_q2b'
+            5: 'story1_3_q1',
+            7: 'story1_3_q2a',
+            8: 'story1_3_q2b'
         }
     };
 
@@ -72,7 +73,15 @@
         }
 
         try {
-            const path = `../../Levels/Level1/${key}/slide_${slideNumber}.svelte`;
+            // UI slide 1 is the title-only slide (slide_title.svelte); subsequent UI slides map to existing slide_N files
+            let path;
+            if (slideNumber === 1) {
+                path = `../../Levels/Level1/${key}/slide_title.svelte`;
+            } else {
+                // shift UI index to file index: UI 2 -> slide_1.svelte, UI 3 -> slide_2.svelte, etc.
+                const fileIndex = slideNumber - 1;
+                path = `../../Levels/Level1/${key}/slide_${fileIndex}.svelte`;
+            }
             console.log('Loading slide from path:', path);
             const module = await import(/* @vite-ignore */ path);
             console.log('Module loaded:', module);

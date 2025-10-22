@@ -64,6 +64,11 @@
     // Character sprite configuration
     let gender: 'boy' | 'girl' = 'boy';
     let animationInterval: number;
+
+    // Movement tuning (easy to tweak)
+    let movementSpeed: number = 0.25; // how much the target moves per frame (smaller = slower)
+    let movementLerp: number = 0.18; // interpolation factor toward target (0-1) (smaller = smoother)
+    let targetX: number = characterX; // desired position we smoothly move toward
     
     // Pronoun helpers based on gender
     $: pronouns = {
@@ -198,7 +203,7 @@
                 animationFrame = (animationFrame + 1) % 3;
                 lastAnimationFrame = animationFrame;
             }
-        }, 200) as unknown as number; // Increased from 150ms to 200ms for slower animation
+        }, 260) as unknown as number; // Slightly slower frame timing for a calmer walk cycle
 
         // Keyboard controls
         window.addEventListener('keydown', handleKeyDown);
@@ -292,29 +297,30 @@
     // Movement update loop
     onMount(() => {
         const updateInterval = setInterval(() => {
+            // Update target position when player is actively moving
             if (isMoving && !isTransitioning && !showFrontTransition) {
-                const speed = 0.5; // Reduced from 1 to 0.5 for slower, smoother movement
-                
                 if (direction === 'right') {
-                    characterX += speed;
-                    
-                    // Check for scene transition (right edge)
-                    if (characterX >= 95) {
+                    targetX = Math.min(95, targetX + movementSpeed);
+                    if (targetX >= 95) {
                         checkSceneTransition('right');
                     }
                 } else if (direction === 'left') {
-                    characterX -= speed;
-                    
-                    // Check for scene transition (left edge)
-                    if (characterX <= 5) {
+                    targetX = Math.max(5, targetX - movementSpeed);
+                    if (targetX <= 5) {
                         checkSceneTransition('left');
                     }
                 }
-                
-                // Clamp character position
-                characterX = Math.max(5, Math.min(95, characterX));
+            } else {
+                // If not moving (or blocked), keep the target anchored to current position
+                targetX = characterX;
             }
-            
+
+            // Smoothly interpolate current position toward target
+            characterX = characterX + (targetX - characterX) * movementLerp;
+
+            // Clamp character position
+            characterX = Math.max(5, Math.min(95, characterX));
+
             // Continuously check for level interactions and home entry when at center
             if (!isTransitioning && characterX >= 45 && characterX <= 55) {
                 checkLevelInteraction();
@@ -324,7 +330,7 @@
                 hasTriggeredInteraction = false;
                 justReturnedFromPlay = false;
             }
-            
+
             // Check for gift box interaction when in home interior
             if (scenes[currentScene].isInterior) {
                 checkGiftBoxInteraction();
@@ -1528,7 +1534,8 @@
 
     /* Character inside home - larger and positioned lower */
     .character-inside {
-        bottom: -10% !important; /* Position lower so thigh to head shows (adjusted from -30%) */
+        /* Lower the character further so the body appears larger and closer to the camera */
+        bottom: -30% !important; /* more of the character is visible inside the house */
     }
 
     .character img {
@@ -1541,7 +1548,9 @@
 
     /* Character inside home - much bigger */
     .character-inside img {
-        height: 400px !important; /* Much larger to appear closer */
+        height: 520px !important; /* Much larger to appear closer inside the home */
+        width: auto !important;
+        transform-origin: bottom center;
     }
 
     .lock-message {
