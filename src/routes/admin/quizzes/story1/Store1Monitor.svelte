@@ -67,12 +67,32 @@
     async function fetchResults() {
         loading = true;
         try {
-            const response = await fetch(
-                `http://localhost/shenieva-teacher/src/lib/api/get_level1_quiz_results.php`
-            );
-            const data = await response.json();
-            
-            if (data.success) {
+            const response = await fetch(`/api/get_level1_quiz_results.php`);
+
+            const contentType = (response.headers.get('content-type') || '').toLowerCase();
+
+            if (!response.ok) {
+                const bodyText = await response.text().catch(() => '<no body>');
+                console.error('Fetch error:', response.status, response.statusText, bodyText);
+                return;
+            }
+
+            let data;
+            if (contentType.includes('application/json')) {
+                try {
+                    data = await response.json();
+                } catch (err) {
+                    const txt = await response.text().catch(() => '<body unavailable>');
+                    console.error('Error parsing JSON response:', err, txt);
+                    return;
+                }
+            } else {
+                const txt = await response.text().catch(() => '<no body>');
+                console.error('Expected JSON but server responded with:', contentType, txt);
+                return;
+            }
+
+            if (data && data.success) {
                 const filteredResults = data.data.filter((result: QuizResult) => {
                     if (storyKey === 'all') return true;
                     // normalize both and check match by title or key

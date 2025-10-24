@@ -24,9 +24,16 @@ function createAudioStore() {
     let currentlyPlaying = null;
 
     // story mode lock prevents other callers from changing BGM volume while narration plays
+    // story mode lock prevents other callers from changing BGM volume while narration plays
+    // Use a reference count so multiple slides/components can request story mode without
+    // restoring the BGM until all have released it. Also add a short debounce on restore
+    // so quick transitions (next slide) don't cause flicker.
     let storyModeLock = false;
+    let storyModeCount = 0;
     /** @type {number | null} */
     let _lockedPrevVolume = null;
+    /** @type {number | null} */
+    let _restoreTimer = null;
 
     function initAudio() {
         if (initialized) return;
@@ -217,26 +224,42 @@ function createAudioStore() {
     /** Lock volume to a specific value and remember previous volume */
     /** @param {number} volume */
     lockVolume(volume) {
+            // clear any pending restore so lock is immediate
+            if (_restoreTimer) {
+                clearTimeout(_restoreTimer);
+                _restoreTimer = null;
+            }
+
             try {
-                if (!storyModeLock) {
+                if (storyModeCount === 0) {
                     _lockedPrevVolume = this.getVolume();
                     storyModeLock = true;
                 }
+                storyModeCount++;
             } catch (e) {
                 _lockedPrevVolume = 0.7;
                 storyModeLock = true;
+                storyModeCount = Math.max(1, storyModeCount);
             }
             this.setVolume(volume, true);
         },
 
         /** Unlock and restore previous volume */
         unlockVolume() {
-            if (storyModeLock) {
+            // decrease the reference count and only restore when it reaches zero.
+            if (storyModeCount > 0) storyModeCount--;
+
+            if (storyModeCount > 0) return;
+
+            // debounce the restore to avoid flashing when navigating between slides.
+            if (_restoreTimer) clearTimeout(_restoreTimer);
+            _restoreTimer = setTimeout(() => {
                 const prev = typeof _lockedPrevVolume === 'number' ? _lockedPrevVolume : 0.7;
                 storyModeLock = false;
                 _lockedPrevVolume = null;
+                _restoreTimer = null;
                 this.setVolume(prev, true);
-            }
+            }, 260);
         },
 
         /** @returns {number} */

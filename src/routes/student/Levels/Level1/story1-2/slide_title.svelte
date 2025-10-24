@@ -1,5 +1,7 @@
 <script>
     import { language } from '$lib/store/story_lang_audio';
+    import { onMount, onDestroy } from 'svelte';
+    import { audioStore } from '$lib/store/audio_store';
 
     const story = {
         title: {
@@ -8,6 +10,45 @@
         },
         image: '/src/assets/LEVEL_1/STORY_2/PIC1.jpg'
     };
+
+    let audioEl = null;
+    let isPlaying = false;
+    $: audioSrc = encodeURI('/src/assets/audio/story-telling/Level_1/story_2/title/CANDIES AND CANDIES TITLE.mp3');
+
+    let startTimer = null;
+    let playToken = 0;
+    function safeStart(src){
+        if (!audioEl) return;
+        playToken++;
+        const token = playToken;
+        try { audioEl.pause(); } catch(e){}
+        audioEl.src = src;
+        if (startTimer) { clearTimeout(startTimer); startTimer = null; }
+        startTimer = setTimeout(()=>{
+            if (token !== playToken) return;
+            audioEl.play().then(()=>{ isPlaying = true; }).catch(()=>{ isPlaying = false; });
+            startTimer = null;
+        }, 120);
+    }
+
+    function enterStoryMode(){
+        try { audioStore.init(); } catch(e){}
+        try { audioStore.lockVolume(0.09); } catch(e){ audioStore.setVolume(0.09, true); }
+    }
+
+    function handleAudioEnd(){ isPlaying = false; }
+
+    onMount(()=>{
+        setTimeout(()=>{ enterStoryMode(); safeStart(audioSrc); }, 80);
+        const userGesture = () => { enterStoryMode(); safeStart(audioSrc); window.removeEventListener('pointerdown', userGesture); window.removeEventListener('keydown', userGesture); };
+        window.addEventListener('pointerdown', userGesture, { once: true });
+        window.addEventListener('keydown', userGesture, { once: true });
+    });
+
+    onDestroy(()=>{
+        try{ audioEl && audioEl.pause(); } catch(e){}
+        try{ audioStore.unlockVolume(); } catch(e){}
+    });
 </script>
 
 <div class="slide-container">
@@ -70,3 +111,4 @@
         margin: 0;
     }
 </style>
+<audio bind:this={audioEl} on:ended={handleAudioEnd} on:pause={()=>{ isPlaying = false; }}></audio>

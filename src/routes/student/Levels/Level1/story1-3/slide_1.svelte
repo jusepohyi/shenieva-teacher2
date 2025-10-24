@@ -1,6 +1,8 @@
 <script>
     import { fade } from "svelte/transition";
     import { language } from "$lib/store/story_lang_audio";
+    import { audioStore } from '$lib/store/audio_store';
+    
 
     const story = {
         title: {
