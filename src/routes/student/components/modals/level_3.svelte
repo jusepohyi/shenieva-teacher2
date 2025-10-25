@@ -2,6 +2,7 @@
     import Slide1 from "../../Levels/Level3/slide_1.svelte";
     import { language } from "$lib/store/story_lang_audio";
     import { studentData } from '$lib/store/student_data';
+    import { tick } from 'svelte';
 
     type SvelteComponent = any;
     let StorySlide: any = null;
@@ -52,6 +53,27 @@
         return true;
     })();
 
+    // container reference for the dynamically loaded slide — used to focus inputs when appropriate
+    let storyContainer: HTMLElement | null = null;
+
+    async function focusFirstInput() {
+        try {
+            if (!storyContainer) return;
+            const input = storyContainer.querySelector('input, textarea, [contenteditable="true"]') as HTMLElement | null;
+            if (input && typeof input.focus === 'function') {
+                input.focus();
+                // If it's a text input/textarea, move cursor to end
+                try {
+                    const el = input as HTMLInputElement;
+                    const v = el.value || '';
+                    if (typeof el.setSelectionRange === 'function') el.setSelectionRange(v.length, v.length);
+                } catch (_) {}
+            }
+        } catch (e) {
+            // ignore focus errors
+        }
+    }
+
     async function loadStorySlide(key: string, slideNumber: number = 1): Promise<void> {
         try {
             const path = `../../Levels/Level3/${key}/slide_${slideNumber}.svelte`;
@@ -60,6 +82,8 @@
             currentSlide = slideNumber;
             // Slide successfully loaded; ensure UI is interactive
             isLoading = false;
+            await tick();
+            await focusFirstInput();
         } catch (error) {
             console.error('Failed to load story3 slide', error);
             StorySlide = null;
@@ -146,6 +170,20 @@
 
     function handleKeydown(e: KeyboardEvent) {
         if (!showModal || !StorySlide) return;
+        // If focus is inside an input/textarea or an editable element, don't intercept keys
+        try {
+            const target = e.target as HTMLElement | null;
+            if (target) {
+                const tag = target.tagName;
+                if (tag === 'INPUT' || tag === 'TEXTAREA' || (target as HTMLElement).isContentEditable) {
+                    // allow normal typing (including spaces) inside inputs
+                    return;
+                }
+            }
+        } catch (err) {
+            // ignore and continue handling
+        }
+
         if (e.key === 'ArrowRight' || e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             nextSlide();
@@ -179,7 +217,7 @@
             <div
                 class="bg-white p-0 rounded-[3vw] shadow-2xl w-[250vw] max-w-[1100px] h-[85vh] flex flex-col items-center justify-between relative"
             >
-                <div class="w-[100%] h-[100%] flex flex-col items-center justify-center">
+                <div class="w-[100%] h-[100%] flex flex-col items-center justify-center" bind:this={storyContainer}>
                         {#key `${storyKey}-${currentSlide}`}
                             {#if storyKey}
                                 {#if StorySlide}

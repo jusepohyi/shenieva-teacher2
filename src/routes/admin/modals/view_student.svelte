@@ -303,7 +303,7 @@
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <div
-    class="bg-white rounded-lg shadow-lg w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden"
+    class="bg-white rounded-lg shadow-lg w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden flex flex-col"
     on:click|stopPropagation
     aria-labelledby="modal-title"
   >
@@ -340,7 +340,7 @@
     </div>
 
   <!-- Content: internal scroll region -->
-  <div class="px-4 py-2 overflow-auto max-h-[70vh]">
+  <div class="px-4 py-2 overflow-auto flex-1">
       {#if activeTab === "personal"}
         <!-- Personal Data -->
         <div class="space-y-3">
@@ -519,8 +519,17 @@
 
     <!-- Footer -->
     <div
-      class="p-4 border-t border-gray-200 flex justify-end items-center gap-4"
+      class="p-4 border-t border-gray-200 flex justify-end items-center gap-4 flex-shrink-0 bg-white"
     >
+      <!-- Edit Button -->
+      <button
+        type="button"
+        on:click={handleEdit}
+        class="px-4 py-2 bg-lime-600 text-white rounded-md hover:bg-lime-700 focus:outline-none focus:ring-2 focus:ring-lime-400"
+      >
+        Edit
+      </button>
+
       <!-- Pagination Buttons - Show only for Attendance Tab -->
       {#if activeTab === "attendance" && $attendanceData.length > 10}
         <div class="flex gap-2">

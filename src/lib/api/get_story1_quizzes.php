@@ -5,11 +5,17 @@ header("Access-Control-Allow-Methods: GET");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
-// Include database connection
-include 'conn.php';
+// Enable verbose errors during development so client can report useful diagnostics.
+// Do NOT enable this in production.
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Include database connection (use absolute path for reliability)
+require_once __DIR__ . '/conn.php';
 
 // Check if $conn is defined and valid
-if (!isset($conn) || !$conn instanceof mysqli || $conn->connect_error) {
+if (!isset($conn) || !($conn instanceof mysqli) || $conn->connect_error) {
     http_response_code(500);
     echo json_encode([
         'success' => false,
@@ -40,7 +46,8 @@ try {
         http_response_code(500);
         echo json_encode([
             'success' => false,
-            'error' => 'Database error: ' . $conn->error
+            'error' => 'Database error: ' . ($conn->error ?? 'Unknown SQL error'),
+            'query' => $query
         ]);
         $conn->close();
         exit;

@@ -65,7 +65,29 @@ if (isset($payload['storyTitle']) && is_string($payload['storyTitle']) && $paylo
 }
 $attempt = $payload['attempt'];
 $answers = isset($attempt['answers']) ? $attempt['answers'] : [];
-$attemptNum = isset($attempt['retakeCount']) ? (int)$attempt['retakeCount'] : 0;
+$clientAttemptNum = isset($attempt['retakeCount']) ? (int)$attempt['retakeCount'] : 0;
+
+// Determine server-side attempt number by checking existing rows for this student & story
+$existingMaxAttempt = 0;
+try {
+    $checkStmt = $conn->prepare("SELECT MAX(attempt) AS max_attempt FROM level3_quiz WHERE studentID = ? AND storyTitle = ?");
+    if ($checkStmt) {
+        $checkStmt->bind_param("is", $student_id, $storyTitle);
+        if ($checkStmt->execute()) {
+            $res = $checkStmt->get_result();
+            if ($res) {
+                $row = $res->fetch_assoc();
+                $existingMaxAttempt = isset($row['max_attempt']) ? (int)$row['max_attempt'] : 0;
+            }
+        }
+        $checkStmt->close();
+    }
+} catch (Exception $ex) {
+    error_log('Failed to check existing attempts (level3): ' . $ex->getMessage());
+}
+
+// Server-side authoritative attempt number: prefer existing max + 1, else fallback to clientAttemptNum + 1
+$aNum = ($existingMaxAttempt > 0) ? ($existingMaxAttempt + 1) : ($clientAttemptNum + 1);
 
 // optional: questions metadata mapping sent from client
 $questions = isset($payload['questions']) ? $payload['questions'] : [];
@@ -112,10 +134,9 @@ try {
 
         $studentAnswerEsc = $conn->real_escape_string($studentAnswer);
         
-        // Point is 0 (pending manual review by teacher)
-        // Teachers can update this to 1 (correct) or 0 (incorrect) after reviewing
-        $point = 0;
-        $aNum = $attemptNum + 1; // attempt number: retakeCount + 1
+    // Point is 0 (pending manual review by teacher)
+    // Teachers can update this to 1 (correct) or 0 (incorrect) after reviewing
+    $point = 0;
 
         // Bind: i=integer, s=string
         // Parameters: studentID (int), storyTitle (string), question (string), studentAnswer (string), point (int), attempt (int)

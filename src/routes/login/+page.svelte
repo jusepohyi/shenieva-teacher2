@@ -13,6 +13,10 @@
   let loginAuth;
   let isLoading = false; // Loading state
   let showSuccess = false; // Success popup state
+  let showStart = true; // Show the Shenievia start screen initially
+
+  // computed classes for the outer card to avoid invalid class directive names (e.g. Tailwind's bg-white/50 can't be used with `class:`)
+  $: cardClasses = `w-full ${showStart ? '' : 'max-w-sm '}p-6 rounded-lg relative overflow-hidden transition-all duration-300 ${showStart ? 'bg-transparent shadow-none' : 'backdrop-blur-lg bg-white/50 shadow-md'}`;
 
   async function handleLogin(event) {
     event.preventDefault();
@@ -81,30 +85,43 @@
 
 <div class="flex items-center justify-center min-h-screen bg-gray-100"
      style="background: url('/src/assets/readville.jpg') no-repeat center center/cover;">
-  <div class="w-full max-w-sm p-6 bg-white/50 rounded-lg shadow-md relative overflow-hidden backdrop-blur-lg">
-    <!-- Toggle Bar -->
-    <div class="relative flex bg-gray-100 rounded-full p-1 mb-4">
-      <button 
-        class="w-1/2 py-2 text-sm font-medium relative z-10 transition-all duration-300 rounded-full"
-        class:text-white={userType === "student"}
-        class:text-gray-700={userType !== "student"}
-        class:bg-orange-500={userType === "student"}
-        on:click={() => userType = "student"}
-      >
-        STUDENT
-      </button>
-      <button 
-        class="w-1/2 py-2 text-sm font-medium relative z-10 transition-all duration-300 rounded-full"
-        class:text-white={userType === "teacher"}
-        class:text-gray-700={userType !== "teacher"}
-        class:bg-lime-600={userType === "teacher"}
-        on:click={() => userType = "teacher"}
-      >
-        TEACHER
-      </button>
-    </div>
+  <div class={cardClasses}>
+    {#if showStart}
+      <div class="flex flex-col items-center justify-center py-8">
+        <!-- larger but still responsive: prefer explicit width with a percentage max for small screens -->
+        <img src="/src/assets/shenievia.png" alt="Shenievia Logo" class="mx-auto w-[640px] max-w-[96%] animate-rubberband-double-loop drop-shadow-[0_0_0.5vw_white]" />
+        <button
+          class="mt-4 px-8 py-3 bg-gradient-to-r from-lime-400 to-lime-500 text-white font-bold rounded-full hover:from-lime-500 hover:to-lime-600 transition-all duration-300 border-[0.4vw] border-white shadow-[0_0.75vw_1.5vw_rgba(0,0,0,0.35),inset_0_0.5vw_0.75vw_rgba(255,255,255,0.6)] hover:scale-105 active:scale-95 animate-bounce-smooth"
+          on:click={() => { showStart = false; }}
+          on:keydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showStart = false; } }}
+        >
+          START
+        </button>
+      </div>
+    {:else}
+      <!-- Toggle Bar -->
+      <div class="relative flex bg-gray-100 rounded-full p-1 mb-4">
+        <button 
+          class="w-1/2 py-2 text-sm font-medium relative z-10 transition-all duration-300 rounded-full"
+          class:text-white={userType === "student"}
+          class:text-gray-700={userType !== "student"}
+          class:bg-orange-500={userType === "student"}
+          on:click={() => userType = "student"}
+        >
+          STUDENT
+        </button>
+        <button 
+          class="w-1/2 py-2 text-sm font-medium relative z-10 transition-all duration-300 rounded-full"
+          class:text-white={userType === "teacher"}
+          class:text-gray-700={userType !== "teacher"}
+          class:bg-lime-600={userType === "teacher"}
+          on:click={() => userType = "teacher"}
+        >
+          TEACHER
+        </button>
+      </div>
 
-    <div class="relative w-full h-70">
+      <div class="relative w-full h-70">
       <!-- Student Login Form -->
       <div class="absolute inset-0 transition-transform duration-500"
            style="transform: translateX({userType === 'student' ? '0%' : '-110%'})">
@@ -191,7 +208,8 @@
         </form>
       </div>
     </div>
-   
+    {/if}
+  </div>
 </div>
 
  <!-- Hidden LoginAuth component for student authentication -->
@@ -223,4 +241,36 @@
    </div>
  </div>
 {/if}
-</div>
+ 
+<style>
+  /* Rubberband Animation for Shenievia logo (copied from dashboard) */
+  @keyframes rubberband {
+    0% { transform: scale(1); }
+    30% { transform: scaleX(1.25) scaleY(0.75); }
+    40% { transform: scaleX(0.75) scaleY(1.25); }
+    60% { transform: scaleX(1.15) scaleY(0.85); }
+    100% { transform: scale(1); }
+  }
+  .animate-rubberband-double-loop {
+    animation: rubberband-double-loop 7s infinite;
+  }
+  /* Smooth subtle bounce for START button */
+  @keyframes bounce-smooth {
+    0%, 100% { transform: translateY(0); }
+    45% { transform: translateY(-6px); }
+    55% { transform: translateY(-4px); }
+  }
+  .animate-bounce-smooth {
+    animation: bounce-smooth 1.6s cubic-bezier(.22,.9,.28,1) infinite;
+    will-change: transform;
+  }
+  @keyframes rubberband-double-loop {
+    0% { transform: scale(1); }
+    14.29% { transform: scaleX(1.25) scaleY(0.75); }
+    19.05% { transform: scaleX(0.75) scaleY(1.25); }
+    28.57% { transform: scaleX(1.15) scaleY(0.85); }
+    28.58% { transform: scale(1); }
+    57.15% { transform: scale(1); }
+    100% { transform: scale(1); }
+  }
+</style>

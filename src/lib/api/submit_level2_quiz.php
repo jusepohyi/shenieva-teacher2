@@ -66,7 +66,29 @@ if (isset($payload['storyTitle']) && is_string($payload['storyTitle']) && $paylo
 $attempt = $payload['attempt'];
 $answers = isset($attempt['answers']) ? $attempt['answers'] : [];
 $score = isset($attempt['score']) ? (int)$attempt['score'] : 0;
-$attemptNum = isset($attempt['retakeCount']) ? (int)$attempt['retakeCount'] : 0;
+$clientAttemptNum = isset($attempt['retakeCount']) ? (int)$attempt['retakeCount'] : 0;
+
+// Determine server-side attempt number by checking existing rows for this student & story
+$existingMaxAttempt = 0;
+try {
+    $checkStmt = $conn->prepare("SELECT MAX(attempt) AS max_attempt FROM level2_quiz WHERE studentID = ? AND storyTitle = ?");
+    if ($checkStmt) {
+        $checkStmt->bind_param("is", $student_id, $storyTitle);
+        if ($checkStmt->execute()) {
+            $res = $checkStmt->get_result();
+            if ($res) {
+                $row = $res->fetch_assoc();
+                $existingMaxAttempt = isset($row['max_attempt']) ? (int)$row['max_attempt'] : 0;
+            }
+        }
+        $checkStmt->close();
+    }
+} catch (Exception $ex) {
+    error_log('Failed to check existing attempts (level2): ' . $ex->getMessage());
+}
+
+// Server-side authoritative attempt number: prefer existing max + 1, else fallback to clientAttemptNum + 1
+$aNum = ($existingMaxAttempt > 0) ? ($existingMaxAttempt + 1) : ($clientAttemptNum + 1);
 
 // optional: correctAnswers mapping sent from client
 $correctAnswers = isset($payload['correctAnswers']) ? $payload['correctAnswers'] : [];
@@ -175,7 +197,6 @@ try {
                 
                 // Calculate point for this specific sub-question: 1 if correct, 0 if wrong
                 $point = ((string)($selectedMap[$subKey] ?? '') === (string)$correctVal) ? 1 : 0;
-                $aNum = $attemptNum + 1; // attempt number: retakeCount + 1
 
                 error_log("Inserting: studentID=$student_id, storyTitle=$storyTitle, question=" . substr($questionText, 0, 80) . "..., point=$point, attempt=$aNum");
                 
@@ -192,8 +213,7 @@ try {
             $questionText = $conn->real_escape_string($qid);
             $correctAnswer = is_string($correctRaw) ? $conn->real_escape_string($correctRaw) : '';
             $selectedAnswer = is_string($selectedRaw) ? $conn->real_escape_string($selectedRaw) : '';
-            $point = ($selectedAnswer === $correctAnswer) ? 1 : 0;
-            $aNum = $attemptNum + 1;
+                $point = ($selectedAnswer === $correctAnswer) ? 1 : 0;
 
             $stmt->bind_param("issssii", $student_id, $storyTitle, $questionText, $correctAnswer, $selectedAnswer, $point, $aNum);
             if (!$stmt->execute()) {

@@ -136,7 +136,6 @@
 
   <!-- Stats Cards area (kid-friendly) -->
   <div class="w-full max-w-3xl px-4 mt-8">
-    <h2 class="text-2xl font-bold text-lime-700 mb-4">Your Stats</h2>
     <div class="stats-grid" role="list">
       {#each ['Level','Quiz 1','Quiz 2','Quiz 3','Collected Trash','Profile'] as stat}
         <button class="stat-card" on:click={() => openStat(stat)} aria-label={`Open ${stat}`}>

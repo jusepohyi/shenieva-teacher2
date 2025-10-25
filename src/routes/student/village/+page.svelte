@@ -578,7 +578,31 @@
         
         console.log('Showing home entry prompt');
         
-        // Show prompt to enter home
+        // Auto-enter behavior: if this is the first time entering home for this student,
+        // immediately enter the home interior without showing the prompt. We persist
+        // a per-student flag in localStorage to ensure this happens only once per student.
+        const student = $studentData as StudentData | null;
+        try {
+            if (student && student.pk_studentID) {
+                const autoKey = `homeAutoEntered_${student.pk_studentID}`;
+                const alreadyAuto = localStorage.getItem(autoKey) === 'true';
+                if (!alreadyAuto) {
+                    // Mark auto-enter as done and immediately enter
+                    try {
+                        localStorage.setItem(autoKey, 'true');
+                    } catch (e) {
+                        console.warn('Failed to persist home auto-enter flag', e);
+                    }
+                    // Directly enter home without prompt
+                    enterHome();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('Error checking home auto-enter flag', e);
+        }
+
+        // Show prompt to enter home for subsequent visits
         dialogueText = "Do you want to enter your home?";
         dialogueType = 'interaction';
         showDialogue = true;
@@ -1025,21 +1049,24 @@
             return `${basePath}/front/1.png`;
         }
         
+        // When idle, prefer the dedicated "rest" sprites (not-in-motion)
+        // Use facing direction (lastDirection) to choose between forward/back rests.
         if (direction === 'idle') {
-            // Keep showing last frame when idle
             if (lastDirection === 'right') {
-                return `${basePath}/forward/${lastAnimationFrame + 1}.png`;
+                // Facing forward
+                return `${basePath}/rest_forward/1.png`;
             } else if (lastDirection === 'left') {
-                return `${basePath}/back/${lastAnimationFrame + 1}.png`;
+                // Facing backward
+                return `${basePath}/rest_back/1.png`;
             } else {
-                // Default to front if no previous direction
-                return `${basePath}/front/1.png`;
+                // Default to forward rest when we have no previous direction
+                return `${basePath}/rest_forward/1.png`;
             }
         } else if (direction === 'right') {
-            // Moving right: cycle through forward sprites only
+            // Moving right: cycle through forward sprites
             return `${basePath}/forward/${animationFrame + 1}.png`;
         } else {
-            // Moving left: cycle through back sprites only
+            // Moving left: cycle through back sprites
             return `${basePath}/back/${animationFrame + 1}.png`;
         }
     })();

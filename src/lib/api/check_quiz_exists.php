@@ -77,16 +77,38 @@ $story_titles = [
 
 $story_title = isset($story_titles[$story_key]) ? $story_titles[$story_key] : null;
 
+// Scope: 'level' (default) or 'story'
+$scope = 'level';
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $scope = isset($_GET['scope']) ? $_GET['scope'] : $scope;
+} else {
+    $data = json_decode(file_get_contents('php://input'), true);
+    if (is_array($data) && isset($data['scope'])) $scope = $data['scope'];
+}
+
 try {
-    // Check if quiz exists for this student in this LEVEL (regardless of story)
-    // Once a student has submitted ANY quiz in a level, they cannot claim ribbons again
-    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM $table_name WHERE studentID = ?");
-    
-    if (!$stmt) {
-        throw new Exception('Failed to prepare statement: ' . $conn->error);
+    // Default behavior: check per-LEVEL (once per level). This preserves the original rule
+    // where saving any final quiz in a level prevents further ribbon claims for that level.
+    // If client requests scope=story, we check per-story (studentID + storyTitle).
+    if ($scope === 'story') {
+        if (!$story_title) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Unknown story_key provided for story scope']);
+            exit();
+        }
+        $stmt = $conn->prepare("SELECT COUNT(*) as count FROM $table_name WHERE studentID = ? AND storyTitle = ?");
+        if (!$stmt) {
+            throw new Exception('Failed to prepare statement: ' . $conn->error);
+        }
+        $stmt->bind_param("is", $student_id, $story_title);
+    } else {
+        // level scope
+        $stmt = $conn->prepare("SELECT COUNT(*) as count FROM $table_name WHERE studentID = ?");
+        if (!$stmt) {
+            throw new Exception('Failed to prepare statement: ' . $conn->error);
+        }
+        $stmt->bind_param("i", $student_id);
     }
-    
-    $stmt->bind_param("i", $student_id);
     
     if (!$stmt->execute()) {
         throw new Exception('Failed to execute query: ' . $stmt->error);
@@ -99,15 +121,22 @@ try {
     $stmt->close();
     $conn->close();
     
+    $message = '';
+    if ($scope === 'story') {
+        $message = $exists ? "Student has already submitted a quiz for story: $story_title" : "No quiz found for student for story: $story_title";
+    } else {
+        $message = $exists ? "Student has already submitted a quiz in Level $level" : "No quiz found for student in Level $level";
+    }
+
     echo json_encode([
         'success' => true,
         'exists' => $exists,
         'student_id' => $student_id,
         'level' => $level,
         'table' => $table_name,
-        'message' => $exists 
-            ? "Student has already submitted a quiz in Level $level" 
-            : "No quiz found for student in Level $level"
+        'scope' => $scope,
+        'story_title' => $story_title,
+        'message' => $message
     ]);
     
 } catch (Exception $e) {

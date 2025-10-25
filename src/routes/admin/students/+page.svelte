@@ -128,6 +128,22 @@
     showAddModal.set(false);
     await refreshStudentData(); // Refresh student list after adding
   }
+
+  // Handle edit events dispatched from the view/edit modal
+  async function handleStudentEdited(event) {
+    const updated = event.detail;
+    try {
+      // Update studentData store locally for immediate UI feedback
+      studentData.update(students =>
+        students.map(s => (s.pk_studentID === updated.pk_studentID ? { ...s, ...updated } : s))
+      );
+
+      // Refresh the attendees view so filters/sort remain consistent
+      await refreshEditStudentData();
+    } catch (err) {
+      console.error('Error handling edited student:', err);
+    }
+  }
 </script>
 
 <div class="text-gray-500 font-bold text-2xl pl-10">
@@ -214,9 +230,10 @@
 
 <!-- Modals -->
 {#if $showModal}
-  <Modal selectedPerson={$selectedPerson} on:close={closeModal} />
+  <Modal selectedPerson={$selectedPerson} on:close={closeModal} on:edit={handleStudentEdited} />
 {/if}
 
 {#if $showAddModal}
   <AddModal on:close={closeAddModal} />
 {/if}
+ 

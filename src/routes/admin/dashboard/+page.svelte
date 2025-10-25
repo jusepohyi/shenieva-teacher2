@@ -15,6 +15,9 @@
   let showMenu = false;
   let showLogoutModal = false;
   let showSettingsModal = false;
+  // settings modal name/email (fetched client-side so settings works without visiting profile)
+  let settingsName = '';
+  let settingsEmail = '';
 
   import sanitizeForDisplay from '$lib/utils/sanitize';
 
@@ -266,6 +269,21 @@
   // run only in browser to avoid SSR fetches
   if (typeof window !== 'undefined') {
     fetchDashboardData();
+    fetchTeacherInfo();
+  }
+
+  async function fetchTeacherInfo(){
+    try{
+      const base = window.location.protocol + '//' + window.location.hostname + '/shenieva-teacher/src/lib/api';
+      const res = await fetch(base + '/fetch_teacher.php', { credentials: 'include' });
+      const j = await res.json();
+      if (j && j.success && j.data){
+        settingsName = j.data.name || '';
+        settingsEmail = j.data.email || '';
+      }
+    }catch(e){
+      console.warn('Failed to fetch teacher info', e);
+    }
   }
 
   /**
@@ -569,7 +587,7 @@
 </Modal>
 
 <!-- Settings Modal -->
-<SettingsModal bind:open={showSettingsModal} />
+<SettingsModal bind:open={showSettingsModal} bind:name={settingsName} bind:email={settingsEmail} />
 
 <!-- Quiz Students Modal -->
 <Modal bind:open={showQuizModal} size="md">

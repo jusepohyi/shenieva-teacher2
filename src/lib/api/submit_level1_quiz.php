@@ -66,7 +66,32 @@ if (isset($payload['storyTitle']) && is_string($payload['storyTitle']) && $paylo
 $attempt = $payload['attempt'];
 $answers = isset($attempt['answers']) ? $attempt['answers'] : [];
 $score = isset($attempt['score']) ? (int)$attempt['score'] : 0;
-$attemptNum = isset($attempt['retakeCount']) ? (int)$attempt['retakeCount'] : 0;
+// Client may provide a retakeCount, but compute the attempt number server-side
+// so we don't rely on client state for correctness.
+$clientAttemptNum = isset($attempt['retakeCount']) ? (int)$attempt['retakeCount'] : 0;
+
+// Determine the current max attempt saved for this student & story (if any)
+$existingMaxAttempt = 0;
+try {
+    $checkStmt = $conn->prepare("SELECT MAX(attempt) AS max_attempt FROM level1_quiz WHERE studentID = ? AND storyTitle = ?");
+    if ($checkStmt) {
+        $checkStmt->bind_param("is", $student_id, $storyTitle);
+        if ($checkStmt->execute()) {
+            $res = $checkStmt->get_result();
+            if ($res) {
+                $row = $res->fetch_assoc();
+                $existingMaxAttempt = isset($row['max_attempt']) ? (int)$row['max_attempt'] : 0;
+            }
+        }
+        $checkStmt->close();
+    }
+} catch (Exception $ex) {
+    // swallow - we'll fall back to client-provided value below
+    error_log('Failed to check existing attempts: ' . $ex->getMessage());
+}
+
+// Server-side attempt number: prefer existing max + 1, else fall back to clientAttemptNum + 1
+$aNum = ($existingMaxAttempt > 0) ? ($existingMaxAttempt + 1) : ($clientAttemptNum + 1);
 
 // optional: questions metadata mapping sent from client for better text/choices
 $questions = isset($payload['questions']) ? $payload['questions'] : [];
@@ -100,11 +125,10 @@ try {
         $correct = isset($correctAnswers[$qid]) ? $conn->real_escape_string($correctAnswers[$qid]) : '';
         $selectedEsc = $conn->real_escape_string($selected);
 
-        // Calculate point per question: 1 if correct, 0 if wrong
-        $point = (strtolower(trim($selectedEsc)) === strtolower(trim($correct))) ? 1 : 0;
-        $aNum = $attemptNum + 1; // attempt number: retakeCount + 1
+    // Calculate point per question: 1 if correct, 0 if wrong
+    $point = (strtolower(trim($selectedEsc)) === strtolower(trim($correct))) ? 1 : 0;
 
-        $stmt->bind_param("issssssssii", $student_id, $storyTitle, $qText, $choiceA, $choiceB, $choiceC, $choiceD, $correct, $selectedEsc, $point, $aNum);
+    $stmt->bind_param("issssssssii", $student_id, $storyTitle, $qText, $choiceA, $choiceB, $choiceC, $choiceD, $correct, $selectedEsc, $point, $aNum);
         if (!$stmt->execute()) {
             throw new Exception('Execute failed: ' . $stmt->error);
         }

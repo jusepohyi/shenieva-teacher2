@@ -3,6 +3,7 @@
     import { resetLevelAnswers, studentData } from '$lib/store/student_data';
     import { addAttempt } from '$lib/data/attempts.js';
     import { audioStore } from '$lib/store/audio_store';
+    import { onMount, onDestroy } from 'svelte';
     // use Svelte auto-subscription ($studentData) instead of importing `get`
 
     export let storyKey: string = ''; // Prop to identify the current story (story1-1, story1-2, story1-3)
@@ -27,11 +28,39 @@
 
     // Attempt limiting (3 total tries; first play counts as try 1)
     const attemptsLimit = 3;
-    let retakeCount = 0; // number of retakes performed
+    // Retakes are limited per LEVEL (not per story). Use a level-scoped localStorage key.
+    const levelRetakeCountKey = 'retakeLevel1Count';
+    const levelRetakeFlagKey = 'retakeLevel1';
+    let retakeCount = 0; // number of retakes performed for the level
     try {
-        const v = localStorage.getItem(`retake${storyKey}Count`);
+        const v = localStorage.getItem(levelRetakeCountKey);
         retakeCount = v ? parseInt(v, 10) || 0 : 0;
     } catch {}
+
+    // Ensure retakeCount is refreshed when this component mounts or when localStorage changes
+    // typed to avoid TS implicit-any diagnostics
+    let _storageHandler: ((ev: StorageEvent) => void) | null = null;
+    onMount(() => {
+        try {
+            const v = localStorage.getItem(levelRetakeCountKey);
+            retakeCount = v ? parseInt(v, 10) || 0 : 0;
+        } catch {}
+
+        _storageHandler = (ev) => {
+            try {
+                if (!ev.key) return;
+                if (ev.key === levelRetakeCountKey) {
+                    const v = ev.newValue;
+                    retakeCount = v ? parseInt(v, 10) || 0 : 0;
+                }
+            } catch (e) {}
+        };
+            try { window.addEventListener('storage', _storageHandler as EventListener); } catch {}
+    });
+
+    onDestroy(() => {
+        try { if (_storageHandler) window.removeEventListener('storage', _storageHandler as EventListener); } catch {}
+    });
 
     // Define correct answers for each story
     const correctAnswers: Record<string, Record<string, string>> = {
@@ -164,7 +193,7 @@
 
     function incRetakeCount() {
         retakeCount += 1;
-        try { localStorage.setItem(`retake${storyKey}Count`, String(retakeCount)); } catch {}
+        try { localStorage.setItem(levelRetakeCountKey, String(retakeCount)); } catch {}
     }
 
     // Check if quiz already exists in database for this student and story
@@ -412,7 +441,7 @@
             
             // Clear Level 1 answers by updating the store
             try {
-                studentData.update(data => {
+                studentData.update((data: any) => {
                     if (!data) return data;
                     const answeredQuestions = data.answeredQuestions || {};
                     
@@ -467,7 +496,7 @@
 
         try {
             // Clear Level 1 answers by updating the store (which will sync to localStorage)
-            studentData.update(data => {
+                studentData.update((data: any) => {
                 if (!data) return data;
                 const answeredQuestions = data.answeredQuestions || {};
                 
@@ -482,10 +511,10 @@
         } catch (e) {
             console.warn('Failed to reset Level 1 answers on retake', e);
         }
-        // Increment retake count and persist
-        incRetakeCount();
-        // Flag retake and delegate to /student/play with level parameter (to open story chooser)
-        try { localStorage.setItem(`retake${storyKey}`, 'true'); } catch {}
+    // Increment retake count and persist (level-scoped)
+    incRetakeCount();
+    // Flag retake and delegate to /student/play with level parameter (to open story chooser)
+            try { localStorage.setItem(levelRetakeFlagKey, 'true'); } catch {}
     try { localStorage.removeItem('pending_story'); } catch {}
         
         // Save current audio track before navigation

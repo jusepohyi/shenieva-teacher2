@@ -3,7 +3,7 @@
     import { fade, scale } from 'svelte/transition';
     import { createEventDispatcher } from 'svelte';
   
-    export let list: { itemID: number; itemName: string; itemDescription: string; itemLocation: string }[];
+  export let list: { itemID?: number; itemName: string; itemDescription?: string; itemLocation?: string; fileCandidates?: string[]; _tryIndex?: number }[];
   
     const dispatch = createEventDispatcher();
   
@@ -27,7 +27,27 @@
         <div class="mt-4 flex flex-wrap justify-center gap-4">
           {#each list as item}
             <div class="flex flex-col items-center">
-              <img src={item.itemLocation} alt={item.itemName} class="w-16 h-16 object-contain" />
+              <img
+                src={item.itemLocation}
+                alt={item.itemName}
+                class="w-16 h-16 object-contain"
+                on:error={(e) => {
+                  const img = /** @type {HTMLImageElement | null} */ (e?.target ?? null);
+                  try {
+                    if (!img) return;
+                    if (item._tryIndex === undefined) item._tryIndex = 0;
+                    item._tryIndex++;
+                    const next = item.fileCandidates && item.fileCandidates[item._tryIndex];
+                    if (next) {
+                      img.src = `/src/assets/Level_Walkthrough/gift/gifts/${next}.png`;
+                    } else {
+                      img.src = `/src/assets/Level_Walkthrough/gift/gifts/${encodeURIComponent(item.itemName)}.png`;
+                    }
+                  } catch (err) {
+                    console.warn('Gift modal image error handler failed', err);
+                  }
+                }}
+              />
               <p class="text-sm text-gray-700 mt-2">{item.itemName}</p>
               <p class="text-xs text-gray-500">{item.itemDescription}</p>
             </div>

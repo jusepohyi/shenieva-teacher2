@@ -3,6 +3,7 @@
     import { resetLevelAnswers, studentData } from '$lib/store/student_data';
     import { addAttempt } from '$lib/data/attempts.js';
     import { audioStore } from '$lib/store/audio_store';
+    import { onMount, onDestroy } from 'svelte';
     // use Svelte auto-subscription ($studentData) instead of importing `get`
 
     // This final-slide mirrors Level1's UI/flow but adapted for Level 2
@@ -25,8 +26,23 @@
 
     // Attempt limiting
     const attemptsLimit = 3;
+    // Retakes are limited per LEVEL (not per story). Use a level-scoped localStorage key.
+    const levelRetakeCountKey = 'retakeLevel2Count';
+    const levelRetakeFlagKey = 'retakeLevel2';
     let retakeCount = 0;
-    try { const v = localStorage.getItem(`retake${storyKey}Count`); retakeCount = v ? parseInt(v,10)||0 : 0; } catch {}
+    try { const v = localStorage.getItem(levelRetakeCountKey); retakeCount = v ? parseInt(v,10)||0 : 0; } catch {}
+
+    // Refresh retakeCount on mount and listen for storage events so UI updates after retake
+    // typed to avoid TS implicit-any diagnostics
+    let _storageHandler: ((ev: StorageEvent) => void) | null = null;
+    onMount(() => {
+        try { const v = localStorage.getItem(levelRetakeCountKey); retakeCount = v ? parseInt(v,10)||0 : 0; } catch {}
+        _storageHandler = (ev) => {
+            try { if (ev.key === levelRetakeCountKey) { const v = ev.newValue; retakeCount = v ? parseInt(v,10)||0 : 0; } } catch (e) {}
+        };
+    try { window.addEventListener('storage', _storageHandler as EventListener); } catch {}
+    });
+    onDestroy(() => { try { if (_storageHandler) window.removeEventListener('storage', _storageHandler as EventListener); } catch {} });
 
     // Define correct answers for each story. For DnD quizzes we store the
     // canonical mapping as a JSON string (the quiz saver uses JSON.stringify)
@@ -124,7 +140,7 @@
     })();
 
     function canRetake() { return (1 + retakeCount) < attemptsLimit; }
-    function incRetakeCount() { retakeCount += 1; try { localStorage.setItem(`retake${storyKey}Count`, String(retakeCount)); } catch {} }
+    function incRetakeCount() { retakeCount += 1; try { localStorage.setItem(levelRetakeCountKey, String(retakeCount)); } catch {} }
 
     async function checkQuizExistsInDatabase() {
         try {
@@ -477,7 +493,7 @@
     } catch (e) {
         console.warn('Failed to reset Level 2 answers on retake', e);
     }
-        incRetakeCount(); try { localStorage.setItem(`retake${storyKey}`, 'true'); } catch {}
+    incRetakeCount(); try { localStorage.setItem(levelRetakeFlagKey, 'true'); } catch {}
         try { localStorage.removeItem('pending_story'); } catch {}
         // Ensure the play page knows to open the Level 2 story chooser/modal on load
         try { localStorage.setItem('openStory2Modal', 'true'); } catch {}

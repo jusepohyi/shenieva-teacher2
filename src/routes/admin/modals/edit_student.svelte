@@ -37,6 +37,9 @@
         studentData.update(students =>
           students.map(s => s.pk_studentID === updatedStudent.pk_studentID ? { ...s, ...updatedStudent } : s)
         );
+        // Notify parent about the edited student so it can react/update UI
+        dispatch('edit', updatedStudent);
+        // Close the modal after dispatching the edit event
         dispatch('close');
       } else {
         errorMessage = result.message || 'Failed to update student';

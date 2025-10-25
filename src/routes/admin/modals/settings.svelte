@@ -1,135 +1,180 @@
 <!-- src/modals/settings.svelte -->
 <script lang="ts">
-    import { Modal, Button, Input, Label } from 'flowbite-svelte';
-    import { Pencil, Mail, Lock, LogOut, CheckCircle, XCircle } from 'lucide-svelte';
-    import { goto } from '$app/navigation';
-  
-    export let open = false;
-    export let name = "John Doe";
-    export let email = "johndoe@example.com";
-  
-    let newName = name;
-    let newEmail = email;
-    let newPassword = "";
-    let confirmPassword = "";
-    let isSubmitting = false;
-    let message = "";
-    let messageType = "";
-    let confirmModal = false;
-    let confirmCurrentPassword = "";
-  
-    function validateInputs() {
-      if (!newName || newName.length < 2) {
-        message = "Name must be at least 2 characters.";
-        messageType = "error";
+  import { Modal, Button, Input, Label } from 'flowbite-svelte';
+  import { Pencil, Mail, Lock, LogOut, CheckCircle, XCircle } from 'lucide-svelte';
+  import { goto } from '$app/navigation';
+
+  export let open = false;
+  export let name = '';
+  export let email = '';
+
+  let newName = name;
+  let newEmail = email;
+  let newPassword = '';
+  let confirmPassword = '';
+  let isSubmitting = false;
+  let message = '';
+  let messageType: 'success' | 'error' | '' = '';
+  let confirmModal = false;
+  let confirmCurrentPassword = '';
+
+  function validateInputs() {
+    if (!newName || newName.length < 2) {
+      message = 'Name must be at least 2 characters.';
+      messageType = 'error';
+      return false;
+    }
+    if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+      message = 'Please enter a valid email.';
+      messageType = 'error';
+      return false;
+    }
+    if (newPassword) {
+      if (newPassword.length < 8) {
+        message = 'New password must be at least 8 characters.';
+        messageType = 'error';
         return false;
       }
-      if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
-        message = "Please enter a valid email.";
-        messageType = "error";
+      if (newPassword !== confirmPassword) {
+        message = 'Passwords do not match.';
+        messageType = 'error';
         return false;
       }
-      if (newPassword) {
-        if (newPassword.length < 8) {
-          message = "New password must be at least 8 characters.";
-          messageType = "error";
-          return false;
+    }
+    return true;
+  }
+
+  function initiateSave() {
+    message = '';
+    messageType = '';
+    if (!validateInputs()) return;
+
+    const nameChanged = newName.trim() !== name.trim();
+    const emailChanged = newEmail.trim() !== email.trim();
+    const passwordChanged = !!newPassword;
+
+    if (nameChanged || emailChanged || passwordChanged) confirmModal = true;
+    else {
+      message = 'No changes to save.';
+      messageType = 'error';
+    }
+  }
+
+  async function confirmSave() {
+    if (!confirmCurrentPassword) {
+      message = 'Please enter your current password to confirm.';
+      messageType = 'error';
+      return;
+    }
+
+    isSubmitting = true;
+    confirmModal = false;
+
+    const payload = {
+      name: newName.trim(),
+      email: newEmail.trim(),
+      currentPassword: confirmCurrentPassword,
+      ...(newPassword ? { newPassword } : {})
+    };
+
+    // try SvelteKit route, fall back to PHP endpoint served by Apache
+    const phpUrl = `${window.location.protocol}//${window.location.hostname}/shenieva-teacher/src/lib/api/update_teacher.php`;
+    const endpoints = ['/api/update-profile', phpUrl];
+    let lastError: unknown = null;
+
+    try {
+      for (const url of endpoints) {
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: JSON.stringify(payload),
+            credentials: 'include'
+          });
+
+          const ct = res.headers.get('content-type') || '';
+          if (!ct.includes('application/json')) {
+            const text = await res.text();
+            console.error('Non-JSON response from', res.url, res.status, text);
+            lastError = new Error('Non-JSON response from server');
+            if (url === phpUrl) break; // no more fallbacks
+            continue; // try next endpoint
+          }
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data?.message || 'Update failed');
+
+          // success
+          name = newName;
+          email = newEmail;
+          message = newPassword ? 'Profile and password updated successfully!' : 'Profile updated successfully!';
+          messageType = 'success';
+          newPassword = '';
+          confirmPassword = '';
+          confirmCurrentPassword = '';
+          return;
+        } catch (err) {
+          console.warn('Error calling endpoint:', url, err);
+          lastError = err;
         }
-        if (newPassword !== confirmPassword) {
-          message = "Passwords do not match.";
-          messageType = "error";
-          return false;
-        }
       }
-      return true;
+
+      throw lastError ?? new Error('Failed to update profile');
+    } catch (err) {
+      message = err instanceof Error ? err.message : 'Failed to save changes. Please try again.';
+      messageType = 'error';
+    } finally {
+      isSubmitting = false;
     }
-  
-    function initiateSave() {
-      message = "";
-      messageType = "";
-      if (!validateInputs()) {
-        return;
+  }
+
+  async function logout() {
+    await fetch('/logout', { method: 'POST' });
+    message = 'Logging out...';
+    messageType = 'success';
+    setTimeout(() => {
+      open = false;
+      goto('/login');
+    }, 500);
+  }
+
+  async function fetchTeacherInfo(){
+    try{
+      const base = window.location.protocol + '//' + window.location.hostname + '/shenieva-teacher/src/lib/api';
+      const res = await fetch(base + '/fetch_teacher.php', { credentials: 'include' });
+      const j = await res.json();
+      if (j && j.success && j.data){
+        // update both exported props and local inputs
+        name = j.data.name || '';
+        email = j.data.email || '';
+        newName = name;
+        newEmail = email;
       }
-  
-      const nameChanged = newName.trim() !== name.trim();
-      const emailChanged = newEmail.trim() !== email.trim();
-      const passwordChanged = !!newPassword;
-  
-      if (nameChanged || emailChanged || passwordChanged) {
-        confirmModal = true;
-      } else {
-        message = "No changes to save.";
-        messageType = "error";
-      }
+    }catch(e){
+      console.warn('Failed to fetch teacher info', e);
     }
-  
-    async function confirmSave() {
-      if (!confirmCurrentPassword) {
-        message = "Please enter your current password to confirm.";
-        messageType = "error";
-        return;
-      }
-  
-      isSubmitting = true;
-      confirmModal = false;
-      try {
-        const payload = {
-          name: newName.trim(),
-          email: newEmail.trim(),
-          currentPassword: confirmCurrentPassword,
-          ...(newPassword ? { newPassword } : {})
-        };
-  
-        const response = await fetch('/api/update-profile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          credentials: 'include'
-        });
-  
-        const result = await response.json();
-        if (!response.ok) {
-          throw new Error(result.message || 'Update failed');
-        }
-  
-        name = newName;
-        email = newEmail;
-        message = newPassword ? "Profile and password updated successfully!" : "Profile updated successfully!";
-        messageType = "success";
-  
-        newPassword = "";
-        confirmPassword = "";
-        confirmCurrentPassword = "";
-      } catch (error: unknown) {
-        message = error instanceof Error ? error.message : "Failed to save changes. Please try again.";
-        messageType = "error";
-      } finally {
-        isSubmitting = false;
-      }
-    }
-  
-    async function logout() {
-      await fetch('/logout', { method: 'POST' });
-      message = "Logging out...";
-      messageType = "success";
-      setTimeout(() => {
-        open = false;
-        goto('/login');
-      }, 500);
-    }
-  
-    $: if (open) {
+  }
+
+  $: if (open) {
+    // reset transient fields
+    newPassword = '';
+    confirmPassword = '';
+    confirmCurrentPassword = '';
+    message = '';
+    messageType = '';
+    confirmModal = false;
+
+    // if parent hasn't provided name/email, fetch from server so modal shows correct values
+    if (name && email) {
       newName = name;
       newEmail = email;
-      newPassword = "";
-      confirmPassword = "";
-      confirmCurrentPassword = "";
-      message = "";
-      messageType = "";
-      confirmModal = false;
+    } else {
+      // fetch teacher info client-side (non-blocking)
+      fetchTeacherInfo();
     }
-  </script>
-  
+  }
+</script>
+
   <Modal bind:open size="md" class="backdrop-blur-lg bg-white/90 rounded-2xl shadow-lg">
     <div class="p-8">
       <h3 class="text-2xl font-semibold text-gray-900 mb-2">Settings</h3>

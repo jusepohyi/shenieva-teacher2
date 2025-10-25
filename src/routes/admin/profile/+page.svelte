@@ -48,6 +48,26 @@
         alert("Game progress reset!");
       }
     }
+
+  // Live total students (fetched from server)
+  let totalStudents = 0;
+
+  async function fetchProfileCounts(){
+    try{
+      const base = window.location.protocol + '//' + window.location.hostname + '/shenieva-teacher/src/lib/api';
+      const res = await fetch(base + '/fetch_students.php');
+      const students = await res.json();
+      totalStudents = Array.isArray(students) ? students.length : 0;
+    }catch(e){
+      console.error('Failed to fetch student count', e);
+      totalStudents = 0;
+    }
+  }
+
+  if (typeof window !== 'undefined'){
+    // run client-side only
+    fetchProfileCounts();
+  }
   </script>
   
   <div class="flex h-screen bg-gray-100">
@@ -94,34 +114,34 @@
           </div>
         </div>
         <div class="w-full md:w-2/3 bg-white shadow-lg rounded-lg p-6">
-          <h3 class="text-xl font-semibold mb-4">Activity Statistics / Insights</h3>
+          <h3 class="text-xl font-semibold mb-4">Overview</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="p-4 bg-gray-50 shadow rounded-lg flex items-center space-x-4">
               <BarChart class="w-10 h-10 text-blue-500" />
               <div>
-                <p class="text-gray-600">New Quizzes Added</p>
-                <p class="text-2xl font-bold">15</p>
+                <p class="text-gray-600">Total System Level</p>
+                <p class="text-2xl font-bold">3</p>
               </div>
             </div>
             <div class="p-4 bg-gray-50 shadow rounded-lg flex items-center space-x-4">
               <BarChart class="w-10 h-10 text-green-500" />
               <div>
-                <p class="text-gray-600">Students Engaged</p>
-                <p class="text-2xl font-bold">99</p>
+                <p class="text-gray-600">Total Stories</p>
+                <p class="text-2xl font-bold">9</p>
               </div>
             </div>
             <div class="p-4 bg-gray-50 shadow rounded-lg flex items-center space-x-4">
               <BarChart class="w-10 h-10 text-yellow-500" />
               <div>
-                <p class="text-gray-600">Logins This Week</p>
-                <p class="text-2xl font-bold">85</p>
+                <p class="text-gray-600">Total Stories each Level</p>
+                <p class="text-2xl font-bold">3</p>
               </div>
             </div>
             <div class="p-4 bg-gray-50 shadow rounded-lg flex items-center space-x-4">
               <BarChart class="w-10 h-10 text-red-500" />
               <div>
-                <p class="text-gray-600">Stories Available</p>
-                <p class="text-2xl font-bold">67</p>
+                <p class="text-gray-600">Total Students</p>
+                <p class="text-2xl font-bold">{totalStudents}</p>
               </div>
             </div>
           </div>
