@@ -37,7 +37,7 @@
     let loading = true;
     let selectedStudent: StudentSummary | null = null;
     let searchQuery = '';
-    let sortBy: 'name' | 'score' | 'date' = 'name';
+    let sortBy: 'name' | 'score' | 'date' | 'attempt' = 'name';
     let sortOrder: 'asc' | 'desc' = 'asc';
 
     onMount(() => {
@@ -130,7 +130,7 @@
         });
     }
 
-    function sortStudents(studentList: StudentSummary[], by: 'name' | 'score' | 'date', order: 'asc' | 'desc') {
+    function sortStudents(studentList: StudentSummary[], by: 'name' | 'score' | 'date' | 'attempt', order: 'asc' | 'desc') {
         const sorted = [...studentList].sort((a, b) => {
             let compareValue = 0;
 
@@ -138,6 +138,8 @@
                 compareValue = a.studentName.localeCompare(b.studentName);
             } else if (by === 'score') {
                 compareValue = a.percentage - b.percentage;
+            } else if (by === 'attempt') {
+                compareValue = (Number(a.attempt) || 0) - (Number(b.attempt) || 0);
             } else if (by === 'date') {
                 compareValue = new Date(a.dateTaken).getTime() - new Date(b.dateTaken).getTime();
             }
@@ -148,7 +150,7 @@
         return sorted;
     }
 
-    function handleSort(by: 'name' | 'score' | 'date') {
+    function handleSort(by: 'name' | 'score' | 'date' | 'attempt') {
         if (sortBy === by) {
             sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
         } else {
@@ -157,7 +159,7 @@
         }
     }
 
-    function getSortIndicator(column: 'name' | 'score' | 'date') {
+    function getSortIndicator(column: 'name' | 'score' | 'date' | 'attempt') {
         if (sortBy === column) {
             return sortOrder === 'asc' ? '↑' : '↓';
         }
@@ -256,6 +258,12 @@
                                 <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800">
                                     📖 Quiz Title
                                 </th>
+                                <th on:click={() => handleSort('attempt')} class="px-4 py-3 text-center text-sm font-semibold text-gray-800 cursor-pointer hover:bg-lime-200 transition whitespace-nowrap">
+                                    <div class="flex items-center justify-center gap-1">
+                                        🔁 Attempts
+                                        <span class="text-sm font-semibold {sortBy === 'attempt' ? 'text-lime-600' : 'text-gray-400'}">{getSortIndicator('attempt')}</span>
+                                    </div>
+                                </th>
                                 <th
                                     on:click={() => handleSort('date')}
                                     class="px-4 py-3 text-left text-sm font-semibold text-gray-800 cursor-pointer hover:bg-lime-200 transition"
@@ -294,6 +302,9 @@
                                     </td>
                                     <td class="px-4 py-3">
                                         <div class="text-sm text-gray-700">{student.storyTitle}</div>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <div class="text-sm text-gray-700">{student.attempt ?? 1}</div>
                                     </td>
                                     <td class="px-4 py-3">
                                         <div class="text-sm text-gray-600">{formatDate(student.dateTaken)}</div>
@@ -341,7 +352,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 gap-4 text-sm">
+                <div class="mt-4 pt-4 border-t border-gray-200 grid grid-cols-3 gap-4 text-sm">
                     <div class="bg-lime-50 p-3 rounded-lg border border-lime-200">
                         <span class="text-gray-700 font-medium">📖 Quiz Title:</span>
                         <span class="ml-2 font-semibold text-gray-900">{selectedStudent.storyTitle}</span>
@@ -349,6 +360,10 @@
                     <div class="bg-orange-50 p-3 rounded-lg border border-orange-200">
                         <span class="text-gray-700 font-medium">📅 Date Taken:</span>
                         <span class="ml-2 font-semibold text-gray-900">{formatDate(selectedStudent.dateTaken)}</span>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                        <span class="text-gray-700 font-medium">🔁 Attempts:</span>
+                        <span class="ml-2 font-semibold text-gray-900">{selectedStudent.attempt ?? 1}</span>
                     </div>
                 </div>
             </div>

@@ -88,8 +88,21 @@
   <div class={cardClasses}>
     {#if showStart}
       <div class="flex flex-col items-center justify-center py-8">
-        <!-- larger but still responsive: prefer explicit width with a percentage max for small screens -->
-        <img src="/src/assets/shenievia.png" alt="Shenievia Logo" class="mx-auto w-[640px] max-w-[96%] animate-rubberband-double-loop drop-shadow-[0_0_0.5vw_white]" />
+        <!-- Kid-friendly animated text logo: "Shenievia Reads" -->
+        <div class="shenievia-reads animate-rubberband-double-loop">
+          <div class="reads-title">Shenievia Reads</div>
+          <div class="reads-sub">A fun adventure in Readville Village! 📚✨</div>
+          <style>
+            .shenievia-reads .reads-title {
+              text-shadow:
+                0 14px 40px rgba(255,110,0,0.16),
+                0 8px 22px rgba(255,84,46,0.14),
+                0 3px 8px rgba(0,0,0,0.18);
+              filter: drop-shadow(0 18px 30px rgba(0,0,0,0.12));
+            }
+          </style>
+        </div>
+
         <button
           class="mt-4 px-8 py-3 bg-gradient-to-r from-lime-400 to-lime-500 text-white font-bold rounded-full hover:from-lime-500 hover:to-lime-600 transition-all duration-300 border-[0.4vw] border-white shadow-[0_0.75vw_1.5vw_rgba(0,0,0,0.35),inset_0_0.5vw_0.75vw_rgba(255,255,255,0.6)] hover:scale-105 active:scale-95 animate-bounce-smooth"
           on:click={() => { showStart = false; }}
@@ -272,5 +285,76 @@
     28.58% { transform: scale(1); }
     57.15% { transform: scale(1); }
     100% { transform: scale(1); }
+  }
+
+  /* Shenievia Reads text logo */
+  .shenievia-reads {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+    filter: drop-shadow(0 8px 18px rgba(0,0,0,0.25));
+  }
+  .shenievia-reads .reads-title {
+    font-family: 'Comic Sans MS', 'Baloo 2', 'Fredoka', 'Nunito', ui-rounded, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    font-weight: 900;
+    font-size: 4.25rem; /* a bit larger */
+    line-height: 1;
+    /* Lime/green themed gradient */
+    background: linear-gradient(90deg, #8ef99a 0%, #60d394 40%, #2ecf6b 80%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    /* Normal centered stroke for text */
+    -webkit-text-stroke: 3px rgba(255,255,255,0.95);
+    text-stroke: 3px rgba(255,255,255,0.95);
+   /* Orange themed gradient (deeper, more vibrant colors so the white border
+     and light background don't wash it out) */
+   background: linear-gradient(90deg, #ff8a00 0%, #ff6a00 50%, #ff3d00 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow:
+      0 10px 30px rgba(255,110,0,0.14),
+      0 6px 18px rgba(255,84,46,0.12),
+      0 2px 6px rgba(0,0,0,0.14);
+    transform-origin: center;
+    /* gentle upward floating motion */
+    animation: float-gentle 4.2s ease-in-out infinite;
+  }
+  .shenievia-reads .reads-sub {
+    font-size: 1.05rem;
+    color: #ffffff; /* white for max contrast */
+    font-weight: 800;
+    opacity: 1;
+    transform: translateY(-2px);
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 9999px; /* pill */
+    background: rgba(0,0,0,0.36); /* semi-opaque dark background */
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    text-shadow: 0 6px 18px rgba(0,0,0,0.48);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  @keyframes float-gentle {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+    100% { transform: translateY(0); }
+  }
+
+  /* Slight playful wobble for the reads title */
+  @keyframes playful-wobble {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(-1.5deg) translateY(-2px); }
+    50% { transform: rotate(0.8deg) translateY(-1px); }
+    75% { transform: rotate(-0.6deg); }
+    100% { transform: rotate(0deg); }
+  }
+  .shenievia-reads.animate-rubberband-double-loop .reads-title {
+    animation: playful-wobble 3.2s ease-in-out infinite;
   }
 </style>

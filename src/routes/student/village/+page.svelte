@@ -45,6 +45,8 @@
     let sceneVisited: Set<number> = new Set(); // Track which scenes have been visited
     let autoCloseTimer: number | null = null; // Timer for auto-closing narration
     let isFirstScene = false; // Track if this is the very first scene
+    // When true, force the front-facing sprite as the default on first load of a scene
+    let defaultFront = true;
     let levelVisited: Set<number> = new Set(); // Track which level locations have been visited
     let sceneNarrationClosed = false; // Flag to track if scene narration has been closed
     let showEntranceFade = true; // White fade transition when entering village
@@ -122,6 +124,9 @@
                     // Fade out the white entrance transition
                     setTimeout(() => {
                         showEntranceFade = false;
+                        // After the entrance fade completes, stop forcing the default front sprite
+                        // so normal direction/animation logic can take over.
+                        defaultFront = false;
                     }, 500);
                 }, 500);
             }
@@ -885,6 +890,12 @@
         } catch (e) {
             console.warn('Failed to save visited scenes', e);
         }
+
+        // After marking the scene visited, stop forcing the default front sprite.
+        // Use a short delay so the narration/entrance can show the front portrait briefly.
+        setTimeout(() => {
+            defaultFront = false;
+        }, 200);
         
         // Remove auto-close functionality
         // Dialogues will only close when user presses X or spacebar
@@ -1038,6 +1049,11 @@
     // Get current sprite path
     $: currentSprite = (() => {
         const basePath = `/src/assets/Level_Walkthrough/shenievia/${gender}`;
+        // If a scene just loaded and we want to show the front-facing sprite by default,
+        // honor that before other direction logic.
+        if (defaultFront) {
+            return `${basePath}/front/1.png`;
+        }
         
         // Show front sprite when transitioning between directions
         if (showFrontTransition) {
@@ -1049,27 +1065,53 @@
             return `${basePath}/front/1.png`;
         }
         
-        // When idle, prefer the dedicated "rest" sprites (not-in-motion)
-        // Use facing direction (lastDirection) to choose between forward/back rests.
         if (direction === 'idle') {
+            // Keep showing last frame when idle
             if (lastDirection === 'right') {
-                // Facing forward
-                return `${basePath}/rest_forward/1.png`;
+                return `${basePath}/forward/${lastAnimationFrame + 1}.png`;
             } else if (lastDirection === 'left') {
-                // Facing backward
-                return `${basePath}/rest_back/1.png`;
+                return `${basePath}/back/${lastAnimationFrame + 1}.png`;
             } else {
-                // Default to forward rest when we have no previous direction
-                return `${basePath}/rest_forward/1.png`;
+                // Default to front if no previous direction
+                return `${basePath}/front/1.png`;
             }
         } else if (direction === 'right') {
-            // Moving right: cycle through forward sprites
+            // Moving right: cycle through forward sprites only
             return `${basePath}/forward/${animationFrame + 1}.png`;
         } else {
-            // Moving left: cycle through back sprites
+            // Moving left: cycle through back sprites only
             return `${basePath}/back/${animationFrame + 1}.png`;
         }
     })();
+
+// When switching scenes, only set the default front sprite once at the moment the
+// scene actually changes. Previously this block ran repeatedly and could reset
+// the flag while the player was moving. Track the last scene and update only on
+// scene change.
+let _lastScene = -1;
+$: if (currentScene !== _lastScene) {
+    _lastScene = currentScene;
+    const scene = scenes[currentScene] || {};
+    // If this is an interior (home) scene, always show front sprite on entry.
+    // Otherwise only show front sprite on the very first visit to that scene.
+    if (scene.isInterior) {
+        defaultFront = true;
+    } else {
+        // Only auto-show front on first load of School (scene index 0).
+        // For other non-interior scenes, do not force the front sprite.
+        if (currentScene === 0 && !sceneVisited.has(0)) {
+            defaultFront = true;
+        } else {
+            defaultFront = false;
+        }
+    }
+}
+
+// When the player starts moving, immediately stop forcing the front sprite so
+// the normal direction/walk sprites take over.
+$: if (isMoving) {
+    defaultFront = false;
+}
 
     // Check if we're at a locked level location and should show dialogue
     $: {

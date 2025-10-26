@@ -46,7 +46,7 @@
         ungradedCount: number;
     }
 
-    type SortColumn = 'name' | 'score' | 'date';
+    type SortColumn = 'name' | 'score' | 'date' | 'attempt';
     type SortOrder = 'asc' | 'desc';
 
     let students: StudentSummary[] = [];
@@ -212,6 +212,8 @@
                 compareValue = a.studentName.localeCompare(b.studentName);
             } else if (by === 'score') {
                 compareValue = a.percentage - b.percentage;
+            } else if (by === 'attempt') {
+                compareValue = (Number(a.attempt) || 0) - (Number(b.attempt) || 0);
             } else if (by === 'date') {
                 compareValue = new Date(a.dateTaken).getTime() - new Date(b.dateTaken).getTime();
             }
@@ -579,6 +581,12 @@
                                 <th class="px-4 py-3 text-left text-sm font-semibold text-gray-800">
                                     📖 Quiz Title
                                 </th>
+                                <th on:click={() => handleSort('attempt')} class="px-4 py-3 text-center text-sm font-semibold text-gray-800 cursor-pointer hover:bg-lime-200 transition whitespace-nowrap">
+                                    <div class="flex items-center justify-center gap-1">
+                                        🔁 Attempts
+                                        <span class="text-sm font-semibold {sortBy === 'attempt' ? 'text-lime-600' : 'text-gray-400'}">{getSortIndicator('attempt')}</span>
+                                    </div>
+                                </th>
                                 <th
                                     on:click={() => handleSort('date')}
                                     class="px-4 py-3 text-left text-sm font-semibold text-gray-800 cursor-pointer hover:bg-lime-200 transition whitespace-nowrap"
@@ -621,12 +629,15 @@
                                     <td class="px-4 py-3">
                                         <div class="text-sm text-gray-700">{student.storyTitle}</div>
                                     </td>
+                                    <td class="px-4 py-3 text-center whitespace-nowrap">
+                                        <div class="text-sm text-gray-700">{student.attempt ?? 1}</div>
+                                    </td>
                                     <td class="px-4 py-3">
                                         <div class="text-sm text-gray-600">{formatDate(student.dateTaken)}</div>
                                     </td>
                                     <td class="px-4 py-3 text-center whitespace-nowrap">
                                         <span class={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${getScoreBadgeColor(student.percentage)}`}>
-                                            {student.correctCount}/{student.questionCount} correct ({student.percentage}%)
+                                            {student.correctCount}/{student.questionCount} ({student.percentage}%)
                                         </span>
                                     </td>
                                     <td class="px-4 py-3 text-center whitespace-nowrap">
