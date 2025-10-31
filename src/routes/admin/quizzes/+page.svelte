@@ -39,8 +39,8 @@
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {#each level.stories as story}
-                    <a 
-                        href="/admin/quizzes/story{level.id}"
+                    <a
+                        href={`/admin/quizzes/story${level.id}/${story.id}`}
                         class="block p-4 bg-white border border-gray-200 rounded-lg hover:shadow-lg transition-all transform hover:-translate-y-1"
                     >
                         <div class="flex items-center justify-between">
