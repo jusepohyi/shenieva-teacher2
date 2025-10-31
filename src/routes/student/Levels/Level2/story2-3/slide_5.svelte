@@ -4,7 +4,7 @@
     const slide = {
         english: { text: "Then, he noticed that there were empty bottles of medicine for his sick little brother." },
         cebuano: { text: "Pagkahuman, nakamatikod siya nga adunay bakante nga botilya sa tambal ang iyang igsoon nga lalaki nga adunay balatian." },
-        image: '/src/assets/LEVEL_2/STORY_3/Pic4.jpg'
+    image: '/assets/LEVEL_2/STORY_3/Pic4.jpg'
     };
 
     $: currentText = $language === 'cebuano' ? slide.cebuano.text : slide.english.text;

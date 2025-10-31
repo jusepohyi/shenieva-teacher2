@@ -18,12 +18,12 @@
             english: "Lena prepared the items and told Maria about the total cost. Maria looked in her wallet but realized that she only had a large bill and Lena had no change for it.",
             cebuano: "Giandam ni Lena ang mga butang ug gisultihan si Maria bahin sa kinatibuk-ang kantidad. Si Maria mitan-aw sa iyang pitaka apan nakamatikod nga dako ra ang kwarta nga iyang dala, ug walay sinsilyo si Lena alang niini."
         },
-        image: "/src/assets/LEVEL_1/STORY_1/PIC3.jpg"
+    image: "/assets/LEVEL_1/STORY_1/PIC3.jpg"
     };
 
     // playlist per speed (single file here)
     $: playlist = (() => {
-        const base = '/src/assets/audio/story-telling/Level_1/story_1';
+    const base = '/assets/audio/story-telling/Level_1/story_1';
         const sp = speed === 'slow' ? 'slow' : (speed === 'fast' ? 'fast' : 'normal');
         return [encodeURI(`${base}/${sp}/slide_3/M3.mp3`)];
     })();

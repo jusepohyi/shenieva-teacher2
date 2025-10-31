@@ -116,7 +116,7 @@
           giftID: r.giftID ?? null,
           fileCandidates: unique,
           // Primary path to try first
-          itemLocation: unique.length ? `/src/assets/Level_Walkthrough/gift/gifts/${unique[0]}.png` : `/src/assets/Level_Walkthrough/gift/gifts/${encodeURIComponent(raw)}.png`
+          itemLocation: unique.length ? `/assets/Level_Walkthrough/gift/gifts/${unique[0]}.png` : `/assets/Level_Walkthrough/gift/gifts/${encodeURIComponent(raw)}.png`
         };
       });
     } catch (error) {

@@ -13,7 +13,7 @@
             english: "There is a vendor named Hannah. She is hardworking, honest, and always tries her best to serve her customers.",
             cebuano: "Adunay tag-iya sa usa ka sari-sari nga tindahan nga ginganlan ug Lena. Nagaserbisyo siya sa mga kustomer matag adlaw uban ang usa ka pahiyom."
         },
-        image: "/src/assets/LEVEL_1/STORY_3/PIC1.jpg"
+    image: "/assets/LEVEL_1/STORY_3/PIC1.jpg"
     };
 </script>
 

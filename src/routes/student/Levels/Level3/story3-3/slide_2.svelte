@@ -6,7 +6,7 @@
             english: "Liloy adored his tiny, white dog with big, floppy ears named Lingling.",
             cebuano: "Gihigugma pag-ayo ni Liloy ang gamay, puti, nga adunay dagkong dalunggan nga iro nga ginganlan ug Lingling."
         },
-        image: "/src/assets/LEVEL_3/STORY_3/PIC1.jpg"
+    image: "/assets/LEVEL_3/STORY_3/PIC1.jpg"
     };
 </script>
 

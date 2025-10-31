@@ -6,7 +6,7 @@
             english: "One sunny afternoon, Rosa and Juan were playing patintero in their front yard.",
             cebuano: "Usa ka init nga hapon, nagdula si Rosa ug Juan ug patintero sa ilang nataran."
         },
-        image: "/src/assets/LEVEL_3/STORY_2/PIC1.jpg"
+    image: "/assets/LEVEL_3/STORY_2/PIC1.jpg"
     };
 </script>
 

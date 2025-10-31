@@ -17,12 +17,12 @@
             english: "Lena agreed and said, \"No problem, Maria. I am trusting you to return and pay later.\" Maria smiled and thanked Lena.",
             cebuano: "Si Lena miuyon ug miingon, \"Walay problema, Maria. Nagsalig ko nga mubalik ka ug mubayad unya.\" Si Maria mipahiyom ug mipasalamat kang Lena."
         },
-        image: "/src/assets/LEVEL_1/STORY_1/PIC5.jpg"
+    image: "/assets/LEVEL_1/STORY_1/PIC5.jpg"
     };
 
     // playlist: M6, Lena 1, M7
     $: playlist = (() => {
-        const base = '/src/assets/audio/story-telling/Level_1/story_1';
+    const base = '/assets/audio/story-telling/Level_1/story_1';
         const sp = speed === 'slow' ? 'slow' : (speed === 'fast' ? 'fast' : 'normal');
         return [
             encodeURI(`${base}/${sp}/slide_6/M6.mp3`),

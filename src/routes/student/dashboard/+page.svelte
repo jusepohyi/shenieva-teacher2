@@ -88,16 +88,16 @@
   }
 </script>
 
-<div class="min-h-screen flex flex-col items-center justify-start overflow-hidden bg-gray-100 relative" style="background: url('/src/assets/readville.jpg') no-repeat center center/cover;">
+  <div class="min-h-screen flex flex-col items-center justify-start overflow-hidden bg-gray-100 relative" style="background: url('/assets/readville.jpg') no-repeat center center/cover;">
   <!-- Logo in Top-Left Corner -->
   <img
-    src="/src/assets/shenievia.png"
+    src="/assets/shenievia.png"
     alt="Shenievia Logo"
     class="absolute top-[0vh] left-[0vw] animate-rubberband-double-loop drop-shadow-[0_0_0.5vw_white] w-[200vw] max-w-[350px] h-auto"
   />
 
   <!-- Subtle Animated Background -->
-  <div class="absolute inset-0 bg-[url('/src/assets/kid-bg.gif')] bg-cover bg-center opacity-15 animate-pulse"></div>
+  <div class="absolute inset-0 bg-[url('/assets/kid-bg.gif')] bg-cover bg-center opacity-15 animate-pulse"></div>
 
   <!-- Floating Circle Buttons with Text and Underscore -->
   <div class="relative z-10 w-full p-[2vw] flex justify-center gap-[2vw] mt-[5vh]">

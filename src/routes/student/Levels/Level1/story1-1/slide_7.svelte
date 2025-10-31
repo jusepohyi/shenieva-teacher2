@@ -17,12 +17,12 @@
             english: "Few minutes later, Lena saw Maria approaching towards her store, smiling and raising her hand.",
             cebuano: "Pipila ka minutos ang milabay, nakita ni Lena si Maria nga nagpadulong sa iyang tindahan, nagpahiyom ug gitaas ang kamot."
         },
-        image: "/src/assets/LEVEL_1/STORY_1/PIC6.jpg"
+    image: "/assets/LEVEL_1/STORY_1/PIC6.jpg"
     };
 
     // single file playlist for slide 7: M8
     $: playlist = (() => {
-        const base = '/src/assets/audio/story-telling/Level_1/story_1';
+    const base = '/assets/audio/story-telling/Level_1/story_1';
         const sp = speed === 'slow' ? 'slow' : (speed === 'fast' ? 'fast' : 'normal');
         return [ encodeURI(`${base}/${sp}/slide_7/M8.mp3`) ];
     })();

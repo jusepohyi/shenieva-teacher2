@@ -15,14 +15,14 @@
     }
     
     const gifts: Gift[] = [
-        { name: 'pencil', displayName: 'Pencil', price: 15, image: '/src/assets/Level_Walkthrough/gift/gifts/pencil.png', description: 'A useful pencil for writing' },
-        { name: 'paper', displayName: 'Paper', price: 20, image: '/src/assets/Level_Walkthrough/gift/gifts/paper.png', description: 'Clean paper for notes' },
-        { name: 'ruler', displayName: 'Ruler', price: 25, image: '/src/assets/Level_Walkthrough/gift/gifts/ruler.png', description: 'A ruler for drawing straight lines' },
-        { name: 'glue', displayName: 'Glue', price: 35, image: '/src/assets/Level_Walkthrough/gift/gifts/glue.png', description: 'Glue stick for crafts' },
-        { name: 'scissor', displayName: 'Scissors', price: 45, image: '/src/assets/Level_Walkthrough/gift/gifts/scissor.png', description: 'Safety scissors for cutting' },
-        { name: 'crayons', displayName: 'Crayons', price: 55, image: '/src/assets/Level_Walkthrough/gift/gifts/crayons.png', description: 'Colorful crayons for art' },
-        { name: 'notebook', displayName: 'Notebook', price: 70, image: '/src/assets/Level_Walkthrough/gift/gifts/notebook.png', description: 'A nice notebook for studying' },
-        { name: 'backpag', displayName: 'Backpack', price: 100, image: '/src/assets/Level_Walkthrough/gift/gifts/backpag.png', description: 'A sturdy backpack for school' }
+    { name: 'pencil', displayName: 'Pencil', price: 15, image: '/assets/Level_Walkthrough/gift/gifts/pencil.png', description: 'A useful pencil for writing' },
+    { name: 'paper', displayName: 'Paper', price: 20, image: '/assets/Level_Walkthrough/gift/gifts/paper.png', description: 'Clean paper for notes' },
+    { name: 'ruler', displayName: 'Ruler', price: 25, image: '/assets/Level_Walkthrough/gift/gifts/ruler.png', description: 'A ruler for drawing straight lines' },
+    { name: 'glue', displayName: 'Glue', price: 35, image: '/assets/Level_Walkthrough/gift/gifts/glue.png', description: 'Glue stick for crafts' },
+    { name: 'scissor', displayName: 'Scissors', price: 45, image: '/assets/Level_Walkthrough/gift/gifts/scissor.png', description: 'Safety scissors for cutting' },
+    { name: 'crayons', displayName: 'Crayons', price: 55, image: '/assets/Level_Walkthrough/gift/gifts/crayons.png', description: 'Colorful crayons for art' },
+    { name: 'notebook', displayName: 'Notebook', price: 70, image: '/assets/Level_Walkthrough/gift/gifts/notebook.png', description: 'A nice notebook for studying' },
+    { name: 'backpag', displayName: 'Backpack', price: 100, image: '/assets/Level_Walkthrough/gift/gifts/backpag.png', description: 'A sturdy backpack for school' }
     ];
     
     let selectedGift: Gift | null = null;

@@ -17,12 +17,12 @@
             english: "Maria went near and said, “Thank you for trusting me, Lena. This is my payment.” Lena nodded and told Maria, \"No problem at all. I’m just glad you were able to pay.\" Maria thanked her again, and Lena felt happy that she could trust her customer, knowing that trust is important in business.",
             cebuano: "Niduol si Maria ug niingon, “Daghang salamat sa pagsalig nako, Lena. Ania na ang akong bayad.” Nitando si Lena ug miingon, “Walay problema gyud. Nalipay ako nga nakabayad ka.” Si Maria mibalos ug pasalamat pag-usab, ug si Lena nabati ang kalipay nga nakasalig siya sa iyang kustomer kay nasabtan niya nga ang pagsalig importante kaayo sa negosyo."
         },
-        image: "/src/assets/LEVEL_1/STORY_1/PIC7.jpg"
+    image: "/assets/LEVEL_1/STORY_1/PIC7.jpg"
     };
 
     // playlist: M9, Maria 2, M10, Lena 2, M11
     $: playlist = (() => {
-        const base = '/src/assets/audio/story-telling/Level_1/story_1';
+    const base = '/assets/audio/story-telling/Level_1/story_1';
         const sp = speed === 'slow' ? 'slow' : (speed === 'fast' ? 'fast' : 'normal');
         return [
             encodeURI(`${base}/${sp}/slide_10/M9.mp3`),

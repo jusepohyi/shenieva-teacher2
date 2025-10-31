@@ -4,7 +4,7 @@
     const slide = {
         english: { text: "Maya ran to check on the old woman and helped her get up. When people were passing by, she asked them for help." },
         cebuano: { text: "Nidagan si Maya ug gisusi ang tigulang ug gitabangan kini nga makabangon. Sa dihang adunay mga tawo ang milabay, nangayo siya ug tabang kanila." },
-        image: '/src/assets/LEVEL_2/STORY_2/PIC4.jpg'
+    image: '/assets/LEVEL_2/STORY_2/PIC4.jpg'
     };
 
     let currentLanguage;

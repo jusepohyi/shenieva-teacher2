@@ -7,7 +7,7 @@
             english: "Hannah felt proud of her decision and happily went back to selling, knowing she had done the right thing. Now, she values the importance of honesty more.",
             cebuano: "Niduol si Maria ug niingon, “Daghang salamat sa pagsalig nako, Lena. Ania na ang akong bayad.” Nitando si Lena ug miingon, “Walay problema gyud. Nalipay ako nga nakabayad ka.” Si Maria mibalos ug pasalamat pag-usab, ug si Lena nabati ang kalipay nga nakasalig siya sa iyang kustomer kay nasabtan niya nga ang pagsalig importante kaayo sa negosyo."
         },
-        image: "/src/assets/LEVEL_1/STORY_3/PIC6.jpg"
+    image: "/assets/LEVEL_1/STORY_3/PIC6.jpg"
     };
 </script>
 

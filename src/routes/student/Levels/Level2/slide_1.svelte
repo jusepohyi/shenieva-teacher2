@@ -10,19 +10,19 @@
         {
             id: 1,
             title: "Hector's Health",
-            image: "/src/assets/LEVEL_2/STORY_1/PIC6.jpg",
+            image: "/assets/LEVEL_2/STORY_1/PIC6.jpg",
             key: "story2-1"
         },
         {
             id: 2,
             title: "Helpful Maya", 
-            image: "/src/assets/LEVEL_2/STORY_2/PIC6.jpg",
+            image: "/assets/LEVEL_2/STORY_2/PIC6.jpg",
             key: "story2-2"
         },
         {
             id: 3,
             title: "Royce Choice",
-            image: "/src/assets/LEVEL_2/STORY_3/PIC8.jpg",
+            image: "/assets/LEVEL_2/STORY_3/PIC8.jpg",
             key: "story2-3"
         }
     ];

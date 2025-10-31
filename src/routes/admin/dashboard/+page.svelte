@@ -10,7 +10,7 @@
   } from "flowbite-svelte-icons";
   import { goto } from "$app/navigation";
   import SettingsModal from "../modals/settings.svelte";
-  import modalBg from "/src/assets/icons/modal-bg.jpg";
+  import modalBg from "/assets/icons/modal-bg.jpg";
 
   let showMenu = false;
   let showLogoutModal = false;

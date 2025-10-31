@@ -8,7 +8,7 @@
         cebuano: {
             text: "Adunay usa ka batang lalaki nga ginganlan ug Hector nga kanunay mukaon ug dili makahimsog nga pagkaon sama sa mga pagkaon nga sobraan ka tam-is, hinungdan nga siya tambok kaayo.",
         },
-        image: '/src/assets/LEVEL_2/STORY_1/PIC1.jpg'
+    image: '/assets/LEVEL_2/STORY_1/PIC1.jpg'
     };
 
     let currentLanguage;

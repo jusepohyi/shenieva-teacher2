@@ -13,7 +13,7 @@
     // compute audio src based on language and speed (M2 files for slide 2)
     $: audioSrc = (() => {
         const langFolder = $language === 'english' ? 'english' : 'cebuano';
-        const base = '/src/assets/audio/story-telling/Level_1/story_1';
+    const base = '/assets/audio/story-telling/Level_1/story_1';
         const speedFolder = speed === 'slow' ? 'slow' : (speed === 'fast' ? 'fast' : 'normal');
         return `${base}/${speedFolder}/slide_2/M2.mp3`;
     })();
@@ -164,7 +164,7 @@
             english: "One afternoon, a regular customer and her trusted friend, Maria, came to Lena's store and bought a pack of salt, one kilo of rice, and a pack of sugar.",
             cebuano: "Sa usa ka hapon, usa sa iyang suki ug kasaligan nga higala nga si Maria miabot sa tindahan ug nipalit ug usa ka pakete sa asin, usa ka kilo nga bugas, ug usa ka pakete nga asukal."
         },
-        image: "/src/assets/LEVEL_1/STORY_1/PIC2.jpg"
+    image: "/assets/LEVEL_1/STORY_1/PIC2.jpg"
     };
 </script>
 

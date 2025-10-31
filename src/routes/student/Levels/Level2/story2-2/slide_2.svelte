@@ -4,7 +4,7 @@
     const slide = {
         english: { text: "In their village, Maya and her parents live humbly. Maya’s parents are working in the market to provide for their needs. During school breaks, Maya enjoys helping her parents in the market and happily serves their customers." },
         cebuano: { text: "Sa ilang baryo, si Maya ug ang iyang mga ginikanan nagpuyo nga yano. Ang mga ginikanan ni Maya nagtrabaho sa merkado para sa ilang mga panginahanglanon. Sa panahon sa bakasyon sa eskwela, ganahan si Maya nga mutabang sa iyang mga ginikanan sa merkado ug malipayong nagaserbisyo sa ilang mga kustomer." },
-        image: '/src/assets/LEVEL_2/STORY_2/PIC1.jpg'
+    image: '/assets/LEVEL_2/STORY_2/PIC1.jpg'
     };
 
     let currentLanguage;

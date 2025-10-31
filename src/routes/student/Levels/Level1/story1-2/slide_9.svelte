@@ -7,7 +7,7 @@
             english: "From that day on, she realized that it is important to avoid eating too much  sweets and that it is important to brush her teeth afterward. Candice maintains the good health of her teeth and spreads the lesson to her friends.",
             cebuano: "Niduol si Maria ug niingon, “Daghang salamat sa pagsalig nako, Lena. Ania na ang akong bayad.” Nitando si Lena ug miingon, “Walay problema gyud. Nalipay ako nga nakabayad ka.” Si Maria mibalos ug pasalamat pag-usab, ug si Lena nabati ang kalipay nga nakasalig siya sa iyang kustomer kay nasabtan niya nga ang pagsalig importante kaayo sa negosyo."
         },
-        image: "/src/assets/LEVEL_1/STORY_2/PIC6.jpg"
+    image: "/assets/LEVEL_1/STORY_2/PIC6.jpg"
     };
 </script>
 

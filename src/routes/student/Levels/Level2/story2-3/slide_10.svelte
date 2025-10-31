@@ -4,7 +4,7 @@
     const slide = {
         english: { text: "Since then, Royce started saving money again for his dream toy. He did not regret helping his brother because he believes that it is important to help others first before his own wants." },
         cebuano: { text: "Sukad niadto, nagsugod si Royce pagtipid pag-usab ug kwarta alang sa iyang pangandoy nga dulaan. Wala siya nagbasol sa pagtabang sa iyang igsoon kay nagtuo siya nga importante ang magtabang sa uban una kaysa sa iyang kaugalingong gusto." },
-        image: '/src/assets/LEVEL_2/STORY_3/Pic8.jpg'
+    image: '/assets/LEVEL_2/STORY_3/Pic8.jpg'
     };
 
     $: currentText = $language === 'cebuano' ? slide.cebuano.text : slide.english.text;

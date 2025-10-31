@@ -4,7 +4,7 @@
     const slide = {
         english: { text: "When he arrived at his mother's market stall, his mother noticed that Hector was breathing with difficulty and his face turned pale." },
         cebuano: { text: "Pag-abot niya sa tindahan sa iyang inahan sa merkado, namatikdan sa iyang inahan nga lisod ang iyang pagginhawa ug luspad ang iyang nawong." },
-        image: '/src/assets/LEVEL_2/STORY_1/PIC3.jpg'
+    image: '/assets/LEVEL_2/STORY_1/PIC3.jpg'
     };
 
     let currentLanguage;

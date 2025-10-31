@@ -14,7 +14,7 @@
     $: audioSrc = (() => {
         const langFolder = $language === 'english' ? 'english' : 'cebuano';
         // note: actual audio paths given in the request
-        const base = '/src/assets/audio/story-telling/Level_1/story_1';
+    const base = '/assets/audio/story-telling/Level_1/story_1';
         const speedFolder = speed === 'slow' ? 'slow' : (speed === 'fast' ? 'fast' : 'normal');
         return `${base}/${speedFolder}/slide_1/M1.mp3`;
     })();
@@ -169,7 +169,7 @@
             english: "There is a sari-sari store owner named Lena. She serves her customers every day with a smile.",
             cebuano: "Adunay tag-iya sa usa ka sari-sari nga tindahan nga ginganlan ug Lena. Nagaserbisyo siya sa mga kustomer matag adlaw uban ang usa ka pahiyom."
         },
-        image: "/src/assets/LEVEL_1/STORY_1/PIC1.jpg"
+    image: "/assets/LEVEL_1/STORY_1/PIC1.jpg"
     };
 </script>
 

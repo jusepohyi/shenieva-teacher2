@@ -21,7 +21,7 @@
   </script>
   
   <div class="flex items-center justify-center min-h-screen bg-gray-100"
-       style="background: url('/src/assets/school-bg.gif') no-repeat center center/cover;">
+  style="background: url('/assets/school-bg.gif') no-repeat center center/cover;">
     {#if step === 'name'}
       <NameInput on:submit={(e) => handleNameSubmit(e.detail)} />
     {:else if step === 'gender'}

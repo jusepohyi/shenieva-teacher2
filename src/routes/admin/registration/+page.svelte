@@ -43,7 +43,7 @@
   </script>
   
   <div class="flex items-center justify-center min-h-screen bg-gray-100"
-       style="background: url('/src/assets/readville.jpg') no-repeat center center/cover;">
+  style="background: url('/assets/readville.jpg') no-repeat center center/cover;">
     <div class="w-full max-w-sm p-6 bg-white/50 rounded-lg shadow-md relative overflow-hidden backdrop-blur-lg">
       <!-- Teacher Registration Form -->
       <h2 class="text-2xl font-semibold text-center text-gray-700">Teacher Registration</h2>

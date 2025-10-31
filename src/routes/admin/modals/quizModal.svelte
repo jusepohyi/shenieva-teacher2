@@ -2,7 +2,7 @@
   export let quizType; // 'quiz1' or 'quiz2'
   import { fade, scale } from "svelte/transition";
   import { createEventDispatcher } from "svelte";
-  import modalBg from "/src/assets/icons/modal-bg.jpg";
+  import modalBg from "/assets/icons/modal-bg.jpg";
 
   export let person;
   export let showModal;
@@ -164,14 +164,14 @@
               {person.gender}
               {#if person.gender === "Male"}
                 <img
-                  src="/src/assets/icons/male-sign.svg"
+                  src="/assets/icons/male-sign.svg"
                   alt="Male Icon"
                   class="w-5 h-5"
                 />
               {/if}
               {#if person.gender === "Female"}
                 <img
-                  src="/src/assets/icons/female-sign.svg"
+                  src="/assets/icons/female-sign.svg"
                   alt="Female Icon"
                   class="w-5 h-5"
                 />
@@ -217,7 +217,7 @@
           on:click={triggerFireworks}
         >
           <img
-            src="/src/assets/icons/trophy_star.svg"
+            src="/assets/icons/trophy_star.svg"
             alt="Trophy Icon"
             class="w-14 h-14 text-orange-500"
           />

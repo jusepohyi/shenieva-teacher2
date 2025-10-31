@@ -6,7 +6,7 @@
             english: "Hector's Health",
             cebuano: "Ang Panlawas ni Hector"
         },
-        image: '/src/assets/LEVEL_2/STORY_1/PIC6.jpg'
+    image: '/assets/LEVEL_2/STORY_1/PIC6.jpg'
     };
 </script>
 

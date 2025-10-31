@@ -31,7 +31,7 @@
     </p>
     
     <div class="home-preview">
-      <img src="/src/assets/Level_Walkthrough/places/home.webp" alt="Your Home" class="home-image" />
+  <img src="/assets/Level_Walkthrough/places/home.webp" alt="Your Home" class="home-image" />
     </div>
     
     <div class="text-center mt-[1vh]">

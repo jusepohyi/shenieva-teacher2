@@ -227,7 +227,9 @@
   function handleProceed() {
     try {
       console.log('Proceeding to next page');
-      showCongratsModal =463      goto('/student/game/trash_3');
+      // close modal then navigate
+      showCongratsModal = false;
+      goto('/student/game/trash_3');
     } catch (err) {
       console.error('Error navigating:', err);
       error = `Error navigating to next page: ${err.message}`;

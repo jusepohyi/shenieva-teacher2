@@ -8,16 +8,16 @@
 
     // Scene configuration
     const scenes = [
-        { name: 'Readville Village School', path: '/src/assets/Level_Walkthrough/places/school.webp', isLevel: false },
-        { name: 'Plains', path: '/src/assets/Level_Walkthrough/places/plain.webp', isLevel: false },
-        { name: 'Sari-sari Store', path: '/src/assets/Level_Walkthrough/places/sarisaristore.webp', isLevel: true, level: 1, title: 'Sari-Sari Store' },
-        { name: 'Readville Village', path: '/src/assets/Level_Walkthrough/places/houses1.webp', isLevel: false },
-        { name: 'Wet Market', path: '/src/assets/Level_Walkthrough/places/wetmarket.webp', isLevel: true, level: 2, title: 'Wet Market' },
-        { name: 'Readville Village', path: '/src/assets/Level_Walkthrough/places/houses2.webp', isLevel: false },
-        { name: 'Plaza', path: '/src/assets/Level_Walkthrough/places/plaza.webp', isLevel: true, level: 3, title: 'Plaza' },
-        { name: 'Plains', path: '/src/assets/Level_Walkthrough/places/plain.webp', isLevel: false },
-        { name: "Shenievia's Home", path: '/src/assets/Level_Walkthrough/places/home.webp', isLevel: false, canEnter: true },
-        { name: "Shenievia's Home", path: '/src/assets/Level_Walkthrough/places/home-inside.png', isLevel: false, isInterior: true }
+    { name: 'Readville Village School', path: '/assets/Level_Walkthrough/places/school.webp', isLevel: false },
+    { name: 'Plains', path: '/assets/Level_Walkthrough/places/plain.webp', isLevel: false },
+    { name: 'Sari-sari Store', path: '/assets/Level_Walkthrough/places/sarisaristore.webp', isLevel: true, level: 1, title: 'Sari-Sari Store' },
+    { name: 'Readville Village', path: '/assets/Level_Walkthrough/places/houses1.webp', isLevel: false },
+    { name: 'Wet Market', path: '/assets/Level_Walkthrough/places/wetmarket.webp', isLevel: true, level: 2, title: 'Wet Market' },
+    { name: 'Readville Village', path: '/assets/Level_Walkthrough/places/houses2.webp', isLevel: false },
+    { name: 'Plaza', path: '/assets/Level_Walkthrough/places/plaza.webp', isLevel: true, level: 3, title: 'Plaza' },
+    { name: 'Plains', path: '/assets/Level_Walkthrough/places/plain.webp', isLevel: false },
+    { name: "Shenievia's Home", path: '/assets/Level_Walkthrough/places/home.webp', isLevel: false, canEnter: true },
+    { name: "Shenievia's Home", path: '/assets/Level_Walkthrough/places/home-inside.png', isLevel: false, isInterior: true }
     ];
 
     // State variables
@@ -1048,7 +1048,7 @@
 
     // Get current sprite path
     $: currentSprite = (() => {
-        const basePath = `/src/assets/Level_Walkthrough/shenievia/${gender}`;
+    const basePath = `/assets/Level_Walkthrough/shenievia/${gender}`;
         // If a scene just loaded and we want to show the front-facing sprite by default,
         // honor that before other direction logic.
         if (defaultFront) {
@@ -1146,7 +1146,7 @@ $: if (isMoving) {
             
             <!-- Character Preview -->
             <div class="loading-character">
-                <img src="/src/assets/Level_Walkthrough/shenievia/{gender}/front/1.png" alt="Character" />
+                <img src="/assets/Level_Walkthrough/shenievia/{gender}/front/1.png" alt="Character" />
             </div>
             
             <!-- Progress Bar -->
@@ -1198,7 +1198,7 @@ $: if (isMoving) {
     {#if scenes[currentScene].isInterior}
         <div class="gift-box" on:click={handleGiftBoxClick} on:keydown={(e) => e.key === 'Enter' && handleGiftBoxClick()} role="button" tabindex="0" aria-label="Gift box">
             <div class="gift-box-label">Gifts for Shenievia!</div>
-            <img src="/src/assets/Level_Walkthrough/gift/gift-box.gif" alt="Gift Box" />
+            <img src="/assets/Level_Walkthrough/gift/gift-box.gif" alt="Gift Box" />
         </div>
     {/if}
 
@@ -1236,7 +1236,7 @@ $: if (isMoving) {
         <div class="dialogue-box">
             <!-- Character portrait -->
             <div class="dialogue-portrait">
-                <img src="/src/assets/Level_Walkthrough/shenievia/{gender}/front/1.png" alt="Character" />
+                <img src="/assets/Level_Walkthrough/shenievia/{gender}/front/1.png" alt="Character" />
             </div>
             
             <!-- Dialogue content -->
@@ -1325,7 +1325,7 @@ $: if (isMoving) {
                     {#each currentGifts as gift}
                         <div class="gift-item">
                             <div class="gift-item-image-container">
-                                <img src="/src/assets/Level_Walkthrough/gift/gifts/{gift.gift}.png" alt={gift.gift} class="gift-item-image" />
+                                <img src="/assets/Level_Walkthrough/gift/gifts/{gift.gift}.png" alt={gift.gift} class="gift-item-image" />
                             </div>
                             <div class="gift-item-name">{gift.gift.charAt(0).toUpperCase() + gift.gift.slice(1)}</div>
                         </div>

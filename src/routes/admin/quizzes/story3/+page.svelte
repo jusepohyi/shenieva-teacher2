@@ -20,8 +20,8 @@
 
 <div class="max-w-6xl mx-auto p-4">
   <div class="mb-4">
-    <label class="text-sm font-medium text-gray-700 mr-2">Filter by story</label>
-    <select
+    <label for="story-filter-3" class="text-sm font-medium text-gray-700 mr-2">Filter by story</label>
+    <select id="story-filter-3"
       bind:value={activeTab}
       on:change={(e) => {
         const key = (e.target as HTMLSelectElement).value;

@@ -178,14 +178,14 @@
             <td class="p-4 flex items-center justify-center">
               {#if person.gender === "Male"}
                 <img
-                  src="/src/assets/icons/male-sign.svg"
+                  src="/assets/icons/male-sign.svg"
                   alt="Male Icon"
                   class="w-5 h-5"
                 />
               {/if}
               {#if person.gender === "Female"}
                 <img
-                  src="/src/assets/icons/female-sign.svg"
+                  src="/assets/icons/female-sign.svg"
                   alt="Female Icon"
                   class="w-5 h-5"
                 />

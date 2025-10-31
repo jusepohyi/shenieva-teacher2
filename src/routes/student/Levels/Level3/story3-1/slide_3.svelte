@@ -7,7 +7,7 @@
             english: "While making her bed, Tonya felt something different in her front tooth, so she decided to look in the mirror and check.",
             cebuano: "Samtang naghipos sa higdaanan, adunay lain nga gibati si Tonya sa iyang atubangan nga ngipon, busa nakahukom siya nga tan-awon sa salamin ug susihon."
         },
-        image: "/src/assets/LEVEL_3/STORY_1/PIC2.jpg"
+    image: "/assets/LEVEL_3/STORY_1/PIC2.jpg"
     };
 </script>
 

@@ -8,12 +8,12 @@
             english: "Candice and Candies",
             cebuano: "Si Candice ug ang mga Kendi"
         },
-        image: '/src/assets/LEVEL_1/STORY_2/PIC1.jpg'
+    image: '/assets/LEVEL_1/STORY_2/PIC1.jpg'
     };
 
     let audioEl = null;
     let isPlaying = false;
-    $: audioSrc = encodeURI('/src/assets/audio/story-telling/Level_1/story_2/title/CANDIES AND CANDIES TITLE.mp3');
+    $: audioSrc = encodeURI('/assets/audio/story-telling/Level_1/story_2/title/CANDIES AND CANDIES TITLE.mp3');
 
     let startTimer = null;
     let playToken = 0;

@@ -6,7 +6,7 @@
             english: "Liloy ran inside to obey, but when he came back, Lingling was gone.",
             cebuano: "Dali-dali si Liloy niadto sa sulod arun magtuman, apan pagbalik niya, wala na si Lingling!"
         },
-        image: "/src/assets/LEVEL_3/STORY_3/PIC3.jpg"
+    image: "/assets/LEVEL_3/STORY_3/PIC3.jpg"
     };
 </script>
 

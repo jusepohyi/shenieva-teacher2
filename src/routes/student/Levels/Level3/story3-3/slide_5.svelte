@@ -6,7 +6,7 @@
             english: "Liloy looked everywhere. He checked behind the tree and even behind the flowerpot, but Lingling was nowhere to be found.",
             cebuano: "Nagpanikad si Liloy ug nangita siya bisan asa. Gipangsusi niya ang likod sa kahoy ug bisan ang likod sa paso, apan wala niya nakita si Lingling."
         },
-        image: "/src/assets/LEVEL_3/STORY_3/PIC4.jpg"
+    image: "/assets/LEVEL_3/STORY_3/PIC4.jpg"
     };
 </script>
 

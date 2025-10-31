@@ -8,12 +8,12 @@
             english: "Hannah, the Honest Vendor",
             cebuano: "Hannah, ang Matinud-anong Tindera"
         },
-        image: '/src/assets/LEVEL_1/STORY_3/PIC1.jpg'
+    image: '/assets/LEVEL_1/STORY_3/PIC1.jpg'
     };
 
     let audioEl = null;
     let isPlaying = false;
-    $: audioSrc = encodeURI('/src/assets/audio/story-telling/Level_1/story_3/title/HANNAH, THE HONEST VENDOR TITLE.mp3');
+    $: audioSrc = encodeURI('/assets/audio/story-telling/Level_1/story_3/title/HANNAH, THE HONEST VENDOR TITLE.mp3');
 
     let startTimer = null;
     let playToken = 0;

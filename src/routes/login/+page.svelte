@@ -84,7 +84,7 @@
 </script>
 
 <div class="flex items-center justify-center min-h-screen bg-gray-100"
-     style="background: url('/src/assets/readville.jpg') no-repeat center center/cover;">
+  style="background: url('/assets/readville.jpg') no-repeat center center/cover;">
   <div class={cardClasses}>
     {#if showStart}
       <div class="flex flex-col items-center justify-center py-8">
@@ -144,8 +144,9 @@
         {/if}
         <form class="mt-4" on:submit={handleLogin}>
           <div>
-            <label class="block text-sm font-medium text-gray-600">Student ID</label>
+            <label for="student-id" class="block text-sm font-medium text-gray-600">Student ID</label>
             <input 
+              id="student-id"
               type="text" 
               bind:value={studentId} 
               required 
@@ -153,8 +154,9 @@
             />
           </div>
           <div class="mt-4 relative">
-            <label class="block text-sm font-medium text-gray-600">Password</label>
+            <label for="student-password" class="block text-sm font-medium text-gray-600">Password</label>
             <input 
+              id="student-password"
               type={showStudentPassword ? "text" : "password"} 
               bind:value={studentPassword} 
               required 
@@ -187,8 +189,9 @@
         {/if}
         <form class="mt-4" on:submit={handleLogin}>
           <div>
-            <label class="block text-sm font-medium text-gray-600">Teacher ID</label>
+            <label for="teacher-id" class="block text-sm font-medium text-gray-600">Teacher ID</label>
             <input 
+              id="teacher-id"
               type="text" 
               bind:value={teacherId} 
               required 
@@ -196,8 +199,9 @@
             />
           </div>
           <div class="mt-4 relative">
-            <label class="block text-sm font-medium text-gray-600">Password</label>
+            <label for="teacher-password" class="block text-sm font-medium text-gray-600">Password</label>
             <input 
+              id="teacher-password"
               type={showTeacherPassword ? "text" : "password"} 
               bind:value={teacherPassword} 
               required 

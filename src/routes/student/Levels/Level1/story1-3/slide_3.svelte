@@ -6,7 +6,7 @@
             english: "A few minutes later, Hannah noticed that the customer had accidentally paid her more than what was needed. The extra amount was a lot of money, and Hannah wasn\’t sure if the customer realized the mistake.",
             cebuano: "Sa usa ka hapon, usa sa iyang suki ug kasaligan nga higala nga si Maria miabot sa tindahan ug nipalit ug usa ka pakete sa asin, usa ka kilo nga bugas, ug usa ka pakete nga asukal."
         },
-        image: "/src/assets/LEVEL_1/STORY_3/PIC3.jpg"
+    image: "/assets/LEVEL_1/STORY_3/PIC3.jpg"
     };
 </script>
 

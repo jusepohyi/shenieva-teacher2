@@ -6,7 +6,7 @@
             english: "When they entered the house, Rosa and Juan cheerfully raced towards their kitchen to drink water, competing to see who would arrive there first.",
             cebuano: "Pagsulod nila sa balay, malipayong nidagan sila paingon sa kusina aron sa pag-inom ug tubig, nagpaunhanay sila kung kinsa ang una makaabot."
         },
-        image: "/src/assets/LEVEL_3/STORY_2/PIC3.jpg"
+    image: "/assets/LEVEL_3/STORY_2/PIC3.jpg"
     };
 </script>
 

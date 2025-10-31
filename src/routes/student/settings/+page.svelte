@@ -110,7 +110,7 @@
         <div class="flex-shrink-0 w-full md:w-48 text-center">
           <div class="w-36 h-36 mx-auto rounded-lg flex items-center justify-center bg-lime-50 shadow-inner overflow-hidden">
             <!-- Use the ribbon GIF asset instead of emoji -->
-            <img src="/src/assets/ribbon-gif.gif" alt="Ribbon" class="w-full h-full object-contain" />
+            <img src="/assets/ribbon-gif.gif" alt="Ribbon" class="w-full h-full object-contain" />
           </div>
         </div>
 

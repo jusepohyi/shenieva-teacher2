@@ -6,7 +6,7 @@
             english: "He walked to the fence and called out, \"Lingling! Lingling! Where are you?\".",
             cebuano: "Niadto siya sa kural ug nagsinggit, \"Lingling! Lingling! Asa ka?\"."
         },
-        image: "/src/assets/LEVEL_3/STORY_3/PIC5.jpg"
+    image: "/assets/LEVEL_3/STORY_3/PIC5.jpg"
     };
 </script>
 

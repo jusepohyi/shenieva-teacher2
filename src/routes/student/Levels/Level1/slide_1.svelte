@@ -10,19 +10,19 @@
         {
             id: 1,
             title: "Maria's Promise",
-            image: "/src/assets/LEVEL_1/STORY_1/PIC1.jpg",
+            image: "/assets/LEVEL_1/STORY_1/PIC1.jpg",
             key: "story1-1"
         },
         {
             id: 2,
             title: "Candice and Candies",
-            image: "/src/assets/LEVEL_1/STORY_2/PIC1.jpg",
+            image: "/assets/LEVEL_1/STORY_2/PIC1.jpg",
             key: "story1-2"
         },
         {
             id: 3,
             title: "Hannah, the Honest Vendor",
-            image: "/src/assets/LEVEL_1/STORY_3/PIC1.jpg",
+            image: "/assets/LEVEL_1/STORY_3/PIC1.jpg",
             key: "story1-3"
         }
     ];

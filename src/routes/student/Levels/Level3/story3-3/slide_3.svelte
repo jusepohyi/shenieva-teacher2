@@ -6,7 +6,7 @@
             english: "One day, Liloy was playing with Lingling in their front yard but he was called by his mother to wash the dishes.",
             cebuano: "Usa ka adlaw, nagdula si Liloy ug si Lingling sa ilang nataran apan gitawag siya sa iyang inahan arun maghugas sa plato."
         },
-        image: "/src/assets/LEVEL_3/STORY_3/PIC2.jpg"
+    image: "/assets/LEVEL_3/STORY_3/PIC2.jpg"
     };
 </script>
 

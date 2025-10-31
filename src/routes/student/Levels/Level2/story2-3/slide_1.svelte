@@ -4,7 +4,7 @@
     const slide = {
         english: { text: "Royce Choice" },
         cebuano: { text: "Ang Gipili ni Royce" },
-        image: '/src/assets/LEVEL_2/STORY_3/Pic8.jpg'
+    image: '/assets/LEVEL_2/STORY_3/Pic8.jpg'
     };
 
     $: currentText = $language === 'cebuano' ? slide.cebuano.text : slide.english.text;

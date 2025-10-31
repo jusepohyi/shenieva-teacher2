@@ -39,9 +39,9 @@
                     item._tryIndex++;
                     const next = item.fileCandidates && item.fileCandidates[item._tryIndex];
                     if (next) {
-                      img.src = `/src/assets/Level_Walkthrough/gift/gifts/${next}.png`;
+                      img.src = `/assets/Level_Walkthrough/gift/gifts/${next}.png`;
                     } else {
-                      img.src = `/src/assets/Level_Walkthrough/gift/gifts/${encodeURIComponent(item.itemName)}.png`;
+                      img.src = `/assets/Level_Walkthrough/gift/gifts/${encodeURIComponent(item.itemName)}.png`;
                     }
                   } catch (err) {
                     console.warn('Gift modal image error handler failed', err);

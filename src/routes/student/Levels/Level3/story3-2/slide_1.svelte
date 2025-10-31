@@ -6,7 +6,7 @@
             english: "Lola Gloria's Flowerpot",
             cebuano: "Ang Paso ni Lola Gloria"
         },
-        image: '/src/assets/LEVEL_3/STORY_2/PIC4.jpg'
+    image: '/assets/LEVEL_3/STORY_2/PIC4.jpg'
     };
 </script>
 

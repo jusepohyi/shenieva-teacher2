@@ -4,7 +4,7 @@
     const slide = {
         english: { text: "Hector's mother brought him to the hospital. The doctor said, \"Hector's weight is above average for his age right now. He needs to practice eating healthy foods like vegetables and fruits, avoid eating too many sweets like chocolate and should start exercising.\" Hector listened to what the doctor said." },
         cebuano: { text: "Gidala si Hector ang iyang inahan sa balay-tambalanan. Miingon ang doktor, “Ang timbang ni Hector labaw sa insaktong timbang para iyang edad karon. Kinahanglan siya magkat-on sa pagkaon ug mga makahimsog nga pagkaon sama sa mga gulay ug prutas, likayan ang pagkaon ug daghang tam-is sama sa tsokolate, ug magsugod sa pag-ehersisyo.” Naminaw si Hector sa mga pulong sa doktor." },
-        image: '/src/assets/LEVEL_2/STORY_1/PIC5.jpg'
+    image: '/assets/LEVEL_2/STORY_1/PIC5.jpg'
     };
 
     let currentLanguage;

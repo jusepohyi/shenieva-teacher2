@@ -6,7 +6,7 @@
             english: "Helpful Maya",
             cebuano: "Ang Matinabangong si Maya"
         },
-        image: '/src/assets/LEVEL_2/STORY_2/PIC5.jpg'
+    image: '/assets/LEVEL_2/STORY_2/PIC5.jpg'
     };
 </script>
 

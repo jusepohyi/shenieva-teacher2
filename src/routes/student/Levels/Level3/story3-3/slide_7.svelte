@@ -6,7 +6,7 @@
             english: "Just as he was about to ask his mom for help, he suddenly heard something, a faint sound coming from the bushes nearby. He also found that their fence was open.",
             cebuano: "Sa dihang magpangayo na unta siya ug tabang sa iyang inahan, nakadungog siya ug usa ka hinay nga tingog gikan sa mga duol nga tanom. Nakit-an usab niya nga abli ang ilang kural."
         },
-        image: "/src/assets/LEVEL_3/STORY_3/PIC6.jpg"
+    image: "/assets/LEVEL_3/STORY_3/PIC6.jpg"
     };
 </script>
 

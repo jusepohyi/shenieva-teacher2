@@ -1,4 +1,4 @@
-<script lang="ts"></script>
+<script lang="ts">
     const levels = [
         {
             id: 1,
