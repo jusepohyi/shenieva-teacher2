@@ -5,6 +5,7 @@
   import { onMount, onDestroy, tick } from 'svelte';
   import LevelModal from '../components/modals/stats/LevelModal.svelte';
   import TrashModal from '../components/modals/stats/TrashModal.svelte';
+  import { apiUrl } from '$lib/api_base';
   // Student details modal is rendered inline below; ItemsModal removed from Stats view
   // For Stats we show a read-only viewer instead of using the quiz result modals
   // (we purposely do not import QuizResultModal* here so the Proceed/Retake actions
@@ -83,8 +84,8 @@
     if (!$studentData?.pk_studentID) return;
     try {
       // Fetch purchased gifts for this student from the server-side gifts_table
-      const url = `http://localhost/shenieva-teacher/src/lib/api/get_student_gifts.php?studentID=${encodeURIComponent($studentData.pk_studentID)}`;
-      const response = await fetch(url);
+  const url = apiUrl(`get_student_gifts.php?studentID=${encodeURIComponent($studentData.pk_studentID)}`);
+  const response = await fetch(url);
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const res = await response.json();
       if (!res.success) {
@@ -130,8 +131,8 @@
     try {
       const id = $studentData?.pk_studentID ?? $studentData?.idNo ?? null;
       if (!id) return;
-      const url = `http://localhost/shenieva-teacher/src/lib/api/get_student_details.php?studentID=${encodeURIComponent($studentData.pk_studentID)}`;
-      const res = await fetch(url);
+  const url = apiUrl(`get_student_details.php?studentID=${encodeURIComponent($studentData.pk_studentID)}`);
+  const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch student details');
       const data = await res.json();
       if (data.success) {
@@ -178,14 +179,14 @@
 
     /** @type {{[k:string]:string}} */
     const urls = {
-      '1': '/src/lib/api/get_level1_quiz_results.php',
-      '2': '/src/lib/api/get_level2_quiz_results.php',
-      '3': '/src/lib/api/get_level3_quiz_results.php'
+      '1': 'get_level1_quiz_results.php',
+      '2': 'get_level2_quiz_results.php',
+      '3': 'get_level3_quiz_results.php'
     };
 
     // Always fetch per-level attempt rows (use studentID to filter on server)
     const apiPath = urls[String(level)];
-    const url = `http://localhost/shenieva-teacher${apiPath}${apiPath.includes('?') ? '&' : '?'}studentID=${encodeURIComponent($studentData.pk_studentID)}`;
+    const url = apiUrl(`${apiPath}?studentID=${encodeURIComponent($studentData.pk_studentID)}`);
   modalText = 'Loading...';
   modalListData = null;
 

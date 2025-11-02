@@ -17,11 +17,11 @@
     let quizzes: Quiz[] = [];
     let story = "story2-1"; // Store-specific identifier
 
+    import { apiUrl } from '$lib/api_base';
+
     async function fetchQuizzes() {
         try {
-            const response = await fetch(
-                `http://localhost/shenieva-teacher/src/lib/api/fetch_quizzes.php?story=${story}&store=store1`
-            );
+            const response = await fetch(apiUrl(`fetch_quizzes.php?story=${story}&store=store1`));
             const data = await response.json();
             if (Array.isArray(data)) {
                 quizzes = data.map((quiz) => ({
@@ -69,19 +69,16 @@
             newPoints !== null
         ) {
             try {
-                const response = await fetch(
-                    `http://localhost/shenieva-teacher/src/lib/api/add_quiz2.php?story=${story}&store=store1`,
-                    {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            question: newQuestion,
-                            choices: newChoices,
-                            answer: newAnswer,
-                            points: newPoints,
-                        }),
-                    }
-                );
+                const response = await fetch(apiUrl(`add_quiz2.php?story=${story}&store=store1`), {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        question: newQuestion,
+                        choices: newChoices,
+                        answer: newAnswer,
+                        points: newPoints,
+                    }),
+                });
                 const result = await response.json();
                 if (result.success) {
                     fetchQuizzes();
@@ -98,14 +95,11 @@
     async function deleteQuiz(id: number) {
         if (confirm("Are you sure you want to delete this quiz?")) {
             try {
-                const response = await fetch(
-                    `http://localhost/shenieva-teacher/src/lib/api/delete_quiz.php?story=${story}&store=store1`,
-                    {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ id }),
-                    }
-                );
+                const response = await fetch(apiUrl(`delete_quiz.php?story=${story}&store=store1`), {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id }),
+                });
                 const result = await response.json();
                 if (result.success) {
                     quizzes = quizzes.filter((quiz) => quiz.id !== id);
@@ -140,20 +134,17 @@
     async function updateQuiz() {
         if (editingQuizId !== null && newPoints !== null) {
             try {
-                const response = await fetch(
-                    `http://localhost/shenieva-teacher/src/lib/api/edit_quiz.php?story=${story}&store=store1`,
-                    {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            id: editingQuizId,
-                            question: newQuestion,
-                            choices: newChoices,
-                            answer: newAnswer,
-                            points: newPoints,
-                        }),
-                    }
-                );
+                const response = await fetch(apiUrl(`edit_quiz.php?story=${story}&store=store1`), {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        id: editingQuizId,
+                        question: newQuestion,
+                        choices: newChoices,
+                        answer: newAnswer,
+                        points: newPoints,
+                    }),
+                });
                 const result = await response.json();
                 if (result.success) {
                     fetchQuizzes();

@@ -8,20 +8,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-header('Content-Type: application/json');
-$data = json_decode(file_get_contents("php://input"), true);
+    header("Content-Type: application/json");
 
-if ($data) {
-    $question = $data['question'] ?? '';
-    $answer = $data['answer'] ?? '';
-    $points = $data['points'] ?? 0;
+    // central connection
+    require_once __DIR__ . '/conn.php';
 
-    $conn = new mysqli("localhost", "root", "", "shenieva_db");
-
-    if ($conn->connect_error) {
-        echo json_encode(["success" => false, "error" => "Database connection failed"]);
-        exit();
-    }
+    // $conn is provided by conn.php (conn.php will exit with JSON on failure)
 
     $story = isset($_GET['story']) ? $_GET['story'] : 'story1';
 

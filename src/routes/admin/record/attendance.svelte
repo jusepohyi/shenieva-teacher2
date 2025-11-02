@@ -3,6 +3,7 @@
   import DatePicker from '$lib/components/DatePicker.svelte';
     import { writable, get } from "svelte/store";
   import ViewStudentModal from '../modals/view_student.svelte';
+  import { apiUrl } from '$lib/api_base';
   
     let selectedGender = "All";
   // default to empty so we show all records until a date is chosen
@@ -102,7 +103,7 @@
   
     onMount(() => {
       // fetch real attendance rows from the server
-      fetch('http://localhost/shenieva-teacher/src/lib/api/fetch_all_attendance.php')
+  fetch(apiUrl('fetch_all_attendance.php'))
         .then(r => r.json())
         .then(rows => {
           console.log('attendance rows received', rows.length, rows.slice(0,5));
@@ -272,7 +273,7 @@
     async function fetchStudentDetails(pk_studentID) {
       if (!pk_studentID) return null;
       try {
-        const res = await fetch('http://localhost/shenieva-teacher/src/lib/api/fetch_students.php');
+  const res = await fetch(apiUrl('fetch_students.php'));
         if (!res.ok) return null;
         const arr = await res.json();
         if (!Array.isArray(arr)) return null;

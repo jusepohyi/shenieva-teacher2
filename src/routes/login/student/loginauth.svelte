@@ -19,7 +19,11 @@
     };
 
     try {
-      const response = await fetch('http://localhost/shenieva-teacher/src/lib/api/login_student.php', {
+      // use centralized API helper so we can switch targets (local, Netlify-hosted) via VITE_API_BASE
+      // import dynamically to avoid svelte compile errors when file is imported elsewhere
+      const { apiUrl } = await import('$lib/api_base');
+
+      const response = await fetch(apiUrl('login_student.php'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),

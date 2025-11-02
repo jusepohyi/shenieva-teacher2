@@ -5,6 +5,7 @@
   import { goto } from "$app/navigation";
   import { onMount, onDestroy } from "svelte";
   import { audioStore } from '$lib/store/audio_store';
+  import { apiUrl } from '$lib/api_base';
 
   export let gender: "boy" | "girl"; // Input prop remains boy/girl
 
@@ -24,7 +25,7 @@
 
     try {
       const response = await fetch(
-        "http://localhost/shenieva-teacher/src/lib/api/update_studentData.php",
+        apiUrl('update_studentData.php'),
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -72,7 +73,7 @@
 
     try {
       const response = await fetch(
-        "http://localhost/shenieva-teacher/src/lib/api/record_attendance.php",
+        apiUrl('record_attendance.php'),
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

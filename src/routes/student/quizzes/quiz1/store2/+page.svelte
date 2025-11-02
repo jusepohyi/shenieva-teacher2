@@ -2,6 +2,7 @@
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     import QuizResultModal from '../../../components/modals/quiz1/QuizResultModal2.svelte';
+    import { apiUrl } from '$lib/api_base';
     import { quiz1Taking, resetQuiz1, submitQuiz1, closeModal1 } from '$lib/store/quiz1_taking';
     import { studentData } from '$lib/store/student_data';
 
@@ -47,8 +48,8 @@
     }
 
     onMount(async () => {
-        try {
-            const response = await fetch('http://localhost/shenieva-teacher/src/lib/api/get_story1_quizzes2.php');
+            try {
+            const response = await fetch(apiUrl('get_story1_quizzes2.php'));
             if (!response.ok) throw new Error('Network response was not ok');
             const result: ApiResponse = await response.json();
             if (result.success) {
@@ -80,8 +81,8 @@
         if (!studentId || ribbonsEarned <= 0) return;
 
         updatingRibbons = true;
-        try {
-            const response = await fetch('http://localhost/shenieva-teacher/src/lib/api/update_student_ribbons.php', {
+            try {
+            const response = await fetch(apiUrl('update_student_ribbons.php'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

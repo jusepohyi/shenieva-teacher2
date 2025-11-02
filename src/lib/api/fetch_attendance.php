@@ -24,10 +24,11 @@ if (!$studentId) {
     exit();
 }
 
-// Database Connection
+// Database Connection - reuse conn.php variables and create a PDO instance
 try {
-    $pdo = new PDO('mysql:host=localhost;dbname=shenieva_db', 'root', '');
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    require_once __DIR__ . '/conn.php';
+    $dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $servername, $database);
+    $pdo = new PDO($dsn, $username, $password, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
 } catch (PDOException $e) {
     echo json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]);
     exit();

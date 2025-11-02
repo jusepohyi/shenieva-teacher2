@@ -10,12 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 header('Content-Type: application/json');
 
-$conn = new mysqli("localhost", "root", "", "shenieva_db");
+// Use central connection from conn.php (reads env vars or Hostinger defaults)
+require_once __DIR__ . '/../conn.php';
 
-if ($conn->connect_error) {
-    echo json_encode(["error" => "Database connection failed: " . $conn->connect_error]);
-    exit();
-}
+// conn.php sets $conn and exits with JSON on failure
 
 $tableName = "quizzes_store2";
 $choicesTable = "choices_store2";

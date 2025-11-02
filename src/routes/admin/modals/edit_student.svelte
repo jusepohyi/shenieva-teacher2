@@ -2,6 +2,7 @@
 <script lang="ts">
   import { createEventDispatcher, onMount } from 'svelte';
   import { studentData } from '$lib/store/store_students';
+  import { apiUrl } from '$lib/api_base';
 
   export let selectedPerson; // Student data passed from parent (includes pk_studentID, idNo, studentName, studentGender)
 
@@ -24,7 +25,7 @@
     };
 
     try {
-      const response = await fetch('http://localhost/shenieva-teacher/src/lib/api/update_student.php', {
+      const response = await fetch(apiUrl('update_student.php'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedStudent),

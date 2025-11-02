@@ -4,6 +4,7 @@
   import { studentData } from '$lib/store/store_students';
   import Modal from "../modals/view_student.svelte";
   import AddModal from "../modals/add_student.svelte";
+  import { apiUrl } from '$lib/api_base';
 
   // Define writable stores
   let selectedGender = writable("All");
@@ -37,7 +38,7 @@
   // Function to fetch and refresh student data
   async function refreshStudentData() {
     try {
-      const response = await fetch("http://localhost/shenieva-teacher/src/lib/api/fetch_students.php");
+  const response = await fetch(apiUrl('fetch_students.php'));
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       
       let data = await response.json();
@@ -54,7 +55,7 @@
   }
   async function refreshEditStudentData() {
     try {
-      const response = await fetch("http://localhost/shenieva-teacher/src/lib/api/fetch_students.php");
+  const response = await fetch(apiUrl('fetch_students.php'));
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       
       let data = await response.json();

@@ -3,6 +3,7 @@
   import { createEventDispatcher, onMount } from "svelte";
   import { writable } from "svelte/store";
   import EditStudentModal from "./edit_student.svelte"; // Import the new edit modal
+  import { apiUrl } from '$lib/api_base';
 
   export let selectedPerson; // Student data passed from parent
 
@@ -94,9 +95,7 @@
 
   async function fetchAttendanceData(studentID: string) {
     try {
-      const response = await fetch(
-        `http://localhost/shenieva-teacher/src/lib/api/fetch_attendance.php?studentID=${studentID}`,
-      );
+      const response = await fetch(apiUrl(`fetch_attendance.php?studentID=${studentID}`));
       if (!response.ok)
         throw new Error(`HTTP error! Status: ${response.status}`);
       const data = await response.json();
@@ -120,7 +119,7 @@
       // if the parent passed a partial person without pk_studentID, try to find the full record
       if (!selectedPerson.pk_studentID) {
         try {
-          const res = await fetch('http://localhost/shenieva-teacher/src/lib/api/fetch_students.php');
+          const res = await fetch(apiUrl('fetch_students.php'));
           if (res.ok) {
             const students = await res.json();
             if (Array.isArray(students)) {
@@ -156,7 +155,7 @@
     loadingLevel1 = true;
     level1Results = [];
     try {
-      const res = await fetch(`http://localhost/shenieva-teacher/src/lib/api/get_level1_quiz_results.php`);
+  const res = await fetch(apiUrl('get_level1_quiz_results.php'));
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data && Array.isArray(data.data)) {
@@ -173,7 +172,7 @@
     loadingLevel2 = true;
     level2Results = [];
     try {
-      const res = await fetch(`http://localhost/shenieva-teacher/src/lib/api/get_level2_quiz_results.php`);
+  const res = await fetch(apiUrl('get_level2_quiz_results.php'));
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data && Array.isArray(data.data)) {
@@ -190,7 +189,7 @@
     loadingLevel3 = true;
     level3Results = [];
     try {
-      const res = await fetch(`http://localhost/shenieva-teacher/src/lib/api/get_level3_quiz_results.php`);
+  const res = await fetch(apiUrl('get_level3_quiz_results.php'));
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (data && Array.isArray(data.data)) {

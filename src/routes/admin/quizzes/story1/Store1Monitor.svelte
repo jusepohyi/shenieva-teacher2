@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import sanitizeForDisplay from '$lib/utils/sanitize';
+    import { apiUrl } from '$lib/api_base';
     
     export let storyTitle: string = "Maria's Promise";
     export let storyKey: string = 'story1-1';
@@ -67,7 +68,7 @@
     async function fetchResults() {
         loading = true;
         try {
-            const response = await fetch(`/api/get_level1_quiz_results.php`);
+            const response = await fetch(apiUrl('get_level1_quiz_results.php'));
 
             const contentType = (response.headers.get('content-type') || '').toLowerCase();
 

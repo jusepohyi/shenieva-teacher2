@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import sanitizeForDisplay from '$lib/utils/sanitize';
+    import { apiUrl } from '$lib/api_base';
 
     export let storyTitle: string = "Hector's Health";
     export let storyKey: string = 'story2-1';
@@ -64,7 +65,7 @@
     async function fetchResults() {
         loading = true;
         try {
-            const response = await fetch(`http://localhost/shenieva-teacher/src/lib/api/get_level2_quiz_results.php`);
+            const response = await fetch(apiUrl('get_level2_quiz_results.php'));
             const data = await response.json();
 
             if (data.success) {

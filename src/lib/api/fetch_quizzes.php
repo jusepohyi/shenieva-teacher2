@@ -10,17 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 header('Content-Type: application/json');
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-$database = "shenieva_db";
+// Use central connection from conn.php so credentials and connection logic
+// are consistent across all API endpoints. conn.php will exit with a JSON
+// error if it cannot connect.
+require_once __DIR__ . '/conn.php';
 
-$conn = new mysqli($servername, $username, $password, $database);
-
-if ($conn->connect_error) {
-    echo json_encode(["error" => "Database connection failed"]);
-    exit();
-}
+// $conn is available from conn.php
 
 $story = isset($_GET['story']) ? $_GET['story'] : 'story1';
 

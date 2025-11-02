@@ -4,6 +4,7 @@
   import { goto } from '$app/navigation';
   import QuizResultModal2 from '../../components/modals/quiz1/QuizResultModal3.svelte';
   import CongratsModal from '../../components/modals/quiz1/CongratsModal.svelte';
+  import { apiUrl } from '$lib/api_base';
 
   // Quiz state
   let quizData = [];
@@ -30,7 +31,7 @@
     console.log('Quiz 3 component mounted');
     try {
       // Fetch quiz data
-      const quizResponse = await fetch('http://localhost:5173/api/student-story3/get_story3_quizzes.php', {
+      const quizResponse = await fetch(apiUrl('student-story3/get_story3_quizzes.php'), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -56,7 +57,7 @@
       });
 
       // Fetch attempt count for the student
-      const attemptResponse = await fetch(`http://localhost:5173/api/student-story3/get_student_attempts.php?student_id=${student_id}`, {
+      const attemptResponse = await fetch(apiUrl(`student-story3/get_student_attempts.php?student_id=${student_id}`), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -107,7 +108,7 @@
         throw new Error('No quiz results to save');
       }
       console.log('Saving quiz results:', { student_id, attempt: attemptCount + 1, is_final: isFinal });
-      const response = await fetch('http://localhost:5173/api/student-story3/save_quiz_results.php', {
+      const response = await fetch(apiUrl('student-story3/save_quiz_results.php'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -143,7 +144,7 @@
         throw new Error('Invalid ribbon count');
       }
       console.log(`Saving ${ribbons} ribbons for student_id: ${student_id}`);
-      const response = await fetch('http://localhost:5173/api/student-story3/save_student_ribbons.php', {
+      const response = await fetch(apiUrl('student-story3/save_student_ribbons.php'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

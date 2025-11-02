@@ -10,13 +10,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 header('Content-Type: application/json');
 
-$conn = new mysqli("localhost", "root", "", "shenieva_db");
+// central connection
+require_once __DIR__ . '/../conn.php';
 
-if ($conn->connect_error) {
-    http_response_code(500);
-    echo json_encode(["error" => "Database connection failed: " . $conn->connect_error]);
-    exit();
-}
+// $conn provided by conn.php
 
 // Get the student_id from the POST request
 $input = json_decode(file_get_contents('php://input'), true);

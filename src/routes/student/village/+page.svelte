@@ -5,6 +5,7 @@
     import { audioStore } from '$lib/store/audio_store';
     import type { StudentData } from '$lib/store/student_data';
     import GiftShop from './GiftShop.svelte';
+    import { apiUrl } from '$lib/api_base';
 
     // Scene configuration
     const scenes = [
@@ -643,22 +644,22 @@
             return;
         }
         
-        try {
-            // Check if student already has a gift
-            const response = await fetch(`http://localhost/shenieva-teacher/src/lib/api/check_student_gift.php?studentID=${student.pk_studentID}`);
-            const result = await response.json();
-            
-            if (result.hasGift) {
-                // Student has gifts - show gift display
-                currentGifts = result.gifts;
-                showGiftDisplay = true;
-            } else {
-                // No gift yet - show prompt to buy
-                showGiftBoxPrompt = true;
+            try {
+                // Check if student already has a gift
+                const response = await fetch(apiUrl(`check_student_gift.php?studentID=${student.pk_studentID}`));
+                const result = await response.json();
+
+                if (result.hasGift) {
+                    // Student has gifts - show gift display
+                    currentGifts = result.gifts;
+                    showGiftDisplay = true;
+                } else {
+                    // No gift yet - show prompt to buy
+                    showGiftBoxPrompt = true;
+                }
+            } catch (error) {
+                console.error('Error checking gift:', error);
             }
-        } catch (error) {
-            console.error('Error checking gift:', error);
-        }
     }
 
     // Handle gift box click
@@ -672,23 +673,23 @@
             return;
         }
         
-        try {
-            // Check if student already has a gift
-            const response = await fetch(`http://localhost/shenieva-teacher/src/lib/api/check_student_gift.php?studentID=${student.pk_studentID}`);
-            const result = await response.json();
-            
-            if (result.hasGift) {
-                // Student has gifts - show gift display
-                currentGifts = result.gifts;
-                showGiftDisplay = true;
-            } else {
-                // No gift yet - show prompt to buy
-                showGiftBoxPrompt = true;
+            try {
+                // Check if student already has a gift
+                const response = await fetch(apiUrl(`check_student_gift.php?studentID=${student.pk_studentID}`));
+                const result = await response.json();
+
+                if (result.hasGift) {
+                    // Student has gifts - show gift display
+                    currentGifts = result.gifts;
+                    showGiftDisplay = true;
+                } else {
+                    // No gift yet - show prompt to buy
+                    showGiftBoxPrompt = true;
+                }
+            } catch (error) {
+                console.error('Error checking gift:', error);
+                alert('Failed to check gift status. Please try again.');
             }
-        } catch (error) {
-            console.error('Error checking gift:', error);
-            alert('Failed to check gift status. Please try again.');
-        }
     }
 
     // Handle gift box purchase decision

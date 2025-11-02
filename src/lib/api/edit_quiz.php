@@ -22,12 +22,10 @@ if ($data) {
     $answer = $data['answer'] ?? '';
     $points = $data['points'] ?? 0;
 
-    $conn = new mysqli("localhost", "root", "", "shenieva_db");
+    // Use central connection
+    require_once __DIR__ . '/conn.php';
 
-    if ($conn->connect_error) {
-        echo json_encode(["success" => false, "error" => "Database connection failed"]);
-        exit();
-    }
+    // $conn is provided by conn.php (and it will exit with a JSON error if connection fails)
 
     $story = isset($_GET['story']) ? $_GET['story'] : 'story1';
 

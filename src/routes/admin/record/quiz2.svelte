@@ -2,6 +2,7 @@
 <script>
   import { onMount } from "svelte";
   import { writable, get } from "svelte/store";
+  import { apiUrl } from '$lib/api_base';
   import QuizModal from "../modals/quizModal.svelte";
   import SuccessModal from "../modals/successModal.svelte";
 
@@ -27,9 +28,7 @@
 
   async function loadData() {
     try {
-      const res = await fetch(
-        "http://localhost/shenieva-teacher/src/lib/api/records/get_quiz2_results.php"
-      );
+      const res = await fetch(apiUrl('records/get_quiz2_results.php'));
       const data = await res.json();
       attendees.set(data);
     } catch (err) {

@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import sanitizeForDisplay from '$lib/utils/sanitize';
+    import { apiUrl } from '$lib/api_base';
 
     export let storyTitle: string = "Liloy and Lingling the Dog";
     export let storyKey: string = 'story3-1';
@@ -102,7 +103,7 @@
     async function fetchResults() {
         loading = true;
         try {
-            const response = await fetch(`http://localhost/shenieva-teacher/src/lib/api/get_level3_quiz_results.php`);
+            const response = await fetch(apiUrl('get_level3_quiz_results.php'));
             const data = await response.json();
 
             if (data.success) {
@@ -412,7 +413,7 @@
         gradingMessage = { ...gradingMessage, [quizID]: '' };
 
         try {
-            const response = await fetch('http://localhost/shenieva-teacher/src/lib/api/update_level3_score.php', {
+            const response = await fetch(apiUrl('update_level3_score.php'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ quizID, score: normalizedScore })

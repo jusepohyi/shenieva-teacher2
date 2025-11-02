@@ -4,6 +4,7 @@
     import { addAttempt } from '$lib/data/attempts.js';
     import { audioStore } from '$lib/store/audio_store';
     import { onMount, onDestroy } from 'svelte';
+    import { apiUrl } from '$lib/api_base';
     // use Svelte auto-subscription ($studentData) instead of importing `get`
 
     export let storyKey: string = ''; // Prop to identify the current story (story1-1, story1-2, story1-3)
@@ -208,11 +209,7 @@
                 return;
             }
 
-            const backendOrigin = (location.port && location.port !== '80' && location.port !== '443') 
-                ? `${location.protocol}//${location.hostname}` 
-                : location.origin;
-            const checkUrl = `${backendOrigin}/shenieva-teacher/src/lib/api/check_quiz_exists.php?student_id=${studentId}&story_key=${storyKey}&level=1`;
-            
+            const checkUrl = apiUrl(`check_quiz_exists.php?student_id=${studentId}&story_key=${storyKey}&level=1`);
             const response = await fetch(checkUrl);
             const result = await response.json();
             
@@ -325,7 +322,7 @@
             // Update ribbons only if score > 0
             if (ribbons > 0) {
                 // Update DB via existing PHP endpoint
-                const response = await fetch('http://localhost/shenieva-teacher/src/lib/api/update_student_ribbons.php', {
+                const response = await fetch(apiUrl('update_student_ribbons.php'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ student_id: studentId, ribbons })
@@ -367,7 +364,7 @@
                     is_final: isFinal
                 };
 
-                const saveResp = await fetch('http://localhost/shenieva-teacher/src/lib/api/submit_level1_quiz.php', {
+                const saveResp = await fetch(apiUrl('submit_level1_quiz.php'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)

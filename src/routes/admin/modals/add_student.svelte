@@ -2,6 +2,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { studentData } from "$lib/store/store_students";
+  import { apiUrl } from '$lib/api_base';
 
   const dispatch = createEventDispatcher();
 
@@ -22,7 +23,7 @@
     };
 
     try {
-      const response = await fetch("http://localhost/shenieva-teacher/src/lib/api/add_student.php", {
+      const response = await fetch(apiUrl('add_student.php'), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newStudent),

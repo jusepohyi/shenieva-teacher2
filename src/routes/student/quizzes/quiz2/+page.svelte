@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { writable } from 'svelte/store';
   import { goto } from '$app/navigation';
+  import { apiUrl } from '$lib/api_base';
   import QuizResultModal2 from '../../components/modals/quiz1/QuizResultModal2.svelte';
   import CongratsModal from '../../components/modals/quiz1/CongratsModal.svelte';
 
@@ -33,7 +34,7 @@
     console.log('Quiz component mounted');
     try {
       // Fetch quiz data
-      const quizResponse = await fetch('http://localhost:5173/api/student-story2/get_story2_quizzes.php', {
+  const quizResponse = await fetch(apiUrl('student-story2/get_story2_quizzes.php'), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -63,7 +64,7 @@
       });
 
       // Fetch attempt count for the student
-      const attemptResponse = await fetch(`http://localhost:5173/api/student-story2/get_student_attempts.php?student_id=${student_id}`, {
+  const attemptResponse = await fetch(apiUrl(`student-story2/get_student_attempts.php?student_id=${student_id}`), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -142,7 +143,7 @@
         throw new Error('No quiz results to save');
       }
       console.log('Saving quiz results:', { student_id, attempt: attemptCount + 1, is_final: isFinal });
-      const response = await fetch('http://localhost:5173/api/student-story2/save_quiz_results.php', {
+  const response = await fetch(apiUrl('student-story2/save_quiz_results.php'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -178,7 +179,7 @@
         throw new Error('Invalid ribbon count');
       }
       console.log(`Saving ${ribbons} ribbons for student_id: ${student_id}`);
-      const response = await fetch('http://localhost:5173/api/student-story2/save_student_ribbons.php', {
+  const response = await fetch(apiUrl('student-story2/save_student_ribbons.php'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -2,6 +2,7 @@
   import { slide, fade, fly } from 'svelte/transition';
   import { goto } from '$app/navigation';
   import { studentData } from '$lib/store/student_data';
+   import { apiUrl } from '$lib/api_base';
 
   // auto-subscribe to the store
   $: ribbons = Number($studentData?.studentRibbon ?? 0);
@@ -54,10 +55,10 @@
       return;
     }
 
-    let url;
-    if (name === 'Quiz 1') url = 'http://localhost/shenieva-teacher/src/lib/api/get_level1_quiz_results.php';
-    if (name === 'Quiz 2') url = 'http://localhost/shenieva-teacher/src/lib/api/get_level2_quiz_results.php';
-    if (name === 'Quiz 3') url = 'http://localhost/shenieva-teacher/src/lib/api/get_level3_quiz_results.php';
+     let url;
+     if (name === 'Quiz 1') url = apiUrl('get_level1_quiz_results.php');
+     if (name === 'Quiz 2') url = apiUrl('get_level2_quiz_results.php');
+     if (name === 'Quiz 3') url = apiUrl('get_level3_quiz_results.php');
 
     try {
       const res = await fetch(url);

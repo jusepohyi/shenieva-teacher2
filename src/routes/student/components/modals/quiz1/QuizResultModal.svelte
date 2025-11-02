@@ -1,5 +1,6 @@
 <script lang="ts">
     import { quiz1Taking, resetQuiz1 } from '$lib/store/quiz1_taking';
+    import { apiUrl } from '$lib/api_base';
     import { goto } from '$app/navigation';
 
     interface Choice {
@@ -57,7 +58,7 @@
         });
 
         try {
-            const response = await fetch('http://localhost/shenieva-teacher/src/lib/api/store1/save_story1_quiz.php', {
+            const response = await fetch(apiUrl('store1/save_story1_quiz.php'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

@@ -4,10 +4,10 @@ import { redirect } from '@sveltejs/kit';
 import mysql from 'mysql2/promise';
 
 const dbConfig = {
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'shenieva_db'
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASS || '',
+  database: process.env.DB_NAME || 'shenieva_db'
 };
 
 interface Teacher extends mysql.RowDataPacket {

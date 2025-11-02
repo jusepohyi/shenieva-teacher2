@@ -18,6 +18,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/conn.php';
 
+// determine whether level1_quiz uses `point` (new) or legacy `score` column
+$pointCol = 'point';
+try {
+    $colCheck = $conn->query("SHOW COLUMNS FROM level1_quiz LIKE 'point'");
+    if (!($colCheck && $colCheck->num_rows > 0)) {
+        $pointCol = 'score';
+    }
+} catch (Exception $ex) {
+    if (function_exists('api_debug_log')) api_debug_log('get_level1_colcheck_failed', ['error' => $ex->getMessage()]);
+    // default to 'point' which is used by submit path
+    $pointCol = 'point';
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     echo json_encode(["success" => false, "error" => "Invalid request method"]);
     exit;
@@ -42,7 +55,7 @@ try {
                     lq.choiceD,
                     lq.correctAnswer,
                     lq.selectedAnswer,
-                    lq.point as score,
+                    lq." . $pointCol . " as score,
                     lq.attempt,
                     lq.createdAt
                 FROM level1_quiz lq
@@ -65,7 +78,7 @@ try {
                     lq.choiceD,
                     lq.correctAnswer,
                     lq.selectedAnswer,
-                    lq.point as score,
+                    lq." . $pointCol . " as score,
                     lq.attempt,
                     lq.createdAt
                 FROM level1_quiz lq
@@ -88,7 +101,7 @@ try {
                     lq.choiceD,
                     lq.correctAnswer,
                     lq.selectedAnswer,
-                    lq.point as score,
+                    lq." . $pointCol . " as score,
                     lq.attempt,
                     lq.createdAt
                 FROM level1_quiz lq
@@ -98,6 +111,9 @@ try {
     }
 
     if (!$stmt) {
+        if (function_exists('api_debug_log')) {
+            api_debug_log('get_level1_prepare_failed', ['error' => $conn->error, 'storyTitle' => $storyTitle, 'studentID' => $studentID]);
+        }
         throw new Exception('Failed to prepare statement: ' . $conn->error);
     }
 
@@ -139,6 +155,14 @@ try {
     $stmt->close();
     $conn->close();
 } catch (Exception $e) {
+    if (function_exists('api_debug_log')) {
+        api_debug_log('get_level1_exception', [
+            'message' => $e->getMessage(),
+            'conn_error' => $conn->error ?? null,
+            'storyTitle' => $storyTitle,
+            'studentID' => $studentID
+        ]);
+    }
     http_response_code(500);
     echo json_encode([
         'success' => false,

@@ -10,7 +10,8 @@
   } from "flowbite-svelte-icons";
   import { goto } from "$app/navigation";
   import SettingsModal from "../modals/settings.svelte";
-  import modalBg from "/assets/icons/modal-bg.jpg";
+  // Avoid importing the image as a JS module; use a string path instead.
+  const modalBg = "/assets/icons/modal-bg.jpg";
 
   let showMenu = false;
   let showLogoutModal = false;
@@ -20,6 +21,7 @@
   let settingsEmail = '';
 
   import sanitizeForDisplay from '$lib/utils/sanitize';
+  import { apiUrl } from '$lib/api_base';
 
   // Live counts (will be fetched)
   let studentCount = 0;
@@ -186,11 +188,10 @@
    */
   async function fetchDashboardData() {
     try {
-  // construct base URL to php APIs (target Apache/PHP host at same hostname, default port)
-  const base = window.location.protocol + '//' + window.location.hostname + '/shenieva-teacher/src/lib/api';
-      // students
-      const studentsRes = await fetch(base + '/fetch_students.php');
-      const students = await studentsRes.json();
+    // construct API urls via apiUrl helper so runtime base can be configured via VITE_API_BASE
+    // students
+    const studentsRes = await fetch(apiUrl('fetch_students.php'));
+    const students = await studentsRes.json();
       studentCount = Array.isArray(students) ? students.length : 0;
 
       // gender breakdown
@@ -205,7 +206,7 @@
       genderData.series = [males, females];
 
       // attendance: get all rows, store them and call aggregator for selected view
-      const attendanceRes = await fetch(base + '/fetch_all_attendance.php');
+  const attendanceRes = await fetch(apiUrl('fetch_all_attendance.php'));
       const attendanceRows = await attendanceRes.json();
       allAttendanceRows = Array.isArray(attendanceRows) ? attendanceRows : [];
       // compute initial attendance view
@@ -224,7 +225,9 @@
   for (let i=0;i<levelApis.length;i++){
         try{
           // fetch via base
-          const res = await fetch(base + levelApis[i].replace('/src/lib/api',''));
+          // levelApis entries were paths; use only the filename with apiUrl
+          const filename = levelApis[i].split('/').pop();
+          const res = await fetch(apiUrl(filename));
           const jr = await res.json();
           if (jr && jr.success && Array.isArray(jr.data)){
             for (let j=0;j<jr.data.length;j++){
@@ -275,7 +278,7 @@
   async function fetchTeacherInfo(){
     try{
       const base = window.location.protocol + '//' + window.location.hostname + '/shenieva-teacher/src/lib/api';
-      const res = await fetch(base + '/fetch_teacher.php', { credentials: 'include' });
+  const res = await fetch(apiUrl('fetch_teacher.php'), { credentials: 'include' });
       const j = await res.json();
       if (j && j.success && j.data){
         settingsName = j.data.name || '';
@@ -396,7 +399,7 @@
   const base = window.location.protocol + '//' + window.location.hostname + '/shenieva-teacher/src/lib/api';
     for (let i=0;i<apis.length;i++){
       try{
-        const r = await fetch(base + '/' + apis[i].split('/').pop() + '?storyTitle='+encodeURIComponent(story));
+  const r = await fetch(apiUrl(apis[i].split('/').pop()) + '?storyTitle=' + encodeURIComponent(story));
         const j = await r.json();
         if (j && j.success && Array.isArray(j.data)){
           for (let k=0;k<j.data.length;k++){

@@ -9,15 +9,11 @@ ini_set('error_log', __DIR__ . '/php_errors.log');
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 
-// DB credentials
-$host = '127.0.0.1';
-$dbname = 'shenieva_db';
-$username = 'root';
-$password = '';
-
+// Use central connection variables and create a PDO instance
+require_once __DIR__ . '/../conn.php';
 try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $servername, $database);
+    $pdo = new PDO($dsn, $username, $password, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['error' => 'DB connection failed: ' . $e->getMessage()]);

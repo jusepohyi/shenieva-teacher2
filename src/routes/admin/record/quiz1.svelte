@@ -4,6 +4,7 @@
   import { fade } from "svelte/transition";
   import QuizModal from "../modals/quizModal.svelte";
   import SuccessModal from "../modals/successModal.svelte";
+  import { apiUrl } from '$lib/api_base';
 
   let selectedGender = "All";
   let date = new Date().toISOString().split("T")[0];
@@ -28,7 +29,7 @@
 
   async function fetchQuizResults() {
     try {
-      const response = await fetch('http://localhost/shenieva-teacher/src/lib/api/records/get_quiz_results.php');
+  const response = await fetch(apiUrl('records/get_quiz_results.php'));
       if (!response.ok) {
         const text = await response.text();
         throw new Error(`HTTP error! status: ${response.status}, response: ${text}`);

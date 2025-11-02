@@ -9,12 +9,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-$conn = new mysqli("localhost", "root", "", "shenieva_db");
+// central connection
+require_once __DIR__ . '/../conn.php';
 
-    if ($conn->connect_error) {
-        echo json_encode(["success" => false, "error" => "Database connection failed: " . $conn->connect_error]);
-        exit();
-    }
+// $conn provided by conn.php
 
 
 $data = json_decode(file_get_contents('php://input'), true);

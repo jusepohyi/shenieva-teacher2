@@ -1,5 +1,6 @@
 <script lang="ts">
     import { quiz1Taking } from '$lib/store/quiz1_taking';
+    import { apiUrl } from '$lib/api_base';
 
     interface Choice {
         id: number;
@@ -43,7 +44,7 @@
         }));
 
         try {
-            const response = await fetch('http://localhost/shenieva-teacher/src/lib/api/store3/save_story1_quiz.php', {
+            const response = await fetch(apiUrl('store3/save_story1_quiz.php'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

@@ -4,6 +4,7 @@
       TrashBinSolid,
       EditSolid,
     } from "flowbite-svelte-icons";
+    import { apiUrl } from '$lib/api_base';
     import sanitizeForDisplay from '$lib/utils/sanitize';
   
     interface Quiz {
@@ -20,7 +21,7 @@
     async function fetchQuizzes() {
       try {
         const response = await fetch(
-          "http://localhost/shenieva-teacher/src/lib/api/store2/fetch_quizzes.php",
+          apiUrl('store2/fetch_quizzes.php'),
           {
             method: "GET",
             headers: { "Content-Type": "application/json" },
@@ -78,7 +79,7 @@
       ) {
         try {
           const response = await fetch(
-            "http://localhost/shenieva-teacher/src/lib/api/store2/add_quiz1.php",
+            apiUrl('store2/add_quiz1.php'),
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -109,7 +110,7 @@
       if (confirm("Are you sure you want to delete this Store 2 quiz?")) {
         try {
           const response = await fetch(
-            "http://localhost/shenieva-teacher/src/lib/api/store2/delete_quiz.php",
+            apiUrl('store2/delete_quiz.php'),
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -159,7 +160,7 @@
       ) {
         try {
           const response = await fetch(
-            "http://localhost/shenieva-teacher/src/lib/api/store2/edit_quiz.php",
+            apiUrl('store2/edit_quiz.php'),
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },

@@ -4,6 +4,7 @@
     import { fade } from 'svelte/transition';
     import { studentData } from '$lib/store/student_data';
     import { audioStore } from '$lib/store/audio_store';
+    import { apiUrl } from '$lib/api_base';
 
     interface StudentData {
         pk_studentID: number;
@@ -598,7 +599,7 @@
     async function fetchInitialTrashCount(studentID: number) {
         try {
             const response = await fetchWithTimeout(
-                'http://localhost/shenieva-teacher/src/lib/api/trash.php',
+                apiUrl('trash.php'),
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -649,7 +650,7 @@
 
         try {
             const response = await fetchWithTimeout(
-                'http://localhost/shenieva-teacher/src/lib/api/trash.php',
+                apiUrl('trash.php'),
                 {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

@@ -2,7 +2,10 @@
   export let quizType; // 'quiz1' or 'quiz2'
   import { fade, scale } from "svelte/transition";
   import { createEventDispatcher } from "svelte";
-  import modalBg from "/assets/icons/modal-bg.jpg";
+  // Avoid importing the image as a JS module (Vite may request it as ?import).
+  // Use a string path so the browser requests it as a normal image resource.
+  const modalBg = "/assets/icons/modal-bg.jpg";
+  import { apiUrl } from '$lib/api_base';
 
   export let person;
   export let showModal;
@@ -40,8 +43,8 @@
 
     const endpoint =
       quizType === "quiz1"
-        ? "http://localhost/shenieva-teacher/src/lib/api/records/mark_question_reviewed.php"
-        : "http://localhost/shenieva-teacher/src/lib/api/records/mark_question2_reviewed.php";
+        ? apiUrl('records/mark_question_reviewed.php')
+        : apiUrl('records/mark_question2_reviewed.php');
 
     try {
       const response = await fetch(endpoint, {
@@ -114,8 +117,8 @@
     transition:fade={{ duration: 300 }}
   >
     <div
-      class="rounded-3xl max-w-3xl w-full p-8 relative shadow-2xl bg-cover bg-center overflow-y-auto max-h-[90vh] custom-scrollbar"
-      style="background-image: url('{modalBg}');"
+  class="rounded-3xl max-w-3xl w-full p-8 relative shadow-2xl bg-cover bg-center overflow-y-auto max-h-[90vh] custom-scrollbar"
+  style="background-image: url({modalBg});"
       on:mousedown|stopPropagation
       transition:scale={{ duration: 300, start: 0.95 }}
     >

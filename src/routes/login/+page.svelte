@@ -2,6 +2,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import LoginAuth from './student/loginauth.svelte';
+  import { apiUrl } from '$lib/api_base';
   let userType = "student";
   let studentId = '';
   let studentPassword = '';
@@ -25,51 +26,38 @@
     } else if (userType === 'teacher') {
       try {
         isLoading = true; // Show loading popup
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 800));
         errorMessage = ''; // Clear previous errors
 
-        const formData = new FormData();
-        formData.append('userType', 'teacher');
-        formData.append('idNo', teacherId);
-        formData.append('password', teacherPassword);
+        const payload = {
+          idNo: teacherId,
+          teacherPass: teacherPassword
+        };
 
-        const response = await fetch('/login', {
+        const response = await fetch(apiUrl('login_teacher.php'), {
           method: 'POST',
-          body: formData
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          credentials: 'include' // allow PHP to set cookies
         });
 
-        console.log('Response status:', response.status);
-        const result = await response.json();
-        console.log('Client received:', JSON.stringify(result, null, 2));
+        console.log('Teacher login response status:', response.status);
+        const json = await response.json();
+        console.log('Teacher login JSON:', json);
 
-        let actionData = result.data;
-        if (typeof actionData === 'string') {
-          actionData = JSON.parse(actionData);
-        } else {
-          actionData = result.data || result;
-        }
-        console.log('Action data:', JSON.stringify(actionData, null, 2));
+        isLoading = false;
 
-        isLoading = false; // Hide loading popup
-
-        if (result.type === 'failure' || !response.ok) {
-          errorMessage = actionData.error || (Array.isArray(actionData) && actionData[1]) || 'Invalid credentials. Try again.';
-          console.log('Error case triggered:', errorMessage);
+        if (!response.ok || !json.success) {
+          errorMessage = json.message || 'Invalid credentials. Try again.';
+          console.log('Teacher login failed:', errorMessage);
           return;
         }
 
-        const success = Array.isArray(actionData) ? actionData[0]?.success : actionData.success;
-        if (success === true || success === 1) {
-          console.log('Login successful, showing success popup');
-          showSuccess = true; // Show success popup
-          // Wait 1.5 seconds before redirecting
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          showSuccess = false; // Hide success popup
-          await goto('/admin');
-        } else {
-          errorMessage = 'Invalid credentials. Try again.';
-          console.log('Success false, setting error:', errorMessage);
-        }
+        // success
+        showSuccess = true;
+        await new Promise(resolve => setTimeout(resolve, 1200));
+        showSuccess = false;
+        await goto('/admin');
       } catch (err) {
         isLoading = false; // Hide loading on error
         console.error('Teacher login error:', err);

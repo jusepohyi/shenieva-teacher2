@@ -19,12 +19,10 @@ $data = json_decode(file_get_contents("php://input"), true);
 if ($data) {
     $id = $data['id'] ?? 0;
 
-    $conn = new mysqli("localhost", "root", "", "shenieva_db");
+        // Use central connection
+        require_once __DIR__ . '/conn.php';
 
-    if ($conn->connect_error) {
-        echo json_encode(["success" => false, "error" => "Database connection failed"]);
-        exit();
-    }
+        // $conn is provided by conn.php
 
     $story = isset($_GET['story']) ? $_GET['story'] : 'story1';
 

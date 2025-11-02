@@ -1,6 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
     import { studentData } from '$lib/store/student_data';
+    import { apiUrl } from '$lib/api_base';
     
     const dispatch = createEventDispatcher();
     
@@ -51,7 +52,7 @@
         isPurchasing = true;
         
         try {
-            const response = await fetch('http://localhost/shenieva-teacher/src/lib/api/purchase_gift.php', {
+            const response = await fetch(apiUrl('purchase_gift.php'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
