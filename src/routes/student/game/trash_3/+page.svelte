@@ -1,10 +1,12 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
+    import Preloader from '$lib/Preloader.svelte';
     import { goto } from '$app/navigation';
     import { fade } from 'svelte/transition';
     import { studentData } from '$lib/store/student_data';
     import { audioStore } from '$lib/store/audio_store';
     import { apiUrl } from '$lib/api_base';
+    import { preloadImagesBatched } from '$lib/preload';
 
     interface StudentData {
         pk_studentID: number;
@@ -91,6 +93,17 @@
     }
 
     let assets: Assets;
+    let showPreloader = true;
+
+    // Pre-expand critical URLs for this game scene
+    const _crit1 = import.meta.glob('/static/assets/trash_collect_game/boy/walking_sprite/**/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
+    const _crit2 = import.meta.glob('/static/assets/trash_collect_game/girl/walking_sprite/**/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
+    const _crit3 = import.meta.glob('/static/assets/trash_collect_game/ground/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
+    const _crit4 = import.meta.glob('/static/assets/trash_collect_game/house/story2/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
+    const criticalUrls = Array.from(new Set([...Object.values(_crit1), ...Object.values(_crit2), ...Object.values(_crit3), ...Object.values(_crit4)].filter(Boolean)));
+
+    const _non1 = import.meta.glob('/static/assets/trash_collect_game/trash/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
+    const nonCriticalUrls = Array.from(new Set([...Object.values(_non1)].filter(Boolean)));
 
     async function loadImage(src: string): Promise<HTMLImageElement> {
         return new Promise((resolve, reject) => {
@@ -702,10 +715,10 @@
         }
     }
 
-    onMount(async () => {
+    async function initGame() {
         // Stop global background music
         audioStore.stopAll();
-        
+
         assets = await loadAssets();
         if (gameCanvas) ctx = gameCanvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
 
@@ -713,7 +726,7 @@
         collectSound = document.createElement('audio');
         collectSound.src = '/assets/trash_collect_game/audio/collect_effect.mp3';
         collectSound.volume = 0.7;
-        
+
         bgMusic = document.createElement('audio');
         bgMusic.src = '/assets/trash_collect_game/audio/game_bg.mp3';
         bgMusic.loop = true;
@@ -739,6 +752,21 @@
         window.addEventListener('keyup', (e: KeyboardEvent) => { keys[e.key as keyof Keys] = false; });
         window.addEventListener('resize', resizeCanvas);
         setInterval(() => { handleMovement(); update(); }, 1000 / 60);
+    }
+
+    async function handlePreloadDone() {
+        showPreloader = false;
+        if (nonCriticalUrls.length > 0) {
+            preloadImagesBatched(nonCriticalUrls, () => {}, 6).catch((e) => console.warn('background preload failed', e));
+        }
+        await initGame();
+    }
+
+    onMount(async () => {
+        if (!showPreloader) {
+            await initGame();
+            return;
+        }
     });
     
     onDestroy(() => {
@@ -767,9 +795,12 @@
     $: playerPositionPercent = (player.x / (GRID_WIDTH * TILE_SIZE)) * 100;
 </script>
 
-<main>
-    <div class="game-wrapper">
-        <h1 class="title">Shenievia Adventure!</h1>
+{#if showPreloader}
+    <Preloader assetUrls={criticalUrls} batchSize={6} allowSkip={true} onComplete={handlePreloadDone} />
+{:else}
+    <main>
+        <div class="game-wrapper">
+            <h1 class="title">Shenievia Adventure!</h1>
         <div class="trash-indicator">
             <span class="trash-label">Collected Trash:</span>
             <div class="trash-count">
@@ -817,8 +848,9 @@
                 <div class="player-marker" style="left: {playerPositionPercent}%"></div>
             </div>
         </div>
-    </div>
-</main>
+            </div>
+    </main>
+{/if}
 
 <style>
     .game-wrapper {

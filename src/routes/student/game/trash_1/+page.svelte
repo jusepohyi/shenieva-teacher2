@@ -1,10 +1,12 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
+    import Preloader from '$lib/Preloader.svelte';
     import { goto } from '$app/navigation';
     import { fade } from 'svelte/transition';
     import { studentData } from '$lib/store/student_data';
     import { audioStore } from '$lib/store/audio_store';
     import { apiUrl } from '$lib/api_base';
+    import { preloadImagesBatched } from '$lib/preload';
 
     interface StudentData {
         pk_studentID: number;
@@ -91,6 +93,28 @@
     }
 
     let assets: Assets;
+    let showPreloader = true;
+
+    // Pre-expand critical URLs (literal globs) for this game scene
+    const _crit1 = import.meta.glob('/static/assets/trash_collect_game/boy/walking_sprite/**/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
+    const _crit2 = import.meta.glob('/static/assets/trash_collect_game/girl/walking_sprite/**/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
+    const _crit3 = import.meta.glob('/static/assets/trash_collect_game/ground/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
+    const _crit4 = import.meta.glob('/static/assets/trash_collect_game/house/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
+    const criticalUrls = Array.from(new Set([...Object.values(_crit1), ...Object.values(_crit2), ...Object.values(_crit3), ...Object.values(_crit4)].filter(Boolean)));
+
+    // Non-critical: trash item sprites, decorations
+    const _non1 = import.meta.glob('/static/assets/trash_collect_game/trash/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
+    const nonCriticalUrls = Array.from(new Set([...Object.values(_non1)].filter(Boolean)));
+
+    // Handler called when preloader completes
+    async function handlePreloadDone() {
+        showPreloader = false;
+        // kick off background preload of non-critical assets
+        if (nonCriticalUrls.length > 0) {
+            preloadImagesBatched(nonCriticalUrls, () => {}, 6).catch((e) => console.warn('background preload failed', e));
+        }
+        await initGame();
+    }
 
     async function loadImage(src: string): Promise<HTMLImageElement> {
         return new Promise((resolve, reject) => {
@@ -702,7 +726,7 @@
         }
     }
 
-    onMount(async () => {
+    async function initGame() {
         // Stop global background music
         audioStore.stopAll();
         
@@ -739,6 +763,14 @@
         window.addEventListener('keyup', (e: KeyboardEvent) => { keys[e.key as keyof Keys] = false; });
         window.addEventListener('resize', resizeCanvas);
         setInterval(() => { handleMovement(); update(); }, 1000 / 60);
+    }
+
+    onMount(async () => {
+        if (!showPreloader) {
+            await initGame();
+            return;
+        }
+        // otherwise Preloader will call initGame() after critical assets are ready
     });
     
     onDestroy(() => {
@@ -766,6 +798,10 @@
     // Calculate player position percentage for the indicator
     $: playerPositionPercent = (player.x / (GRID_WIDTH * TILE_SIZE)) * 100;
 </script>
+
+{#if showPreloader}
+    <Preloader assetUrls={criticalUrls} batchSize={6} onComplete={handlePreloadDone} allowSkip={true} />
+{:else}
 
 <main>
     <div class="game-wrapper">
@@ -819,6 +855,8 @@
         </div>
     </div>
 </main>
+
+{/if}
 
 <style>
     .game-wrapper {
