@@ -77,9 +77,10 @@
       ...(newPassword ? { newPassword } : {})
     };
 
-    // try SvelteKit route, fall back to PHP endpoint served by Apache
-    const phpUrl = `${window.location.protocol}//${window.location.hostname}/shenieva-teacher/src/lib/api/update_teacher.php`;
-    const endpoints = ['/api/update-profile', phpUrl];
+  // try SvelteKit route, fall back to PHP endpoint served by Apache (use apiUrl helper)
+  const { apiUrl } = await import('$lib/api_base');
+  const phpUrl = apiUrl('update_teacher.php');
+  const endpoints = ['/api/update-profile', phpUrl];
     let lastError: unknown = null;
 
     try {
@@ -140,8 +141,8 @@
 
   async function fetchTeacherInfo(){
     try{
-      const base = window.location.protocol + '//' + window.location.hostname + '/shenieva-teacher/src/lib/api';
-      const res = await fetch(base + '/fetch_teacher.php', { credentials: 'include' });
+  const { apiUrl } = await import('$lib/api_base');
+  const res = await fetch(apiUrl('fetch_teacher.php'), { credentials: 'include' });
       const j = await res.json();
       if (j && j.success && j.data){
         // update both exported props and local inputs

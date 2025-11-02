@@ -1,19 +1,8 @@
 <?php
-header("Access-Control-Allow-Origin: http://localhost:5173");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
+// Centralized CORS handling and DB connection
+include_once __DIR__ . '/../cors.php';
 header('Content-Type: application/json');
-
-// central connection
 require_once __DIR__ . '/../conn.php';
-
-// $conn provided by conn.php
 
 // Get the student_id from the POST request
 $input = json_decode(file_get_contents('php://input'), true);
@@ -38,7 +27,7 @@ $response = ["is_finalized" => false];
 
 if ($result->num_rows > 0) {
     $response["is_finalized"] = true;
-    $response["data"] = $result->fetch_all(MYSQLI_ASSOC); // Optional: Include quiz data
+    $response["data"] = $result->fetch_all(MYSQLI_ASSOC);
 }
 
 $stmt->close();
@@ -46,4 +35,5 @@ $conn->close();
 
 http_response_code(200);
 echo json_encode($response);
+
 ?>

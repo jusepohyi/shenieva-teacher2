@@ -54,8 +54,8 @@
 
   async function fetchProfileCounts(){
     try{
-      const base = window.location.protocol + '//' + window.location.hostname + '/shenieva-teacher/src/lib/api';
-      const res = await fetch(base + '/fetch_students.php');
+      const { apiUrl } = await import('$lib/api_base');
+      const res = await fetch(apiUrl('fetch_students.php'));
       const students = await res.json();
       totalStudents = Array.isArray(students) ? students.length : 0;
     }catch(e){

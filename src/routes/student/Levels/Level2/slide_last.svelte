@@ -157,7 +157,9 @@
                 level: '2'
             });
 
-            const response = await fetch(`/lib/api/check_quiz_exists.php?${params.toString()}`);
+            // Use centralized API helper so the production build points to Hostinger
+            const { apiUrl } = await import('$lib/api_base');
+            const response = await fetch(apiUrl(`check_quiz_exists.php?${params.toString()}`));
             const result = await response.json();
 
             if (result.success) {
@@ -297,7 +299,9 @@
             
             // Update ribbons only if score > 0
             if (ribbons > 0) {
-                const ribbonsUrl = `${backendOrigin}/shenieva-teacher/src/lib/api/update_student_ribbons.php`;
+                // Use centralized API helper for backend calls
+                const { apiUrl: _apiUrl } = await import('$lib/api_base');
+                const ribbonsUrl = _apiUrl('update_student_ribbons.php');
                 console.log('Updating ribbons at', ribbonsUrl, { student_id: studentId, ribbons });
                 const response = await fetch(ribbonsUrl, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ student_id: studentId, ribbons })
@@ -357,7 +361,8 @@
                     correctAnswers: correctAnswers[storyKey] || {}, 
                     is_final: isFinal 
                 };
-                const saveUrl = `${backendOrigin}/shenieva-teacher/src/lib/api/submit_level2_quiz.php`;
+                const { apiUrl: _apiUrl2 } = await import('$lib/api_base');
+                const saveUrl = _apiUrl2('submit_level2_quiz.php');
                 console.log('Saving Level 2 quiz rows at', saveUrl);
                 console.log('is_final:', isFinal, '(Always 1 when claiming ribbons)');
                 console.log('Payload:', payload);

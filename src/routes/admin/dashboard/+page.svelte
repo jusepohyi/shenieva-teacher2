@@ -277,7 +277,7 @@
 
   async function fetchTeacherInfo(){
     try{
-      const base = window.location.protocol + '//' + window.location.hostname + '/shenieva-teacher/src/lib/api';
+  // Use centralized apiUrl helper (no need to build backend base from window.location)
   const res = await fetch(apiUrl('fetch_teacher.php'), { credentials: 'include' });
       const j = await res.json();
       if (j && j.success && j.data){
@@ -396,7 +396,7 @@
     // fetch level results and collect distinct student info
     const apis = ['/src/lib/api/get_level1_quiz_results.php','/src/lib/api/get_level2_quiz_results.php','/src/lib/api/get_level3_quiz_results.php'];
     const studentIds = new Set();
-  const base = window.location.protocol + '//' + window.location.hostname + '/shenieva-teacher/src/lib/api';
+  // legacy base declaration removed; apiUrl(...) is used instead
     for (let i=0;i<apis.length;i++){
       try{
   const r = await fetch(apiUrl(apis[i].split('/').pop()) + '?storyTitle=' + encodeURIComponent(story));

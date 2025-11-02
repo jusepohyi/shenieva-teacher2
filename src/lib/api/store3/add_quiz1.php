@@ -1,14 +1,9 @@
 <?php
-header("Access-Control-Allow-Origin: http://localhost:5173");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
+// Centralized CORS handling and DB connection
+include_once __DIR__ . '/../cors.php';
 header('Content-Type: application/json');
+require_once __DIR__ . '/../conn.php';
+
 $data = json_decode(file_get_contents("php://input"), true);
 
 if ($data) {
@@ -22,9 +17,6 @@ if ($data) {
         echo json_encode(["success" => false, "error" => "Missing or invalid required fields"]);
         exit();
     }
-
-    // central connection
-    require_once __DIR__ . '/../conn.php';
 
     // $conn provided by conn.php
 

@@ -17,6 +17,9 @@ if (empty($allowed)) {
         'http://localhost:5173',
         // Hostinger preview domain (temporary). Add production domains via ALLOWED_ORIGINS or ALLOWED_HOSTING_PREVIEW env.
         'https://darkred-dinosaur-537713.hostingersite.com',
+        // Netlify default origin for your site and your custom domain — add more as needed
+        'https://shenieviareads.netlify.app',
+        'https://shenieviareads.fun',
     ];
 
     // add preview host from environment if provided (useful for Hostinger temp domains)
@@ -28,7 +31,8 @@ $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 // Debug mode: if ALLOW_CORS_DEBUG=1 is set in the environment on the host,
 // respond permissively to CORS requests from any origin found in the
 // request. Use this only for short-term debugging (e.g. localhost dev).
-$allow_debug = getenv('ALLOW_CORS_DEBUG') ?: getenv('ALLOW_CORS_DEBUG');
+// Read ALLOW_CORS_DEBUG (set to '1' for temporary permissive CORS during testing)
+$allow_debug = getenv('ALLOW_CORS_DEBUG') ?: '0';
 if ($allow_debug === '1' && $origin) {
     header("Access-Control-Allow-Origin: $origin");
     header('Access-Control-Allow-Methods: GET, POST, OPTIONS');

@@ -3,14 +3,8 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-header("Access-Control-Allow-Origin: http://localhost:5173");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
+// Centralized CORS handling
+include_once __DIR__ . '/cors.php';
 
 header('Content-Type: application/json');
 
@@ -52,12 +46,6 @@ if ($data) {
 
         if ($stmt->execute()) {
             // Manage choices for story1
-            $choices = $data['choices'] ?? [];
-
-            $stmtDelete = $conn->prepare("DELETE FROM choices_{$story} WHERE quiz_id = ?");
-            $stmtDelete->bind_param("i", $id);
-            $stmtDelete->execute();
-
             foreach ($choices as $choice) {
                 $isCorrect = ($choice === $answer) ? 1 : 0;
                 $stmtChoice = $conn->prepare("INSERT INTO choices_{$story} (quiz_id, choice_text, is_correct) VALUES (?, ?, ?)");

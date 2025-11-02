@@ -1,21 +1,10 @@
 <?php
-// Handle CORS preflight request
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    header('Access-Control-Allow-Origin: http://localhost:5173');
-    header('Access-Control-Allow-Methods: POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Content-Type');
-    header('Access-Control-Max-Age: 86400');
-    http_response_code(204);
-    exit;
-}
-
+// Centralized CORS handling and DB connection
+include_once __DIR__ . '/../cors.php';
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: http://localhost:5173');
-header('Access-Control-Allow-Methods: POST');
-header('Access-Control-Allow-Headers: Content-Type');
-
-// Use centralized conn.php variables and create PDO
 require_once __DIR__ . '/../conn.php';
+
+// Use centralized conn.php variables (mysqli) and create PDO for convenience
 try {
     $dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $servername, $database);
     $pdo = new PDO($dsn, $username, $password, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);

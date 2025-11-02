@@ -136,7 +136,8 @@
                 level: '3'
             });
 
-            const response = await fetch(`/lib/api/check_quiz_exists.php?${params.toString()}`);
+            const { apiUrl } = await import('$lib/api_base');
+            const response = await fetch(apiUrl(`check_quiz_exists.php?${params.toString()}`));
             const result = await response.json();
 
             if (result.success) {
@@ -245,10 +246,8 @@
             };
 
             // Determine backend origin
-            const backendOrigin = (location.port && location.port !== '80' && location.port !== '443') 
-                ? `${location.protocol}//${location.hostname}` 
-                : location.origin;
-            const saveUrl = `${backendOrigin}/shenieva-teacher/src/lib/api/submit_level3_quiz.php`;
+            const { apiUrl: _apiUrl } = await import('$lib/api_base');
+            const saveUrl = _apiUrl('submit_level3_quiz.php');
             
             console.log('Saving Level 3 quiz to database:', saveUrl, payload);
             
