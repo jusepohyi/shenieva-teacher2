@@ -4,6 +4,7 @@
     import { language } from "$lib/store/story_lang_audio";
     import { goto } from '$app/navigation';
     import { studentData } from '$lib/store/student_data';
+    import { preloadLevelAssets } from '$lib/utils/story_assets';
 
     type SvelteComponent = any;
 
@@ -16,6 +17,12 @@
     let isLoading: boolean = true;
     let showLanguageModal: boolean = false;
     let errorMessage: string = ''; // To display feedback when trying to skip
+    
+    // Asset preloading state
+    let loadingProgress = 0;
+    let loadingText = 'Loading story assets...';
+    let totalAssets = 0;
+    let loadedAssets = 0;
 
     // Define max slides per story (including the title slide at UI index 1)
     const maxSlidesMap: Record<string, number> = {
@@ -166,9 +173,30 @@
     }
 
     $: if (showModal && isLoading) {
-        setTimeout(() => {
+        // Preload all Level 1 assets when modal opens
+        preloadLevelAssets('Level1', (loaded, total, type, url) => {
+            loadedAssets = loaded;
+            totalAssets = total;
+            loadingProgress = Math.floor((loaded / total) * 100);
+            
+            // Update loading text based on what's being loaded
+            if (type === 'image') {
+                loadingText = `Loading images... ${loaded}/${total}`;
+            } else {
+                loadingText = `Loading audio... ${loaded}/${total}`;
+            }
+        }).then(() => {
+            loadingText = 'Ready!';
+            loadingProgress = 100;
+            // Small delay to show 100% before hiding
+            setTimeout(() => {
+                isLoading = false;
+            }, 300);
+        }).catch(err => {
+            console.error('Asset preloading failed:', err);
+            // Continue anyway
             isLoading = false;
-        }, 1000);
+        });
     }
 
     $: if (showModal && storyKey) {
@@ -184,14 +212,30 @@
 {#if showModal}
     {#if isLoading}
             <div
-                class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50"
+                class="fixed inset-0 bg-gray-800 bg-opacity-75 flex flex-col items-center justify-center z-50"
             >
             <div
                 class="w-[10vw] h-[10vw] max-w-[60px] max-h-[60px] border-[1vw] border-t-lime-500 border-gray-300 rounded-full animate-spin"
             ></div>
-            <p class="absolute text-[4vw] md:text-xl text-white mt-[15vh] font-bold">
+            <p class="text-[4vw] md:text-xl text-white mt-[8vh] font-bold">
                 Loading Adventure... ✨
             </p>
+            
+            <!-- Progress Bar -->
+            <div class="w-[60vw] max-w-[400px] mt-6">
+                <div class="bg-gray-700 rounded-full h-4 overflow-hidden">
+                    <div 
+                        class="bg-lime-500 h-full transition-all duration-300 ease-out"
+                        style="width: {loadingProgress}%"
+                    ></div>
+                </div>
+                <div class="text-white text-center mt-2 text-sm">
+                    {loadingText}
+                </div>
+                <div class="text-white text-center text-xl font-bold mt-1">
+                    {loadingProgress}%
+                </div>
+            </div>
         </div>
     {/if}
 

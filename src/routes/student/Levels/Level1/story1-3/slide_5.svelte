@@ -6,7 +6,7 @@
             english: "Hannah searched for the customer. Thankfully, the customer was still walking down the street when Hannah called out to him and said, \"Excuse me! You gave me more money than what was needed.\" The customer smiled at Hannah who handed him the money.",
             cebuano: "Sa usa ka hapon, usa sa iyang suki ug kasaligan nga higala nga si Maria miabot sa tindahan ug nipalit ug usa ka pakete sa asin, usa ka kilo nga bugas, ug usa ka pakete nga asukal."
         },
-    image: "/assets/LEVEL_1/STORY_3/PIC4.jpg"
+    image: "/converted/assets/LEVEL_1/STORY_3/PIC4.webp"
     };
 </script>
 

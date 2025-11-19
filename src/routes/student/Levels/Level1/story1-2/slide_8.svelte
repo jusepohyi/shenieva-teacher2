@@ -7,7 +7,7 @@
             english: "She nodded and said, \"I am sorry, mother. I will listen to you from now on.\"",
             cebuano: "Sa usa ka hapon, usa sa iyang suki ug kasaligan nga higala nga si Maria miabot sa tindahan ug nipalit ug usa ka pakete sa asin, usa ka kilo nga bugas, ug usa ka pakete nga asukal."
         },
-    image: "/assets/LEVEL_1/STORY_2/PIC5.jpg"
+    image: "/converted/assets/LEVEL_1/STORY_2/PIC5.webp"
     };
 </script>
 

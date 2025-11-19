@@ -13,7 +13,7 @@
             english: "There was once a child who loved candies, her name is Candice. She eats candies for breakfast, lunch and dinner..",
             cebuano: "Adunay tag-iya sa usa ka sari-sari nga tindahan nga ginganlan ug Lena. Nagaserbisyo siya sa mga kustomer matag adlaw uban ang usa ka pahiyom."
         },
-    image: "/assets/LEVEL_1/STORY_2/PIC1.jpg"
+    image: "/converted/assets/LEVEL_1/STORY_2/PIC1.webp"
     };
 </script>
 

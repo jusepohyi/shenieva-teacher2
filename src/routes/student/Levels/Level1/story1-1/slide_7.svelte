@@ -17,7 +17,7 @@
             english: "Few minutes later, Lena saw Maria approaching towards her store, smiling and raising her hand.",
             cebuano: "Pipila ka minutos ang milabay, nakita ni Lena si Maria nga nagpadulong sa iyang tindahan, nagpahiyom ug gitaas ang kamot."
         },
-    image: "/assets/LEVEL_1/STORY_1/PIC6.jpg"
+    image: "/converted/assets/LEVEL_1/STORY_1/PIC6.webp"
     };
 
     // single file playlist for slide 7: M8

@@ -6,7 +6,7 @@
             english: "When she tried to nudge the front tooth using her tongue, it wiggled, and she felt an ache. \u201cOuch! That hurts!\u201d",
             cebuano: "Sa dihang iyang gisulayan ug tandogon ang iyang ngipon sa atubangan gamit ang iyang dila, milihok kini, ug nakabati siya ug kasakit. \u201cAgay! Sakit kaayo!\u201d,"
         },
-    image: "/assets/LEVEL_3/STORY_1/PIC4.jpg"
+    image: "/converted/assets/LEVEL_3/STORY_1/PIC4.webp"
     };
 </script>
 

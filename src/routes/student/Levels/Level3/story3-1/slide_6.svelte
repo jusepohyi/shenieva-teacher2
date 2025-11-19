@@ -6,7 +6,7 @@
             english: "Tonya cried as she walked towards their kitchen. She had an idea when she saw the guava on the table. \u201cWhat if I bite this guava using my front tooth to see if it will go back to its original form?\u201d, she asked herself.",
             cebuano: "hilak ni Tonya samtang naglakaw padulong sa ilang kusina. Aduna siyay ideya sa dihang iyang nakita ang bayabas sa lamesa. \u201cUnsa kaha kung akoa kining paakon ang bayabas gamit ang akong ngipon sa atubangan aron makita kung mubalik ba kini sa orihinal nga posisyon niini?\u201d, pangutana niya sa iyang kaugalingon."
         },
-    image: "/assets/LEVEL_3/STORY_1/PIC5.jpg"
+    image: "/converted/assets/LEVEL_3/STORY_1/PIC5.webp"
     };
 </script>
 

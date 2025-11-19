@@ -4,7 +4,7 @@
     const slide = {
         english: { text: "After thinking about it, he decided to buy medicine for his brother which made him happy too even though he is a little sad about his dream toy." },
         cebuano: { text: "Pagkahuman sa paghunahuna, nakahukom siya nga mupalit ug tambal para sa iyang igsoon nga makapalipay usab kaniya bisan pa man ug siya masubo gamay bahin sa iyang pangandoy nga dulaan." },
-    image: '/assets/LEVEL_2/STORY_3/Pic6.jpg'
+    image: '/converted/assets/LEVEL_2/STORY_3/Pic6.webp'
     };
 
     $: currentText = $language === 'cebuano' ? slide.cebuano.text : slide.english.text;

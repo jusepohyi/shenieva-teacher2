@@ -1,7 +1,7 @@
 <?php
 
-// Include CORS handling early so headers are sent before any JSON or errors.
-require_once __DIR__ . '/cors.php';
+// CORS handling is now done in individual PHP files (not centralized)
+// require_once __DIR__ . '/cors.php';  // Disabled - using old approach
 
 // optional debug logger
 if (file_exists(__DIR__ . '/debug_log.php')) {

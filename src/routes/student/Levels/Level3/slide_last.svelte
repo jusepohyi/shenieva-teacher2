@@ -371,7 +371,7 @@
 <div class="flex flex-col justify-center items-center text-center slide">
     {#if slide.image}
         <div class="image-container">
-            <img src="/assets/school-bg.gif" alt="Congrats Scene" class="block mx-auto rounded-[2vw] shadow-lg" />
+            <img src="/converted/assets/school-bg.webp" alt="Congrats Scene" class="block mx-auto rounded-[2vw] shadow-lg" />
         </div>
     {/if}
 

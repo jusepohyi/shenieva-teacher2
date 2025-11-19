@@ -17,7 +17,7 @@
             english: "Lena agreed and said, \"No problem, Maria. I am trusting you to return and pay later.\" Maria smiled and thanked Lena.",
             cebuano: "Si Lena miuyon ug miingon, \"Walay problema, Maria. Nagsalig ko nga mubalik ka ug mubayad unya.\" Si Maria mipahiyom ug mipasalamat kang Lena."
         },
-    image: "/assets/LEVEL_1/STORY_1/PIC5.jpg"
+    image: "/converted/assets/LEVEL_1/STORY_1/PIC5.webp"
     };
 
     // playlist: M6, Lena 1, M7

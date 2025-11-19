@@ -4,7 +4,7 @@
     const slide = {
         english: { text: "Suddenly, the old woman collapsed and appeared to lose consciousness. Maya was shocked and she tried to look around." },
         cebuano: { text: "Kalit lang, natumba ang tigulang ug nakuyapan. Nakuratan si Maya ug sa nilantaw sa palibot." },
-    image: '/assets/LEVEL_2/STORY_2/PIC3.jpg'
+    image: '/converted/assets/LEVEL_2/STORY_2/PIC3.webp'
     };
 
     let currentLanguage;

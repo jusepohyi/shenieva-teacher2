@@ -6,7 +6,7 @@
             english: "Liloy and Lingling The Dog",
             cebuano: "Si Liloy ug si Lingling Ang Iro"
         },
-    image: '/assets/LEVEL_3/STORY_3/PIC1.jpg'
+    image: '/converted/assets/LEVEL_3/STORY_3/PIC1.webp'
     };
 </script>
 

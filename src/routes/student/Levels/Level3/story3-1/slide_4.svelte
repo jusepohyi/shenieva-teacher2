@@ -6,7 +6,7 @@
             english: "She saw that her tooth tilted a little.",
             cebuano: "Nakita niya nga mihiwi gamay ang iyang ngipon."
         },
-    image: "/assets/LEVEL_3/STORY_1/PIC3.jpg"
+    image: "/converted/assets/LEVEL_3/STORY_1/PIC3.webp"
     };
 </script>
 

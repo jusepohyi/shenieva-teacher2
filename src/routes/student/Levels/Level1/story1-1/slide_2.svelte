@@ -164,7 +164,7 @@
             english: "One afternoon, a regular customer and her trusted friend, Maria, came to Lena's store and bought a pack of salt, one kilo of rice, and a pack of sugar.",
             cebuano: "Sa usa ka hapon, usa sa iyang suki ug kasaligan nga higala nga si Maria miabot sa tindahan ug nipalit ug usa ka pakete sa asin, usa ka kilo nga bugas, ug usa ka pakete nga asukal."
         },
-    image: "/assets/LEVEL_1/STORY_1/PIC2.jpg"
+    image: "/converted/assets/LEVEL_1/STORY_1/PIC2.webp"
     };
 </script>
 

@@ -4,7 +4,7 @@
     const slide = {
         english: { text: "His mother asked him,\"What's the problem, Hector?\" Hector replied weakly, \"I cannot breathe properly, mother.\"" },
         cebuano: { text: "Nangutana ang iyang inahan, \"Unsay problema, Hector?\" Si Hector luyang mitubag, \"Dili ako makatarung ginhawa, inahan.\"" },
-    image: '/assets/LEVEL_2/STORY_1/PIC4.jpg'
+    image: '/converted/assets/LEVEL_2/STORY_1/PIC4.webp'
     };
 
     let currentLanguage;

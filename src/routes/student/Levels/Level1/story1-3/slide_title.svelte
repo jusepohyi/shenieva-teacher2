@@ -8,7 +8,7 @@
             english: "Hannah, the Honest Vendor",
             cebuano: "Hannah, ang Matinud-anong Tindera"
         },
-    image: '/assets/LEVEL_1/STORY_3/PIC1.jpg'
+    image: '/converted/assets/LEVEL_1/STORY_3/PIC1.webp'
     };
 
     let audioEl = null;

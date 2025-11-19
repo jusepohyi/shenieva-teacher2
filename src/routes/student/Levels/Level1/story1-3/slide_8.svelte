@@ -6,7 +6,7 @@
             english: "Hannah’s honesty made the customer smile and say, \"Thank you for being so honest. I will make sure to pay attention next time.\"",
             cebuano: "Sa usa ka hapon, usa sa iyang suki ug kasaligan nga higala nga si Maria miabot sa tindahan ug nipalit ug usa ka pakete sa asin, usa ka kilo nga bugas, ug usa ka pakete nga asukal."
         },
-    image: "/assets/LEVEL_1/STORY_3/PIC5.jpg"
+    image: "/converted/assets/LEVEL_1/STORY_3/PIC5.webp"
     };
 </script>
 

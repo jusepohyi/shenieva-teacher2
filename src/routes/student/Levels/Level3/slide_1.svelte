@@ -10,19 +10,19 @@
         {
             id: 1,
             title: "Tonya’s Tooth",
-            image: "/assets/LEVEL_3/STORY_1/PIC6.jpg",
+            image: "/converted/assets/LEVEL_3/STORY_1/PIC6.webp",
             key: "story3-1"
         },
         {
             id: 2,
             title: "Lola Gloria’s Flowerpot", 
-            image: "/assets/LEVEL_3/STORY_2/PIC4.jpg",
+            image: "/converted/assets/LEVEL_3/STORY_2/PIC4.webp",
             key: "story3-2"
         },
         {
             id: 3,
             title: "Liloy and Lingling The Dog",
-            image: "/assets/LEVEL_3/STORY_3/pic1.jpg",
+            image: "/converted/assets/LEVEL_3/STORY_3/pic1.webp",
             key: "story3-3"
         }
     ];

@@ -8,7 +8,7 @@
             english: "Maria's Promise",
             cebuano: "Ang Saad ni Maria"
         },
-    image: '/assets/LEVEL_1/STORY_1/PIC1.jpg'
+    image: '/converted/assets/LEVEL_1/STORY_1/PIC1.webp'
     };
 
     let audioEl = null;

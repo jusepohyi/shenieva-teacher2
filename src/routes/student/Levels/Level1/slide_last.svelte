@@ -534,7 +534,7 @@
     {#if slide.image}
         <div class="image-container">
             <img
-                src="/assets/school-bg.gif"
+                src="/converted/assets/school-bg.webp"
                 alt="Congrats Scene"
                 class="block mx-auto rounded-[2vw] shadow-lg"
             />

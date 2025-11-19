@@ -169,7 +169,7 @@
             english: "There is a sari-sari store owner named Lena. She serves her customers every day with a smile.",
             cebuano: "Adunay tag-iya sa usa ka sari-sari nga tindahan nga ginganlan ug Lena. Nagaserbisyo siya sa mga kustomer matag adlaw uban ang usa ka pahiyom."
         },
-    image: "/assets/LEVEL_1/STORY_1/PIC1.jpg"
+    image: "/converted/assets/LEVEL_1/STORY_1/PIC1.webp"
     };
 </script>
 

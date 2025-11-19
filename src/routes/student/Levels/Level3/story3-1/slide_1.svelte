@@ -6,7 +6,7 @@
             english: "Tonya’s tooth",
             cebuano: "Ngipon ni Tonya"
         },
-            image: '/assets/LEVEL_3/STORY_1/PIC6.jpg'
+            image: '/converted/assets/LEVEL_3/STORY_1/PIC6.webp'
     };
 </script>
 

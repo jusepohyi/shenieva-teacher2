@@ -1,4 +1,4 @@
-﻿<script>
+<script>
   import { slide } from "svelte/transition";
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
@@ -22,7 +22,7 @@
 
 <div in:slide={{ duration: 400 }}>
   <h1 class="text-3xl font-bold text-blue-500 text-center mb-[0.5vh] animate-bounce">
-    Welcome Home! 🏠
+    Welcome Home! ??
   </h1>
   
   {#if canEnterHome}
@@ -36,7 +36,7 @@
     
     <div class="text-center mt-[1vh]">
       <button class="visit-home-btn" on:click={goToHome}>
-        🏡 Visit My Home
+        🏡 Visit Shenievia's Home
       </button>
     </div>
   {:else}
@@ -45,7 +45,7 @@
     </p>
     
     <div class="locked-home">
-      <div class="lock-icon">🔒</div>
+      <div class="lock-icon">??</div>
       <p class="lock-text">Complete Level 1, 2, and 3 to access your home</p>
     </div>
   {/if}

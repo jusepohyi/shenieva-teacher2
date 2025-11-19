@@ -6,7 +6,7 @@
             english: "Rosa and Juan's hearts were beating so loud when Lola Gloria came home.",
             cebuano: "Ang kasingkasing ni Rosa ug Juan kusog kaayo sa pagpitik samtang nakauli na si Lola Gloria."
         },
-    image: "/assets/LEVEL_3/STORY_2/PIC5.jpg"
+    image: "/converted/assets/LEVEL_3/STORY_2/PIC5.webp"
     };
 </script>
 

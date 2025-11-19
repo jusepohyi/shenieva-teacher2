@@ -3,6 +3,7 @@
     import { language } from "$lib/store/story_lang_audio";
     import { studentData } from '$lib/store/student_data';
     import { tick } from 'svelte';
+    import { preloadLevelAssets } from '$lib/utils/story_assets';
 
     type SvelteComponent = any;
     let StorySlide: any = null;
@@ -15,6 +16,12 @@
     let isLoading: boolean = true;
     let showLanguageModal: boolean = false;
     let errorMessage: string = '';
+    
+    // Asset preloading state
+    let loadingProgress: number = 0;
+    let loadingText: string = 'Preparing assets...';
+    let totalAssets: number = 0;
+    let loadedAssets: number = 0;
 
     const maxSlidesMap: Record<string, number> = {
         'story3-1': 8,
@@ -99,9 +106,32 @@
     let totalSlides: number = baseSlides.length - 1; // will be 0
 
     $: if (showModal && isLoading) {
-        setTimeout(() => {
-            isLoading = false;
-        }, 1000);
+        // Real asset preloading for Level 3
+        (async () => {
+            try {
+                await preloadLevelAssets('Level3', (loaded, total, type, url) => {
+                    loadedAssets = loaded;
+                    totalAssets = total;
+                    loadingProgress = Math.round((loaded / total) * 100);
+                    
+                    if (type === 'image') {
+                        loadingText = `Loading images... ${loaded}/${total}`;
+                    } else if (type === 'audio') {
+                        loadingText = `Loading audio... ${loaded}/${total}`;
+                    }
+                });
+                
+                // All assets loaded
+                loadingText = 'Ready! ✨';
+                await new Promise(resolve => setTimeout(resolve, 300));
+                isLoading = false;
+            } catch (error) {
+                console.error('Level 3 asset preloading failed:', error);
+                // Fallback: continue anyway after short delay
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                isLoading = false;
+            }
+        })();
     }
 
     async function nextSlide(): Promise<void> {
@@ -199,14 +229,27 @@
 {#if showModal}
     {#if isLoading}
         <div
-            class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50"
+            class="fixed inset-0 bg-gray-800 bg-opacity-75 flex flex-col items-center justify-center z-50"
         >
             <div
                 class="w-[10vw] h-[10vw] max-w-[60px] max-h-[60px] border-[1vw] border-t-lime-500 border-gray-300 rounded-full animate-spin"
             ></div>
-            <p class="absolute text-[4vw] md:text-xl text-white mt-[15vh] font-bold">
-                Loading Adventure... ✨
+            <p class="text-[4vw] md:text-xl text-white mt-8 font-bold">
+                {loadingText}
             </p>
+            {#if totalAssets > 0}
+                <div class="mt-4 w-[60vw] max-w-[400px]">
+                    <div class="bg-gray-700 rounded-full h-3 overflow-hidden">
+                        <div 
+                            class="bg-lime-500 h-full transition-all duration-300 ease-out"
+                            style="width: {loadingProgress}%"
+                        ></div>
+                    </div>
+                    <p class="text-white text-center mt-2 text-sm">
+                        {loadingProgress}% ({loadedAssets}/{totalAssets})
+                    </p>
+                </div>
+            {/if}
         </div>
     {/if}
 

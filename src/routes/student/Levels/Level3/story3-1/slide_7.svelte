@@ -7,7 +7,7 @@
             english: "Tonya opened her mouth and bit the guava.",
             cebuano: "Giablihan ni Tonya ang iyang baba ug gipaak ang bayabas."
         },
-    image: "/assets/LEVEL_3/STORY_1/PIC6.jpg"
+    image: "/converted/assets/LEVEL_3/STORY_1/PIC6.webp"
     };
 </script>
 

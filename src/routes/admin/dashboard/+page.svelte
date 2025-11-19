@@ -11,7 +11,7 @@
   import { goto } from "$app/navigation";
   import SettingsModal from "../modals/settings.svelte";
   // Avoid importing the image as a JS module; use a string path instead.
-  const modalBg = "/assets/icons/modal-bg.jpg";
+  const modalBg = "/converted/assets/icons/modal-bg.webp";
 
   let showMenu = false;
   let showLogoutModal = false;

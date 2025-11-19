@@ -6,7 +6,7 @@
             english: "One day, Hannah was selling snacks at her stall when a customer bought two sticks of banana cue and a cup of juice. After Hannah gave the food to the customer, the customer quickly left.",
             cebuano: "Sa usa ka hapon, usa sa iyang suki ug kasaligan nga higala nga si Maria miabot sa tindahan ug nipalit ug usa ka pakete sa asin, usa ka kilo nga bugas, ug usa ka pakete nga asukal."
         },
-    image: "/assets/LEVEL_1/STORY_3/PIC2.jpg"
+    image: "/converted/assets/LEVEL_1/STORY_3/PIC2.webp"
     };
 </script>
 

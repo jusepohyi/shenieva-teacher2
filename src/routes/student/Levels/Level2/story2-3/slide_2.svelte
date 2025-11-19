@@ -4,7 +4,7 @@
     const slide = {
         english: { text: "Royce is a child known for saving things and money. He has been saving money for a long time because he wants to buy his dream toy." },
         cebuano: { text: "Si Royce usa ka bata nga ilado sa pagtipid sa mga butang ug kwarta. Dugay na siya nagtipid sa iyang kwarta tungod kay gusto niya mupalit sa iyang pangandoy nga dulaan." },
-    image: '/assets/LEVEL_2/STORY_3/Pic1.jpg'
+    image: '/converted/assets/LEVEL_2/STORY_3/Pic1.webp'
     };
 
     $: currentText = $language === 'cebuano' ? slide.cebuano.text : slide.english.text;

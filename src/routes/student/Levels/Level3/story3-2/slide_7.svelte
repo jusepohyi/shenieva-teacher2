@@ -6,7 +6,7 @@
             english: "Even when their hands were trembling as they greeted their Lola Gloria, they knew the right thing to do.",
             cebuano: "Bisan pa man nagkurog ang ilang mga kamot samtang sila mitimbaya sa ilang Lola Gloria, nasayud sila sa sakto nga buhaton."
         },
-    image: "/assets/LEVEL_3/STORY_2/PIC6.jpg"
+    image: "/converted/assets/LEVEL_3/STORY_2/PIC6.webp"
     };
 </script>
 

@@ -6,7 +6,7 @@
             english: "One day, Candice went to the sari-sari store to buy another pack of candies. At night, she ate all of the candies she bought and refused to brush her teeth.",
             cebuano: "Sa usa ka hapon, usa sa iyang suki ug kasaligan nga higala nga si Maria miabot sa tindahan ug nipalit ug usa ka pakete sa asin, usa ka kilo nga bugas, ug usa ka pakete nga asukal."
         },
-    image: "/assets/LEVEL_1/STORY_2/PIC3.jpg"
+    image: "/converted/assets/LEVEL_1/STORY_2/PIC3.webp"
     };
 </script>
 

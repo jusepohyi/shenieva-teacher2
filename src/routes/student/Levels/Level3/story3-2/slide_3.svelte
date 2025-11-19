@@ -6,7 +6,7 @@
             english: "Rosa noticed that the sun became brighter and hotter as the time went by, so she told Juan to continue playing inside their house.",
             cebuano: "Nakabantay si Rosa nga nagkahayag ug nagkainit ang adlaw samtang nagpadayon ang oras, mao nga miingon siya kang Juan nga magdula nalang sila sulod sa balay."
         },
-    image: "/assets/LEVEL_3/STORY_2/PIC2.jpg"
+    image: "/converted/assets/LEVEL_3/STORY_2/PIC2.webp"
     };
 </script>
 

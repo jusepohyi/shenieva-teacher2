@@ -4,7 +4,7 @@
     const slide = {
         english: { text: "From that day on, Hector always eats healthy foods and started exercising which caused him to develop a healthy body and happy life." },
         cebuano: { text: "Sukad niadto, si Hector kanunay nang mukaon ug mga makahimsog nga pagkaon ug nagsugod sa pag-ehersisyo nga nakatabang kaniya sa pagpalambo sa himsog nga lawas ug malipayong kinabuhi." },
-    image: '/assets/LEVEL_2/STORY_1/PIC6.jpg'
+    image: '/converted/assets/LEVEL_2/STORY_1/PIC6.webp'
     };
 
     let currentLanguage;

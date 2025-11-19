@@ -7,7 +7,7 @@
             english: "One morning, Tonya woke up early.",
             cebuano: "Usa ka buntag, sayo nga nagmata si Tonya."
         },
-    image: "/assets/LEVEL_3/STORY_1/PIC1.jpg"
+    image: "/converted/assets/LEVEL_3/STORY_1/PIC1.webp"
     };
 </script>
 

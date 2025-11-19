@@ -8,7 +8,7 @@
         cebuano: {
             text: "Sa usa ka mainit nga adlaw, si Hector ug ang iyang higala naglakaw padulong sa merkado aron tabangan ang ilang mga ginikanan. “Hector! Hector! Dali na!”, tawag sa iyang higala kay pirmi man siya malangay sa paglakaw.",
         },
-    image: '/assets/LEVEL_2/STORY_1/PIC2.jpg'
+    image: '/converted/assets/LEVEL_2/STORY_1/PIC2.webp'
     };
 
     let currentLanguage;

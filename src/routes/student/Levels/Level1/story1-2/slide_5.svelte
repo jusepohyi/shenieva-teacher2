@@ -6,7 +6,7 @@
             english: "While sleeping, her cheek became swollen and she felt the pain in her teeth. Candice run towards her mother who said, \“I told you, it’s not good to eat too much sweets and candies without brushing your teeth. Let’s go to the dentist tomorrow and remember to brush your teeth from now on\".",
             cebuano: "Sa usa ka hapon, usa sa iyang suki ug kasaligan nga higala nga si Maria miabot sa tindahan ug nipalit ug usa ka pakete sa asin, usa ka kilo nga bugas, ug usa ka pakete nga asukal."
         },
-    image: "/assets/LEVEL_1/STORY_2/PIC4.jpg"
+    image: "/converted/assets/LEVEL_1/STORY_2/PIC4.webp"
     };
 </script>
 

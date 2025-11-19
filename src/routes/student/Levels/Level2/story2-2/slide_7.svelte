@@ -4,7 +4,7 @@
     const slide = {
         english: { text: "Thankfully, the woman was brought to the nearest clinic to receive aid while Maya watched over her. When the old woman woke up, she felt grateful to Maya for her kindness and help. Maya smiled and felt happy." },
         cebuano: { text: "Sa pagpasalamat, ang tigulang gidala sa pinakaduol nga klinika arun matabangan samtang si Maya nagbantay kaniya. Sa pagkahuman, ningmata ang tigulang ug nakabati siya ug dakong pasalamat kang Maya tungod sa iyang kaayo ug tabang. Si Maya mipahiyom ug nakabati siya ug kalipay." },
-    image: '/assets/LEVEL_2/STORY_2/PIC5.jpg'
+    image: '/converted/assets/LEVEL_2/STORY_2/PIC5.webp'
     };
 
     $: currentText = $language === 'cebuano' ? slide.cebuano.text : slide.english.text;

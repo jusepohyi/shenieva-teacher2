@@ -4,7 +4,7 @@
     const slide = {
         english: { text: "When Royce came home from school, he decided to open his piggy bank." },
         cebuano: { text: "Usa ka adlaw, pag-uli niya gikan sa tulunghaan, nakahukom si Royce nga ablihan ang iyang alkansiya." },
-    image: '/assets/LEVEL_2/STORY_3/Pic2.jpg'
+    image: '/converted/assets/LEVEL_2/STORY_3/Pic2.webp'
     };
 
     $: currentText = $language === 'cebuano' ? slide.cebuano.text : slide.english.text;

@@ -15,6 +15,7 @@ $allowed = array_filter(array_map('trim', explode(',', $allowed_env)));
 if (empty($allowed)) {
     $allowed = [
         'http://localhost:5173',
+        'http://localhost:5174',  // Alternative dev port
         // Hostinger preview domain (temporary). Add production domains via ALLOWED_ORIGINS or ALLOWED_HOSTING_PREVIEW env.
         'https://darkred-dinosaur-537713.hostingersite.com',
         // Netlify default origin for your site and your custom domain — add more as needed

@@ -72,7 +72,7 @@
 </script>
 
 <div class="flex items-center justify-center min-h-screen bg-gray-100"
-  style="background: url('/assets/readville.jpg') no-repeat center center/cover;">
+  style="background: url('/converted/assets/readville.webp') no-repeat center center/cover;">
   <div class={cardClasses}>
     {#if showStart}
       <div class="flex flex-col items-center justify-center py-8">

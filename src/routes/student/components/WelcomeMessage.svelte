@@ -11,8 +11,8 @@
 
   // Compute portrait path for Shenievia depending on selected gender
   $: shenieviaPortrait = gender === 'boy'
-  ? '/assets/Level_Walkthrough/shenievia/boy/front/1.png'
-  : '/assets/Level_Walkthrough/shenievia/girl/front/1.png';
+  ? '/converted/assets/Level_Walkthrough/shenievia/boy/front/1.webp'
+  : '/converted/assets/Level_Walkthrough/shenievia/girl/front/1.webp';
 
   // Convert boy/girl to Male/Female for database (not displayed)
   const dbGender: "Male" | "Female" = gender === "boy" ? "Male" : "Female";

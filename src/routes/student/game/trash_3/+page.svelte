@@ -96,13 +96,15 @@
     let showPreloader = true;
 
     // Pre-expand critical URLs for this game scene
-    const _crit1 = import.meta.glob('/static/assets/trash_collect_game/boy/walking_sprite/**/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
-    const _crit2 = import.meta.glob('/static/assets/trash_collect_game/girl/walking_sprite/**/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
-    const _crit3 = import.meta.glob('/static/assets/trash_collect_game/ground/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
-    const _crit4 = import.meta.glob('/static/assets/trash_collect_game/house/story2/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
+    // Files in /static are served from root, so we don't use /static/ prefix in runtime paths
+    // But import.meta.glob needs paths relative to project root
+    const _crit1 = import.meta.glob('/static/trash_collect_game/boy/walking_sprite/**/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
+    const _crit2 = import.meta.glob('/static/trash_collect_game/girl/walking_sprite/**/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
+    const _crit3 = import.meta.glob('/static/trash_collect_game/ground/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
+    const _crit4 = import.meta.glob('/static/trash_collect_game/house/story2/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
     const criticalUrls = Array.from(new Set([...Object.values(_crit1), ...Object.values(_crit2), ...Object.values(_crit3), ...Object.values(_crit4)].filter(Boolean)));
 
-    const _non1 = import.meta.glob('/static/assets/trash_collect_game/trash/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
+    const _non1 = import.meta.glob('/static/trash_collect_game/trash/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
     const nonCriticalUrls = Array.from(new Set([...Object.values(_non1)].filter(Boolean)));
 
     async function loadImage(src: string): Promise<HTMLImageElement> {
@@ -119,24 +121,24 @@
         const gender = currentStudent?.studentGender ?? 'Male';
 
         const character = gender === 'Female' ? {
-            walking_right: await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/assets/trash_collect_game/girl/walking_sprite/walking_right/${i+1}.png`))),
-            walking_left: await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/assets/trash_collect_game/girl/walking_sprite/walking_left/${i+1}.png`))),
-            walking_front: await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/assets/trash_collect_game/girl/walking_sprite/walking_front/${i+1}.png`))),
-            walking_back: await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/assets/trash_collect_game/girl/walking_sprite/walking_back/${i+1}.png`)))
+            walking_right: await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/converted/trash_collect_game/girl/walking_sprite/walking_right/${i+1}.webp`))),
+            walking_left: await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/converted/trash_collect_game/girl/walking_sprite/walking_left/${i+1}.webp`))),
+            walking_front: await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/converted/trash_collect_game/girl/walking_sprite/walking_front/${i+1}.webp`))),
+            walking_back: await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/converted/trash_collect_game/girl/walking_sprite/walking_back/${i+1}.webp`)))
         } : {
-            walking_right: await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/assets/trash_collect_game/boy/walking_sprite/walking_right/${i+1}.png`))),
-            walking_left: await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/assets/trash_collect_game/boy/walking_sprite/walking_left/${i+1}.png`))),
-            walking_front: await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/assets/trash_collect_game/boy/walking_sprite/walking_front/${i+1}.png`))),
-            walking_back: await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/assets/trash_collect_game/boy/walking_sprite/walking_back/${i+1}.png`)))
+            walking_right: await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/converted/trash_collect_game/boy/walking_sprite/walking_right/${i+1}.webp`))),
+            walking_left: await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/converted/trash_collect_game/boy/walking_sprite/walking_left/${i+1}.webp`))),
+            walking_front: await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/converted/trash_collect_game/boy/walking_sprite/walking_front/${i+1}.webp`))),
+            walking_back: await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/converted/trash_collect_game/boy/walking_sprite/walking_back/${i+1}.webp`)))
         };
 
         const ground = {
-            soil: await loadImage('/assets/trash_collect_game/ground/soil.png'),
-            grass: await loadImage('/assets/trash_collect_game/ground/grass.png')
+            soil: await loadImage('/converted/trash_collect_game/ground/soil.webp'),
+            grass: await loadImage('/converted/trash_collect_game/ground/grass.webp')
         };
-        const house = await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/assets/trash_collect_game/house/story2/${i+1}.png`)));
-        const trees = await Promise.all(Array(5).fill(null).map((_, i) => loadImage(`/assets/trash_collect_game/trees/${i+1}.png`)));
-        const trash = await Promise.all(Array(25).fill(null).map((_, i) => loadImage(`/assets/trash_collect_game/trash/${String(i+1).padStart(2, '0')}-${getTrashName(i+1)}.png`)));
+        const house = await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/converted/trash_collect_game/house/story2/${i+1}.webp`)));
+        const trees = await Promise.all(Array(5).fill(null).map((_, i) => loadImage(`/converted/trash_collect_game/trees/${i+1}.webp`)));
+        const trash = await Promise.all(Array(25).fill(null).map((_, i) => loadImage(`/converted/trash_collect_game/trash/${String(i+1).padStart(2, '0')}-${getTrashName(i+1)}.webp`)));
         return { character, ground, house, trees, trash };
     }
 
@@ -724,11 +726,11 @@
 
         // Use document.createElement instead of new Audio() to avoid Vite StubAudio
         collectSound = document.createElement('audio');
-        collectSound.src = '/assets/trash_collect_game/audio/collect_effect.mp3';
+        collectSound.src = '/trash_collect_game/audio/collect_effect.mp3';
         collectSound.volume = 0.7;
 
         bgMusic = document.createElement('audio');
-        bgMusic.src = '/assets/trash_collect_game/audio/game_bg.mp3';
+        bgMusic.src = '/trash_collect_game/audio/game_bg.mp3';
         bgMusic.loop = true;
         bgMusic.volume = 0.5;
 

@@ -17,7 +17,7 @@
             english: "She apologized to Lena and said, \"I'm sorry, I don't have any small bill. I'll come back later to pay you.\" Lena smiled and nodded.",
             cebuano: "Miingon si Maria nga, \"Pasayloa ko, wala koy gagmay nga kwarta. Mubalik lang ko unya para mubayad.\" Si Lena mipahiyom ug nitando."
         },
-    image: "/assets/LEVEL_1/STORY_1/PIC4.jpg"
+    image: "/converted/assets/LEVEL_1/STORY_1/PIC4.webp"
     };
 
     // playlist per speed: M4, Maria 1, M5

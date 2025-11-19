@@ -18,7 +18,7 @@
     { name: 'Plaza', path: '/assets/Level_Walkthrough/places/plaza.webp', isLevel: true, level: 3, title: 'Plaza' },
     { name: 'Plains', path: '/assets/Level_Walkthrough/places/plain.webp', isLevel: false },
     { name: "Shenievia's Home", path: '/assets/Level_Walkthrough/places/home.webp', isLevel: false, canEnter: true },
-    { name: "Shenievia's Home", path: '/assets/Level_Walkthrough/places/home-inside.png', isLevel: false, isInterior: true }
+    { name: "Shenievia's Home", path: '/converted/assets/Level_Walkthrough/places/home-inside.webp', isLevel: false, isInterior: true }
     ];
 
     // State variables
@@ -63,6 +63,7 @@
     let showLoading = true; // Show loading screen
     let loadingProgress = 0; // Loading progress (0-100)
     let loadingText = 'Loading Readville Village...'; // Loading text
+    let villageAssetsPreloaded = false; // Track if assets already preloaded in session
 
     // Character sprite configuration
     let gender: 'boy' | 'girl' = 'boy';
@@ -89,53 +90,120 @@
         return 0; // Always start at School
     }
 
+    // Preload all village assets
+    async function preloadVillageAssets() {
+        // Skip if already preloaded in this session
+        if (villageAssetsPreloaded) {
+            console.log('✅ Village assets already preloaded in this session, skipping...');
+            loadingProgress = 100;
+            loadingText = 'Ready!';
+            // Add delay to match normal flow
+            await new Promise(resolve => setTimeout(resolve, 300));
+            return;
+        }
+        
+        const student = $studentData as StudentData | null;
+        const currentGender = student?.studentGender === 'Female' ? 'girl' : 'boy';
+        
+        // Define all assets to preload
+        const assetsToLoad = [
+            // Walking sprites for current gender (7 frames)
+            `/converted/assets/Level_Walkthrough/shenievia/${currentGender}/forward/1.webp`,
+            `/converted/assets/Level_Walkthrough/shenievia/${currentGender}/forward/2.webp`,
+            `/converted/assets/Level_Walkthrough/shenievia/${currentGender}/forward/3.webp`,
+            `/converted/assets/Level_Walkthrough/shenievia/${currentGender}/back/1.webp`,
+            `/converted/assets/Level_Walkthrough/shenievia/${currentGender}/back/2.webp`,
+            `/converted/assets/Level_Walkthrough/shenievia/${currentGender}/back/3.webp`,
+            `/converted/assets/Level_Walkthrough/shenievia/${currentGender}/front/1.webp`,
+            
+            // All scene backgrounds (9 scenes)
+            '/assets/Level_Walkthrough/places/school.webp',
+            '/assets/Level_Walkthrough/places/plain.webp',
+            '/assets/Level_Walkthrough/places/sarisaristore.webp',
+            '/assets/Level_Walkthrough/places/houses1.webp',
+            '/assets/Level_Walkthrough/places/wetmarket.webp',
+            '/assets/Level_Walkthrough/places/houses2.webp',
+            '/assets/Level_Walkthrough/places/plaza.webp',
+            '/assets/Level_Walkthrough/places/home.webp',
+            '/converted/assets/Level_Walkthrough/places/home-inside.webp',
+            
+            // Gift system assets
+            '/converted/assets/Level_Walkthrough/gift/gift-box.webp'
+        ];
+        
+        let loaded = 0;
+        const total = assetsToLoad.length;
+        
+        loadingText = 'Loading village assets...';
+        
+        // Preload all images
+        const promises = assetsToLoad.map(url => {
+            return new Promise<void>((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => {
+                    loaded++;
+                    loadingProgress = Math.floor((loaded / total) * 100);
+                    
+                    // Update loading text based on progress
+                    if (loaded <= 7) {
+                        loadingText = `Loading character sprites... ${loaded}/${total}`;
+                    } else if (loaded <= 16) {
+                        loadingText = `Loading scenes... ${loaded}/${total}`;
+                    } else {
+                        loadingText = `Almost ready... ${loaded}/${total}`;
+                    }
+                    
+                    resolve();
+                };
+                img.onerror = () => {
+                    console.warn(`Failed to load: ${url}`);
+                    loaded++;
+                    loadingProgress = Math.floor((loaded / total) * 100);
+                    resolve(); // Continue even if one asset fails
+                };
+                img.src = url;
+            });
+        });
+        
+        await Promise.all(promises);
+        
+        loadingProgress = 100;
+        loadingText = 'Ready!';
+        
+        // Mark village as preloaded
+        villageAssetsPreloaded = true;
+        
+        // Short delay to show 100% completion
+        await new Promise(resolve => setTimeout(resolve, 300));
+    }
+
     // Initialize from studentData
-    onMount(() => {
+    onMount(async () => {
         // Stop all audio first, then restart default BGM during loading screen
         audioStore.stopAll();
         setTimeout(() => {
             audioStore.playTrack('default');
         }, 100);
         
-        // Simulate loading progress - at least 4 seconds
-        const loadingSteps = [
-            { progress: 15, text: 'Loading Readville Village...', delay: 0 },
-            { progress: 30, text: 'Preparing scenes...', delay: 800 },
-            { progress: 50, text: 'Loading characters...', delay: 800 },
-            { progress: 70, text: 'Setting up environment...', delay: 800 },
-            { progress: 90, text: 'Almost ready...', delay: 800 },
-            { progress: 100, text: 'Ready!', delay: 800 }
-        ];
-        
-        let currentStep = 0;
-        
-        const progressInterval = setInterval(() => {
-            if (currentStep < loadingSteps.length) {
-                const step = loadingSteps[currentStep];
-                loadingProgress = step.progress;
-                loadingText = step.text;
-                currentStep++;
-            } else {
-                clearInterval(progressInterval);
-                // Hide loading screen and show entrance fade (total: ~4 seconds)
-                setTimeout(() => {
-                    showLoading = false;
-                    // Play village background music after loading screen
-                    audioStore.playTrack('village');
-                    // Fade out the white entrance transition
-                    setTimeout(() => {
-                        showEntranceFade = false;
-                        // After the entrance fade completes, stop forcing the default front sprite
-                        // so normal direction/animation logic can take over.
-                        defaultFront = false;
-                    }, 500);
-                }, 500);
-            }
-        }, 800);
-        
         const student = $studentData as StudentData | null;
         if (student) {
             gender = student.studentGender === 'Female' ? 'girl' : 'boy';
+            
+            // Preload all village assets before starting
+            await preloadVillageAssets();
+            
+            // Hide loading screen and show entrance fade
+            showLoading = false;
+            // Play village background music after loading screen
+            audioStore.playTrack('village');
+            
+            // Fade out the white entrance transition
+            setTimeout(() => {
+                showEntranceFade = false;
+                // After the entrance fade completes, stop forcing the default front sprite
+                // so normal direction/animation logic can take over.
+                defaultFront = false;
+            }, 500);
             
             // Check if coming from dashboard with direct home access
             const goDirectToHome = localStorage.getItem('goDirectlyToHome');
@@ -1049,39 +1117,39 @@
 
     // Get current sprite path
     $: currentSprite = (() => {
-    const basePath = `/assets/Level_Walkthrough/shenievia/${gender}`;
+    const basePath = `/converted/assets/Level_Walkthrough/shenievia/${gender}`;
         // If a scene just loaded and we want to show the front-facing sprite by default,
         // honor that before other direction logic.
         if (defaultFront) {
-            return `${basePath}/front/1.png`;
+            return `${basePath}/front/1.webp`;
         }
         
         // Show front sprite when transitioning between directions
         if (showFrontTransition) {
-            return `${basePath}/front/1.png`;
+            return `${basePath}/front/1.webp`;
         }
         
         // Show turning sprite when changing direction (legacy - kept for compatibility)
         if (isTurning) {
-            return `${basePath}/front/1.png`;
+            return `${basePath}/front/1.webp`;
         }
         
         if (direction === 'idle') {
             // Keep showing last frame when idle
             if (lastDirection === 'right') {
-                return `${basePath}/forward/${lastAnimationFrame + 1}.png`;
+                return `${basePath}/forward/${lastAnimationFrame + 1}.webp`;
             } else if (lastDirection === 'left') {
-                return `${basePath}/back/${lastAnimationFrame + 1}.png`;
+                return `${basePath}/back/${lastAnimationFrame + 1}.webp`;
             } else {
                 // Default to front if no previous direction
-                return `${basePath}/front/1.png`;
+                return `${basePath}/front/1.webp`;
             }
         } else if (direction === 'right') {
             // Moving right: cycle through forward sprites only
-            return `${basePath}/forward/${animationFrame + 1}.png`;
+            return `${basePath}/forward/${animationFrame + 1}.webp`;
         } else {
             // Moving left: cycle through back sprites only
-            return `${basePath}/back/${animationFrame + 1}.png`;
+            return `${basePath}/back/${animationFrame + 1}.webp`;
         }
     })();
 
@@ -1147,7 +1215,7 @@ $: if (isMoving) {
             
             <!-- Character Preview -->
             <div class="loading-character">
-                <img src="/assets/Level_Walkthrough/shenievia/{gender}/front/1.png" alt="Character" />
+                <img src="/converted/assets/Level_Walkthrough/shenievia/{gender}/front/1.webp" alt="Character" />
             </div>
             
             <!-- Progress Bar -->
@@ -1199,7 +1267,7 @@ $: if (isMoving) {
     {#if scenes[currentScene].isInterior}
         <div class="gift-box" on:click={handleGiftBoxClick} on:keydown={(e) => e.key === 'Enter' && handleGiftBoxClick()} role="button" tabindex="0" aria-label="Gift box">
             <div class="gift-box-label">Gifts for Shenievia!</div>
-            <img src="/assets/Level_Walkthrough/gift/gift-box.gif" alt="Gift Box" />
+            <img src="/converted/assets/Level_Walkthrough/gift/gift-box.webp" alt="Gift Box" />
         </div>
     {/if}
 
@@ -1237,7 +1305,7 @@ $: if (isMoving) {
         <div class="dialogue-box">
             <!-- Character portrait -->
             <div class="dialogue-portrait">
-                <img src="/assets/Level_Walkthrough/shenievia/{gender}/front/1.png" alt="Character" />
+                <img src="/converted/assets/Level_Walkthrough/shenievia/{gender}/front/1.webp" alt="Character" />
             </div>
             
             <!-- Dialogue content -->
@@ -1326,7 +1394,7 @@ $: if (isMoving) {
                     {#each currentGifts as gift}
                         <div class="gift-item">
                             <div class="gift-item-image-container">
-                                <img src="/assets/Level_Walkthrough/gift/gifts/{gift.gift}.png" alt={gift.gift} class="gift-item-image" />
+                                <img src="/converted/assets/Level_Walkthrough/gift/gifts/{gift.gift}.webp" alt={gift.gift} class="gift-item-image" />
                             </div>
                             <div class="gift-item-name">{gift.gift.charAt(0).toUpperCase() + gift.gift.slice(1)}</div>
                         </div>

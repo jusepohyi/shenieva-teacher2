@@ -4,7 +4,7 @@
   import { createEventDispatcher } from "svelte";
   // Avoid importing the image as a JS module (Vite may request it as ?import).
   // Use a string path so the browser requests it as a normal image resource.
-  const modalBg = "/assets/icons/modal-bg.jpg";
+  const modalBg = "/converted/assets/icons/modal-bg.webp";
   import { apiUrl } from '$lib/api_base';
 
   export let person;

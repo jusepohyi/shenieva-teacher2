@@ -6,7 +6,7 @@
             english: "Suddenly, they both bumped into each other and accidentally knocked off Lola Gloria's flowerpot placed on the table and broke it.",
             cebuano: "Kalit lang, nagkabangga sila ug aksidenteng nahulog ang paso ni Lola Gloria nga gibutang sa lamesa ug kini nabuak."
         },
-    image: "/assets/LEVEL_3/STORY_2/PIC4.jpg"
+    image: "/converted/assets/LEVEL_3/STORY_2/PIC4.webp"
     };
 </script>
 

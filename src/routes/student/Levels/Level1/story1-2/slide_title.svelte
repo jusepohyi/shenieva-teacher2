@@ -8,7 +8,7 @@
             english: "Candice and Candies",
             cebuano: "Si Candice ug ang mga Kendi"
         },
-    image: '/assets/LEVEL_1/STORY_2/PIC1.jpg'
+    image: '/converted/assets/LEVEL_1/STORY_2/PIC1.webp'
     };
 
     let audioEl = null;

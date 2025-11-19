@@ -18,6 +18,9 @@ Thumbs.db
 .env.*
 !.env.example
 !.env.test
+!.env.production.example
+# Keep .env.production in repo as template (no sensitive data)
+# Use Netlify environment variables for actual API URL
 
 # Vite
 vite.config.js.timestamp-*

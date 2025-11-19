@@ -4,7 +4,7 @@
     const slide = {
         english: { text: "One day, on her way home, Maya was crossing the street when she noticed an old woman sitting under a tree, appearing weak." },
         cebuano: { text: "Usa ka adlaw, samtang pauli si Maya ug padulong mutabok siya sa dalan, nakamatikod siya sa usa ka tigulang nga babaye nga naglingkod ilawom sa kahoy, kini makitang luya." },
-    image: '/assets/LEVEL_2/STORY_2/PIC2.jpg'
+    image: '/converted/assets/LEVEL_2/STORY_2/PIC2.webp'
     };
 
     let currentLanguage;
