@@ -128,7 +128,7 @@
             '/converted/assets/Level_Walkthrough/places/home-inside.webp',
             
             // Gift system assets
-            '/converted/assets/Level_Walkthrough/gift/gift-box.webp'
+            '/assets/Level_Walkthrough/gift/gift-box.gif'
         ];
         
         let loaded = 0;
@@ -1267,7 +1267,7 @@ $: if (isMoving) {
     {#if scenes[currentScene].isInterior}
         <div class="gift-box" on:click={handleGiftBoxClick} on:keydown={(e) => e.key === 'Enter' && handleGiftBoxClick()} role="button" tabindex="0" aria-label="Gift box">
             <div class="gift-box-label">Gifts for Shenievia!</div>
-            <img src="/converted/assets/Level_Walkthrough/gift/gift-box.webp" alt="Gift Box" />
+            <img src="/assets/Level_Walkthrough/gift/gift-box.gif" alt="Gift Box" />
         </div>
     {/if}
 
@@ -1832,7 +1832,7 @@ $: if (isMoving) {
     }
 
     .gift-box img {
-        width: 150px;
+        width: 250px;
         height: auto;
         filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.3));
     }
