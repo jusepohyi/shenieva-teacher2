@@ -4,19 +4,18 @@
     import { Pencil, Mail, UserCircle, Camera, Clock, BarChart, Volume2, Moon, BarChart3, RefreshCcw, Lock, LogOut, Hash } from 'lucide-svelte';
     import { goto } from '$app/navigation';
     import SettingsModal from "../modals/settings.svelte";
-    
-    export let data; // Receive data from load function
+    import { onMount } from 'svelte';
     
     let editModal = false;
     let showMenu = false;
     let popupModal = false;
     let settingsModal = false;
     
-    // Use data from server
-    let name = data.name;
-    let email = data.email;
-    let role = data.role;
-    let userId = data.userId;
+    // Initialize with loading state
+    let name = 'Loading...';
+    let email = 'Loading...';
+    let role = 'Teacher';
+    let userId = '';
   
     // Settings variables (kept for compatibility, not used in SettingsModal)
     let darkMode = false;
@@ -24,6 +23,32 @@
     let animationsEnabled = true;
     let difficulty = "Normal";
     let fontSize = "Medium";
+
+    // Fetch teacher data client-side
+    async function fetchTeacherInfo(){
+      try{
+        const { apiUrl } = await import('$lib/api_base');
+        const res = await fetch(apiUrl('fetch_teacher.php'), { credentials: 'include' });
+        const j = await res.json();
+        if (j && j.success && j.data){
+          name = j.data.name || '';
+          email = j.data.email || '';
+          userId = j.data.idNo || '';
+        } else {
+          // If no teacher session, redirect to login
+          goto('/admin');
+        }
+      }catch(e){
+        console.warn('Failed to fetch teacher info', e);
+        // Redirect to login on error
+        goto('/admin');
+      }
+    }
+
+    onMount(() => {
+      fetchTeacherInfo();
+      fetchProfileCounts();
+    });
   
     function toggleMenu() {
       showMenu = !showMenu;
@@ -62,11 +87,6 @@
       console.error('Failed to fetch student count', e);
       totalStudents = 0;
     }
-  }
-
-  if (typeof window !== 'undefined'){
-    // run client-side only
-    fetchProfileCounts();
   }
   </script>
   
