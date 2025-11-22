@@ -8,6 +8,9 @@
 
     type SvelteComponent = any;
 
+    // Pre-register all Level 1 story slides for dynamic import
+    const slideModules = import.meta.glob('../../Levels/Level1/**/*.svelte');
+
     let StorySlide: SvelteComponent | null = null;
     export let storyKey: string = '';
     export let showModal: boolean = false;
@@ -71,6 +74,14 @@
         return true; // Non-quiz slides are always "answered"
     })();
 
+    // Handle story selection from chooser
+    function handleStorySelection(event: CustomEvent<{ storyKey: string }>) {
+        const { storyKey: selectedKey } = event.detail;
+        console.log('Story selected from chooser:', selectedKey);
+        storyKey = selectedKey;
+        // loadStorySlide will be triggered by the reactive statement
+    }
+
     async function loadStorySlide(key: string, slideNumber: number = 1): Promise<void> {
         console.log('Attempting to load story slide:', { key, slideNumber, currentSlide });
         
@@ -90,7 +101,13 @@
                 path = `../../Levels/Level1/${key}/slide_${fileIndex}.svelte`;
             }
             console.log('Loading slide from path:', path);
-            const module = await import(/* @vite-ignore */ path);
+            
+            // Use the pre-registered glob imports
+            const moduleLoader = slideModules[path];
+            if (!moduleLoader) {
+                throw new Error(`Module not found: ${path}`);
+            }
+            const module = await moduleLoader() as any;
             console.log('Module loaded:', module);
             StorySlide = module.default;
             currentSlide = slideNumber;
@@ -135,9 +152,14 @@
         } else {
             try {
                 console.log('Loading final slide');
-                const module = await import('../../Levels/Level1/slide_last.svelte');
-                StorySlide = module.default;
-                currentSlide = maxSlides + 1;
+                const moduleLoader = slideModules['../../Levels/Level1/slide_last.svelte'];
+                if (moduleLoader) {
+                    const module = await moduleLoader() as any;
+                    StorySlide = module.default;
+                    currentSlide = maxSlides + 1;
+                } else {
+                    console.error('Final slide module not found');
+                }
             } catch (error) {
                 console.error("Failed to load final slide:", error);
             }
@@ -172,8 +194,8 @@
         await goto('/student/dashboard');
     }
 
-    $: if (showModal && isLoading) {
-        // Preload all Level 1 assets when modal opens
+    $: if (showModal && isLoading && !storyKey) {
+        // Preload all Level 1 assets when modal first opens (before story selection)
         preloadLevelAssets('Level1', (loaded, total, type, url) => {
             loadedAssets = loaded;
             totalAssets = total;
@@ -199,8 +221,9 @@
         });
     }
 
-    $: if (showModal && storyKey) {
-        console.log('Modal and storyKey detected, loading slide');
+    // When a story is selected, load its first slide
+    $: if (showModal && storyKey && !isLoading) {
+        console.log('Story selected, loading slide for:', storyKey);
         language.set('english');
         try { localStorage.setItem('pending_story', storyKey); } catch {}
         loadStorySlide(storyKey, 1);
@@ -249,7 +272,7 @@
                 <div class="content-wrapper">
                     {#key `${storyKey}-${currentSlide}`}
                         {#if !storyKey}
-                            <Slide1 />
+                            <Slide1 on:selectStory={handleStorySelection} />
                         {:else if StorySlide}
                             <!-- Pass storyKey so slides that expect it (like slide_last) receive the prop -->
                             <svelte:component this={StorySlide} {storyKey} />

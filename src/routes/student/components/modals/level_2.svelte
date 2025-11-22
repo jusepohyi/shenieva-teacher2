@@ -8,6 +8,10 @@
     import { preloadLevelAssets } from '$lib/utils/story_assets';
 
     import FinalSlideFallback from '../../Levels/Level2/slide_last.svelte';
+    
+    // Pre-register all Level 2 story slides for dynamic import
+    const slideModules = import.meta.glob('../../Levels/Level2/**/*.svelte');
+    
     let StorySlide: any = null;
     export let storyKey: string = '';
     export let showModal: boolean = false;
@@ -121,7 +125,12 @@
         try {
             const path = `../../Levels/Level2/${key}/slide_${slideNumber}.svelte`;
             console.log('Loading slide from path:', path);
-            const module = await import(/* @vite-ignore */ path);
+            
+            const moduleLoader = slideModules[path];
+            if (!moduleLoader) {
+                throw new Error(`Module not found: ${path}`);
+            }
+            const module = await moduleLoader() as any;
             console.log('Module loaded:', module);
             StorySlide = module.default;
             currentSlide = slideNumber;
@@ -209,8 +218,14 @@
             console.log('Loading final slide (helper)');
             // set the currentSlide immediately so the template can show the static fallback while import resolves
             currentSlide = maxSlides + 1;
-            const module = await import(/* @vite-ignore */ '../../Levels/Level2/slide_last.svelte');
-            StorySlide = module.default;
+            
+            const moduleLoader = slideModules['../../Levels/Level2/slide_last.svelte'];
+            if (moduleLoader) {
+                const module = await moduleLoader() as any;
+                StorySlide = module.default;
+            } else {
+                console.error('Final slide module not found');
+            }
             // ensure any optimistic flags reset
             slideAllAnswered = true;
             showQuizReview = false;
@@ -250,8 +265,8 @@
         await goto('/student/dashboard');
     }
 
-    $: if (showModal && isLoading) {
-        // Real asset preloading for Level 2
+    $: if (showModal && isLoading && !storyKey) {
+        // Real asset preloading for Level 2 (on initial modal open)
         (async () => {
             try {
                 await preloadLevelAssets('Level2', (loaded, total, type, url) => {
@@ -279,8 +294,9 @@
         })();
     }
 
-    $: if (showModal && storyKey) {
-        console.log('Modal and storyKey detected, loading slide');
+    // When a story is selected, load its first slide
+    $: if (showModal && storyKey && !isLoading) {
+        console.log('Story selected, loading slide for:', storyKey);
         language.set('english');
         try { localStorage.setItem('pending_story', storyKey); } catch {}
         loadStorySlide(storyKey, 1);

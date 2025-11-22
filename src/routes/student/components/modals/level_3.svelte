@@ -6,6 +6,10 @@
     import { preloadLevelAssets } from '$lib/utils/story_assets';
 
     type SvelteComponent = any;
+    
+    // Pre-register all Level 3 story slides for dynamic import
+    const slideModules = import.meta.glob('../../Levels/Level3/**/*.svelte');
+    
     let StorySlide: any = null;
 
     export let showModal: boolean = false;
@@ -84,7 +88,12 @@
     async function loadStorySlide(key: string, slideNumber: number = 1): Promise<void> {
         try {
             const path = `../../Levels/Level3/${key}/slide_${slideNumber}.svelte`;
-            const module = await import(/* @vite-ignore */ path);
+            
+            const moduleLoader = slideModules[path];
+            if (!moduleLoader) {
+                throw new Error(`Module not found: ${path}`);
+            }
+            const module = await moduleLoader() as any;
             StorySlide = module.default;
             currentSlide = slideNumber;
             // Slide successfully loaded; ensure UI is interactive
@@ -105,8 +114,8 @@
     const baseSlides: SvelteComponent[] = [Slide1];
     let totalSlides: number = baseSlides.length - 1; // will be 0
 
-    $: if (showModal && isLoading) {
-        // Real asset preloading for Level 3
+    $: if (showModal && isLoading && !storyKey) {
+        // Real asset preloading for Level 3 (on initial modal open)
         (async () => {
             try {
                 await preloadLevelAssets('Level3', (loaded, total, type, url) => {
@@ -134,6 +143,14 @@
         })();
     }
 
+    // When a story is selected, load its first slide
+    $: if (showModal && storyKey && !isLoading) {
+        console.log('Story selected, loading slide for:', storyKey);
+        language.set('english');
+        try { localStorage.setItem('pending_story', storyKey); } catch {}
+        loadStorySlide(storyKey, 1);
+    }
+
     async function nextSlide(): Promise<void> {
         // Gate progression when current slide requires answers
         if (!isCurrentSlideAnswered) {
@@ -149,9 +166,14 @@
         } else if (currentSlide === max) {
             // Load final slide when exceeding max
             try {
-                const module = await import('../../Levels/Level3/slide_last.svelte');
-                StorySlide = module.default;
-                currentSlide = max + 1;
+                const moduleLoader = slideModules['../../Levels/Level3/slide_last.svelte'];
+                if (moduleLoader) {
+                    const module = await moduleLoader() as any;
+                    StorySlide = module.default;
+                    currentSlide = max + 1;
+                } else {
+                    console.error('Final slide module not found');
+                }
             } catch (e) {
                 console.error('Failed to load Level 3 final slide', e);
             }
@@ -190,13 +212,6 @@
     }
 
     // Vendor logic removed for Level 3
-
-    $: if (showModal && storyKey) {
-        console.log('Level3 modal detected storyKey, loading story slide');
-        language.set('english');
-        try { localStorage.setItem('pending_story', storyKey); } catch {}
-        loadStorySlide(storyKey, 1);
-    }
 
     function handleKeydown(e: KeyboardEvent) {
         if (!showModal || !StorySlide) return;

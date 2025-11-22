@@ -1,6 +1,7 @@
 <script lang="ts">
-    import StoryModal from '../../components/modals/level_1.svelte';
-    import { onMount } from 'svelte';
+    import { createEventDispatcher } from 'svelte';
+
+    const dispatch = createEventDispatcher();
 
     const slide = {
         text: "Choose a story. 🌟",
@@ -27,37 +28,11 @@
         }
     ];
 
-    let showModal = false;
-    let selectedStoryKey: string | null = null;
-
     function handleStorySelect(storyKey: string): void {
-        console.log('Selected story:', storyKey); // For debugging
-        selectedStoryKey = storyKey;
-        showModal = true;
+        console.log('Dispatching story selection:', storyKey);
+        // Dispatch event to parent modal instead of creating nested modal
+        dispatch('selectStory', { storyKey });
     }
-
-    function closeModal(): void {
-        showModal = false;
-        selectedStoryKey = null;
-    }
-
-    // Auto-open modal after a retake request
-    onMount(() => {
-        try {
-            const shouldOpen = localStorage.getItem('openStory1Modal');
-            // If the current URL explicitly requests a different story (e.g. story2-1),
-            // don't auto-open the Level 1 modal. This prevents Level 1 from stealing focus
-            // when the user requested a Level 2 retake.
-            const requested = typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('story') : null;
-            if (shouldOpen === 'true' && (!requested || requested.startsWith('story1-'))) {
-                // Default to Story 1-1 or keep null to show the story chooser inside the modal
-                selectedStoryKey = null;
-                showModal = true;
-            }
-            // Always clear the flag so it doesn't persist unexpectedly
-            try { localStorage.removeItem('openStory1Modal'); } catch {}
-        } catch {}
-    });
 </script>
 
 <div class="flex flex-col justify-center items-center text-center slide">
@@ -81,9 +56,6 @@
         {/each}
     </div>
 
-    {#if showModal && selectedStoryKey}
-        <StoryModal showModal={showModal} on:close={closeModal} storyKey={selectedStoryKey} />
-    {/if}
 </div>
 
 <style>
