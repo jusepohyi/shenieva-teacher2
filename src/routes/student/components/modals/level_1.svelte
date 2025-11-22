@@ -191,7 +191,15 @@
             localStorage.removeItem('retakeLevel1');
             localStorage.removeItem('openStory1Modal');
         } catch {}
-        await goto('/student/dashboard');
+        
+        // Check if we should return to village
+        const returnScene = localStorage.getItem('villageReturnScene');
+        if (returnScene !== null) {
+            console.log('Returning to village scene:', returnScene);
+            await goto('/student/village');
+        } else {
+            await goto('/student/dashboard');
+        }
     }
 
     $: if (showModal && isLoading && !storyKey) {

@@ -3,6 +3,7 @@
     import { language } from "$lib/store/story_lang_audio";
     import { studentData } from '$lib/store/student_data';
     import { tick } from 'svelte';
+    import { goto } from '$app/navigation';
     import { preloadLevelAssets } from '$lib/utils/story_assets';
 
     type SvelteComponent = any;
@@ -40,26 +41,23 @@
         // Gate for story3-1 slide 8 (essay questions)
         if (storyKey === 'story3-1' && currentSlide === 8) {
             const answered = $studentData?.answeredQuestions || {};
-            const a1 = (answered['story3-1_q1'] || '').trim();
-            const a2 = (answered['story3-1_q2'] || '').trim();
-            const a3 = (answered['story3-1_q3'] || '').trim();
-            return Boolean(a1 && a2 && a3);
+            const isFinalized = Boolean(answered['story3-1_finalized']);
+            console.log('Level3 story3-1 validation:', { isFinalized });
+            return isFinalized;
         }
         // Gate for story3-2 slide 8 (essay questions)
         if (storyKey === 'story3-2' && currentSlide === 8) {
             const answered = $studentData?.answeredQuestions || {};
-            const a1 = (answered['story3-2_q1'] || '').trim();
-            const a2 = (answered['story3-2_q2'] || '').trim();
-            const a3 = (answered['story3-2_q3'] || '').trim();
-            return Boolean(a1 && a2 && a3);
+            const isFinalized = Boolean(answered['story3-2_finalized']);
+            console.log('Level3 story3-2 validation:', { isFinalized });
+            return isFinalized;
         }
         // Gate for story3-3 slide 8 (essay questions)
         if (storyKey === 'story3-3' && currentSlide === 8) {
             const answered = $studentData?.answeredQuestions || {};
-            const a1 = (answered['story3-3_q1'] || '').trim();
-            const a2 = (answered['story3-3_q2'] || '').trim();
-            const a3 = (answered['story3-3_q3'] || '').trim();
-            return Boolean(a1 && a2 && a3);
+            const isFinalized = Boolean(answered['story3-3_finalized']);
+            console.log('Level3 story3-3 validation:', { isFinalized });
+            return isFinalized;
         }
         return true;
     })();
@@ -114,7 +112,7 @@
     const baseSlides: SvelteComponent[] = [Slide1];
     let totalSlides: number = baseSlides.length - 1; // will be 0
 
-    $: if (showModal && isLoading && !storyKey) {
+    $: if (showModal && isLoading) {
         // Real asset preloading for Level 3 (on initial modal open)
         (async () => {
             try {
@@ -192,7 +190,7 @@
         }
     }
 
-    function closeModal(): void {
+    async function closeModal(): Promise<void> {
         onClose();
         showModal = false;
         currentSlide = 0;
@@ -200,6 +198,20 @@
         totalSlides = baseSlides.length - 1;
         showLanguageModal = false;
         currentSlide = 1;
+        
+        try {
+            localStorage.removeItem('retakeLevel3');
+            localStorage.removeItem('openStory3Modal');
+        } catch {}
+        
+        // Check if we should return to village
+        const returnScene = localStorage.getItem('villageReturnScene');
+        if (returnScene !== null) {
+            console.log('Returning to village scene:', returnScene);
+            await goto('/student/village');
+        } else {
+            await goto('/student/dashboard');
+        }
     }
 
     function toggleLanguageModal(): void {
@@ -288,8 +300,8 @@
                                 <Slide1 />
                             {/if}
                         {/key}
-                        {#if StorySlide}
-                            <!-- Invisible hotspots for navigation -->
+                        {#if StorySlide && currentSlide !== 8}
+                            <!-- Invisible hotspots for navigation (disabled on slide 8 essay quiz) -->
                             <div aria-hidden="true" class="hotspot hotspot-right" on:click={nextSlide}></div>
                             {#if currentSlide > 1}
                                 <div aria-hidden="true" class="hotspot hotspot-left" on:click={prevSlide}></div>

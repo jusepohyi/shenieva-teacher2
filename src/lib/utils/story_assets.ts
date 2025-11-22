@@ -355,7 +355,7 @@ export async function preloadLevelAssets(
         
         let resolved = false;
         
-        // Set a timeout to prevent hanging (10 seconds max per audio file)
+        // Set a timeout to prevent hanging (30 seconds max per audio file)
         const timeout = setTimeout(() => {
           if (!resolved) {
             console.warn(`Audio load timeout: ${url}`);
@@ -364,7 +364,7 @@ export async function preloadLevelAssets(
             if (onProgress) onProgress(loaded, total, type, url);
             resolve();
           }
-        }, 10000);
+        }, 30000);
         
         audio.oncanplaythrough = () => {
           if (!resolved) {
@@ -447,7 +447,7 @@ export async function preloadStoryAssets(
         
         let resolved = false;
         
-        // Set a timeout to prevent hanging (10 seconds max per audio file)
+        // Set a timeout to prevent hanging (30 seconds max per audio file)
         const timeout = setTimeout(() => {
           if (!resolved) {
             console.warn(`Audio load timeout: ${url}`);
@@ -456,7 +456,7 @@ export async function preloadStoryAssets(
             if (onProgress) onProgress(loaded, total, type, url);
             resolve();
           }
-        }, 10000);
+        }, 30000);
         
         audio.oncanplaythrough = () => {
           if (!resolved) {

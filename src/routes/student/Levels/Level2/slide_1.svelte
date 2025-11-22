@@ -22,7 +22,7 @@
         {
             id: 3,
             title: "Royce Choice",
-            image: "/converted/assets/LEVEL_2/STORY_3/PIC8.webp",
+            image: "/converted/assets/LEVEL_2/STORY_3/Pic8.webp",
             key: "story2-3"
         }
     ];

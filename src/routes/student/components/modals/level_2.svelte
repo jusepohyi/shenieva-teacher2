@@ -262,10 +262,18 @@
             localStorage.removeItem('retakeLevel2');
             localStorage.removeItem('openStory2Modal');
         } catch {}
-        await goto('/student/dashboard');
+        
+        // Check if we should return to village
+        const returnScene = localStorage.getItem('villageReturnScene');
+        if (returnScene !== null) {
+            console.log('Returning to village scene:', returnScene);
+            await goto('/student/village');
+        } else {
+            await goto('/student/dashboard');
+        }
     }
 
-    $: if (showModal && isLoading && !storyKey) {
+    $: if (showModal && isLoading) {
         // Real asset preloading for Level 2 (on initial modal open)
         (async () => {
             try {

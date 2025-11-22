@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
-    import Preloader from '$lib/Preloader.svelte';
     import { goto } from '$app/navigation';
     import { fade } from 'svelte/transition';
     import { studentData } from '$lib/store/student_data';
@@ -24,7 +23,7 @@
     const GRID_HEIGHT = 20;
     const TILE_SIZE = 32;
     const PLAYER_SIZE = 32;
-    const PLAYER_SPEED = 2;
+    const PLAYER_SPEED = 1.5;
     const HOUSE_SIZE = 200;
     const TREE_SIZE = 180;
     const TRASH_SIZE = 50;
@@ -76,6 +75,7 @@
     let collectSound: HTMLAudioElement;
     let bgMusic: HTMLAudioElement;
     let hasInteracted = false;
+    let animationFrameId: number;
 
     interface CharacterAssets {
         walking_right: HTMLImageElement[];
@@ -94,26 +94,104 @@
 
     let assets: Assets;
     let showPreloader = true;
+    let loadingProgress = 0;
+    let loadingText = 'Preparing adventure...';
+    let assetsRendered = false;
 
-    // Pre-expand critical URLs (literal globs) for this game scene
-    const _crit1 = import.meta.glob('/static/trash_collect_game/boy/walking_sprite/**/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
-    const _crit2 = import.meta.glob('/static/trash_collect_game/girl/walking_sprite/**/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
-    const _crit3 = import.meta.glob('/static/trash_collect_game/ground/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
-    const _crit4 = import.meta.glob('/static/trash_collect_game/house/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
-    const criticalUrls = Array.from(new Set([...Object.values(_crit1), ...Object.values(_crit2), ...Object.values(_crit3), ...Object.values(_crit4)].filter(Boolean)));
+    // Centralized trash names to ensure consistency
+    const TRASH_NAMES = [
+        'Egg', 'BananaSkin', 'Bone', 'FishBone', 'Apple', 'Cabbage', 'Styrofoam', 
+        'Plastic', 'Snack', 'Milk', 'Bottle', 'Rope', 'Wood', 'Twigs', 
+        'Leaf', 'Paper', 'OldMagazine', 'Box', 'Empty Can', 'Patchwork', 
+        'Tshirt', 'Glass', 'GlassCup', 'Plate', 'FilterCigarette'
+    ];
 
-    // Non-critical: trash item sprites, decorations
-    const _non1 = import.meta.glob('/static/trash_collect_game/trash/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, as: 'url' });
-    const nonCriticalUrls = Array.from(new Set([...Object.values(_non1)].filter(Boolean)));
+    // Build complete list of asset URLs to preload
+    const buildAssetUrls = () => {
+        const urls: string[] = [];
+        const currentStudent = $studentData as StudentData | null;
+        const gender = currentStudent?.studentGender ?? 'Male';
+        const genderFolder = gender === 'Female' ? 'girl' : 'boy';
+        
+        // Character sprites (all directions)
+        ['walking_right', 'walking_left', 'walking_front', 'walking_back'].forEach(dir => {
+            for (let i = 1; i <= 3; i++) {
+                urls.push(`/converted/trash_collect_game/${genderFolder}/walking_sprite/${dir}/${i}.webp`);
+            }
+        });
+        
+        // Ground tiles
+        urls.push('/converted/trash_collect_game/ground/soil.webp');
+        urls.push('/converted/trash_collect_game/ground/grass.webp');
+        
+        // Houses
+        for (let i = 1; i <= 3; i++) {
+            urls.push(`/converted/trash_collect_game/house/story1/${i}.webp`);
+        }
+        
+        // Trees
+        for (let i = 1; i <= 5; i++) {
+            urls.push(`/converted/trash_collect_game/trees/${i}.webp`);
+        }
+        
+        // Trash items
+        TRASH_NAMES.forEach((name, i) => {
+            const fileName = `${String(i + 1).padStart(2, '0')}-${name}.webp`;
+            urls.push(`/converted/trash_collect_game/trash/${encodeURIComponent(fileName)}`);
+        });
+        
+        return urls;
+    };
+
+    let criticalUrls: string[] = [];
+    
+    // Build URLs after studentData is available
+    $: if ($studentData) {
+        criticalUrls = buildAssetUrls();
+    }
 
     // Handler called when preloader completes
     async function handlePreloadDone() {
+        loadingText = 'Almost ready...';
+        loadingProgress = 100;
+        // Wait a moment to show 100%
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        // Hide preloader first to mount the canvas
         showPreloader = false;
-        // kick off background preload of non-critical assets
-        if (nonCriticalUrls.length > 0) {
-            preloadImagesBatched(nonCriticalUrls, () => {}, 6).catch((e) => console.warn('background preload failed', e));
-        }
+        
+        // Wait for next tick to ensure canvas is mounted
+        await new Promise(resolve => setTimeout(resolve, 0));
+        
+        // Initialize the game
         await initGame();
+        
+        // Wait for at least one render cycle to complete
+        loadingText = 'Rendering game...';
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Ensure assets are visible on screen
+        if (ctx && assets) {
+            draw();
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        assetsRendered = true;
+    }
+    
+    // Custom progress handler for loading screen
+    function handleLoadingProgress(progress: number) {
+        loadingProgress = Math.round(progress * 100);
+        
+        if (progress < 0.3) {
+            loadingText = 'Loading game world...';
+        } else if (progress < 0.6) {
+            loadingText = 'Preparing characters...';
+        } else if (progress < 0.9) {
+            loadingText = 'Collecting trash items...';
+        } else {
+            loadingText = 'Almost ready...';
+        }
     }
 
     async function loadImage(src: string): Promise<HTMLImageElement> {
@@ -145,20 +223,18 @@
             soil: await loadImage('/converted/trash_collect_game/ground/soil.webp'),
             grass: await loadImage('/converted/trash_collect_game/ground/grass.webp')
         };
-        const house = await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/converted/trash_collect_game/house/${i+1}.webp`)));
+        const house = await Promise.all(Array(3).fill(null).map((_, i) => loadImage(`/converted/trash_collect_game/house/story1/${i+1}.webp`)));
         const trees = await Promise.all(Array(5).fill(null).map((_, i) => loadImage(`/converted/trash_collect_game/trees/${i+1}.webp`)));
-        const trash = await Promise.all(Array(25).fill(null).map((_, i) => loadImage(`/converted/trash_collect_game/trash/${String(i+1).padStart(2, '0')}-${getTrashName(i+1)}.webp`)));
+        const trash = await Promise.all(Array(25).fill(null).map((_, i) => {
+            const trashName = getTrashName(i+1);
+            const fileName = `${String(i+1).padStart(2, '0')}-${trashName}.webp`;
+            return loadImage(`/converted/trash_collect_game/trash/${encodeURIComponent(fileName)}`);
+        }));
         return { character, ground, house, trees, trash };
     }
 
     function getTrashName(i: number): string {
-        const names = [
-            'Eggshell', 'Banana Peel', 'Meat Bone', 'Fish Bone', 'Apple Waste', 'Cabbage Waste', 'Styrofoam Waste', 
-            'Plastic Waste', 'Snack Wrapper', 'Milk Carton', 'Plastic Bottle', 'Rope Waste', 'Scrap Wood', 'Twigs', 
-            'Fallen Leaf', 'Scratch Paper', 'Old Magazine', 'Cardboard Box', 'Empty Can', 'Fabric Scrap', 
-            'Old T-shirt', 'Broken Glass Shard', 'Shattered Glass Cup', 'Discarded Plate', 'Cigarette Butt'
-        ];
-        return names[i-1];
+        return TRASH_NAMES[i-1];
     }
 
     function resizeCanvas() {
@@ -327,6 +403,7 @@
     }
 
     function updateCamera() {
+        if (!gameCanvas) return;
         const canvasWidthInTiles = gameCanvas.width / (TILE_SIZE * scaleFactor);
         cameraX = Math.max(0, Math.min(
             player.x - canvasWidthInTiles * TILE_SIZE / 2,
@@ -399,7 +476,6 @@
         arrowWiggleAngle = Math.sin(Date.now() / 200) * 10;
 
         updateCamera();
-        requestAnimationFrame(draw);
     }
 
     function draw(): void {
@@ -727,19 +803,31 @@
     }
 
     async function initGame() {
+        // Stop any existing game loop
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+        }
+        
         // Stop global background music
         audioStore.stopAll();
         
         assets = await loadAssets();
-        if (gameCanvas) ctx = gameCanvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
+        
+        // Ensure canvas is available
+        if (!gameCanvas) {
+            console.error('Game canvas not available');
+            return;
+        }
+        
+        ctx = gameCanvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
 
         // Use document.createElement instead of new Audio() to avoid Vite StubAudio
         collectSound = document.createElement('audio');
-        collectSound.src = '/trash_collect_game/audio/collect_effect.mp3';
+        collectSound.src = '/assets/trash_collect_game/audio/collect_effect.mp3';
         collectSound.volume = 0.7;
         
         bgMusic = document.createElement('audio');
-        bgMusic.src = '/trash_collect_game/audio/game_bg.mp3';
+        bgMusic.src = '/assets/trash_collect_game/audio/game_bg.mp3';
         bgMusic.loop = true;
         bgMusic.volume = 0.5;
 
@@ -762,19 +850,51 @@
         window.addEventListener('keydown', (e: KeyboardEvent) => { keys[e.key as keyof Keys] = true; });
         window.addEventListener('keyup', (e: KeyboardEvent) => { keys[e.key as keyof Keys] = false; });
         window.addEventListener('resize', resizeCanvas);
-        setInterval(() => { handleMovement(); update(); }, 1000 / 60);
+        
+        // Start smooth game loop using requestAnimationFrame
+        function gameLoop() {
+            handleMovement();
+            update();
+            draw();
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+        gameLoop();
     }
 
     onMount(async () => {
-        if (!showPreloader) {
-            await initGame();
-            return;
+        // Stop any existing game loop first
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
         }
-        // otherwise Preloader will call initGame() after critical assets are ready
+        
+        // Always show loading screen and load assets
+        showPreloader = true;
+        assetsRendered = false;
+        
+        // Load assets with custom progress tracking
+        const urls = buildAssetUrls();
+        loadingText = 'Loading game world...';
+        
+        try {
+            await preloadImagesBatched(urls, (progress) => {
+                handleLoadingProgress(progress);
+            }, 6);
+            
+            await handlePreloadDone();
+        } catch (error) {
+            console.error('Failed to load assets:', error);
+            loadingText = 'Loading complete (with some errors)';
+            await handlePreloadDone();
+        }
     });
     
     onDestroy(() => {
         console.log('🧹 Cleaning up trash game 1');
+        
+        // Stop game loop
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+        }
         
         // Stop game audio completely
         if (bgMusic) {
@@ -800,7 +920,41 @@
 </script>
 
 {#if showPreloader}
-    <Preloader assetUrls={criticalUrls} batchSize={6} onComplete={handlePreloadDone} allowSkip={true} />
+    <!-- Custom Loading Screen -->
+    <div class="loading-screen">
+        <div class="loading-content">
+            <!-- Logo or Title -->
+            <div class="loading-logo">
+                <h1 class="loading-title">Trash Collection Adventure</h1>
+                <div class="loading-subtitle">🌿 Keep Shenievia Clean! 🌿</div>
+            </div>
+            
+            <!-- Character Preview -->
+            {#if $studentData}
+            <div class="loading-character">
+                <img src="/converted/trash_collect_game/{$studentData.studentGender === 'Female' ? 'girl' : 'boy'}/walking_sprite/walking_front/1.webp" alt="Character" />
+            </div>
+            {/if}
+            
+            <!-- Progress Bar -->
+            <div class="loading-bar-container">
+                <div class="loading-bar">
+                    <div class="loading-bar-fill" style="width: {loadingProgress}%"></div>
+                </div>
+                <div class="loading-percentage">{loadingProgress}%</div>
+            </div>
+            
+            <!-- Loading Text -->
+            <div class="loading-text">{loadingText}</div>
+            
+            <!-- Animated Dots -->
+            <div class="loading-dots">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+        </div>
+    </div>
 {:else}
 
 <main>
@@ -859,6 +1013,190 @@
 {/if}
 
 <style>
+    /* Loading Screen Styles */
+    .loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: linear-gradient(135deg, #84cc16 0%, #65a30d 50%, #4d7c0f 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .loading-content {
+        text-align: center;
+        color: white;
+        max-width: 700px;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .loading-logo {
+        margin-bottom: 20px;
+        animation: fadeInScale 0.8s ease-out;
+    }
+
+    @keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .loading-title {
+        font-size: 3.5rem;
+        font-weight: bold;
+        margin: 0;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        background: linear-gradient(45deg, #fef9c3, #fef08a, #fde047);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: titleGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes titleGlow {
+        0%, 100% {
+            filter: drop-shadow(0 0 10px rgba(253, 224, 71, 0.6));
+        }
+        50% {
+            filter: drop-shadow(0 0 20px rgba(253, 224, 71, 0.9));
+        }
+    }
+
+    .loading-subtitle {
+        font-size: 1.4rem;
+        margin-top: 0;
+        opacity: 0.95;
+        font-style: italic;
+        color: #fef9c3;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .loading-character {
+        margin: 30px 0;
+        animation: characterBounce 2s ease-in-out infinite;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .loading-character img {
+        height: 150px;
+        width: auto;
+        filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.4));
+    }
+
+    @keyframes characterBounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+
+    .loading-bar-container {
+        margin: 20px 0;
+        width: 100%;
+        max-width: 550px;
+    }
+
+    .loading-bar {
+        width: 100%;
+        height: 28px;
+        background-color: rgba(255, 255, 255, 0.25);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.3);
+        border: 3px solid rgba(254, 249, 195, 0.4);
+    }
+
+    .loading-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #fef08a, #fde047, #facc15);
+        border-radius: 15px;
+        transition: width 0.3s ease-out;
+        box-shadow: 0 0 20px rgba(253, 224, 71, 0.8);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .loading-bar-fill::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+
+    .loading-percentage {
+        margin-top: 15px;
+        font-size: 2.2rem;
+        font-weight: bold;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        color: #fef9c3;
+    }
+
+    .loading-text {
+        font-size: 1.3rem;
+        margin: 15px 0 10px;
+        opacity: 0.95;
+        min-height: 32px;
+        color: #fef9c3;
+    }
+
+    .loading-dots {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .dot {
+        width: 12px;
+        height: 12px;
+        background-color: #fef9c3;
+        border-radius: 50%;
+        animation: dotPulse 1.4s ease-in-out infinite;
+        opacity: 0.7;
+        box-shadow: 0 0 8px rgba(253, 224, 71, 0.6);
+    }
+
+    .dot:nth-child(1) { animation-delay: 0s; }
+    .dot:nth-child(2) { animation-delay: 0.2s; }
+    .dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes dotPulse {
+        0%, 80%, 100% {
+            transform: scale(1);
+            opacity: 0.7;
+            background-color: #fef9c3;
+        }
+        40% {
+            transform: scale(1.3);
+            opacity: 1;
+            background-color: #fde047;
+        }
+    }
+
+    /* Game Wrapper Styles */
     .game-wrapper {
         background: #e0f7e0;
         padding: 20px;
